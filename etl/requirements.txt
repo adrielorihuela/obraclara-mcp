@@ -1,0 +1,1 @@
+# El ETL (inversiones.py) usa solo la biblioteca estándar de Python 3.12; no hay dependencias externas.
