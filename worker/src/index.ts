@@ -19,7 +19,8 @@ export default {
 
     if (url.pathname === "/mcp") {
       if (!(await env.LIMITER.limit({ key: clave })).success) return json({ error: "Demasiadas solicitudes, intenta en un minuto." }, 429);
-      return createMcpHandler(() => crearServidor(db))(req, env, ctx);
+      // Los clientes sin navegador no envían Origin y siempre son válidos; los navegadores solo desde esta misma página (o localhost).
+      return createMcpHandler(() => crearServidor(db), { allowedOriginHostnames: ["obraclara.adrielorihuela.net", "localhost", "127.0.0.1"] })(req, env, ctx);
     }
     if (url.pathname === "/salud") return json({ estado: "ok", ...(await meta(db)) });
     if (url.pathname === "/api/buscar" || url.pathname === "/api/alertas") {

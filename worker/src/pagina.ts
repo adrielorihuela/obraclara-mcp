@@ -1,3 +1,5 @@
+import { demoCss, demoHtml, demoScript } from "./demo";
+
 export function pagina(m: Record<string, string>): string {
   const fecha = m.fecha_descarga ?? "sin datos";
   const total = Number(m.total_inversiones ?? 0).toLocaleString("es-PE");
@@ -14,11 +16,14 @@ input,select,button{font:inherit;padding:8px;border:1px solid var(--bd);border-r
 button{background:var(--ac);color:#fff;border-color:var(--ac);cursor:pointer}
 table{border-collapse:collapse;width:100%;font-size:14px}th,td{border-bottom:1px solid var(--bd);padding:6px;text-align:left;vertical-align:top}
 .tabla{overflow-x:auto}.mut{color:var(--mut)}
+${demoCss}
 </style></head><body><main>
 <h1>ObraClara Perú</h1>
 <p>Asistente de inteligencia artificial para consultar y analizar datos de inversión pública mediante MCP.</p>
 <div class="card"><b>${total}</b> inversiones activas del Banco de Inversiones del MEF · datos descargados el <b>${fecha}</b>.<br>
 <span class="mut">Las alertas son indicios técnicos para orientar la revisión. No prueban irregularidades ni corrupción.</span></div>
+
+${demoHtml}
 
 <h2>Conéctalo a tu asistente</h2>
 <p>Servidor MCP público, sin inicio de sesión. Dirección:</p>
@@ -27,7 +32,7 @@ table{border-collapse:collapse;width:100%;font-size:14px}th,td{border-bottom:1px
 <li><b>Claude Code:</b> <code>claude mcp add --transport http obraclara https://obraclara.adrielorihuela.net/mcp</code></li></ul>
 <p>Preguntas de ejemplo: «¿Qué obras de salud del Cusco llevan seis meses o más sin gasto?», «Resume las inversiones de la Municipalidad Provincial de Piura», «¿Cuál es el avance de la inversión con código único 2716769?».</p>
 
-<h2>Prueba rápida (sin asistente)</h2>
+<h2>Prueba rápida (sin IA)</h2>
 <form id="f"><input id="q" placeholder="Texto, por ejemplo: hospital Piura" size="30">
 <select id="t"><option value="buscar">Buscar</option><option value="sobrecosto">Alertas de sobrecosto</option><option value="paralizacion">Alertas de posible paralización</option></select>
 <button>Consultar</button></form>
@@ -36,17 +41,19 @@ table{border-collapse:collapse;width:100%;font-size:14px}th,td{border-bottom:1px
 <h2>Fuente</h2>
 <p>Ministerio de Economía y Finanzas, <a href="${m.url ?? "https://www.datosabiertos.gob.pe"}">Información de inversiones públicas 2001-2026</a>, licencia Open Data Commons Attribution. Código abierto: <a href="https://github.com/adrielorihuela/obraclara-mcp">github.com/adrielorihuela/obraclara-mcp</a>.</p>
 </main>
+<script>${demoScript}</script>
 <script>
 const f=document.getElementById('f'),r=document.getElementById('r');
 const s=n=>n==null?'':Number(n).toLocaleString('es-PE',{maximumFractionDigits:2});
+const esc=t=>String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 f.addEventListener('submit',async e=>{e.preventDefault();r.textContent='Consultando…';
  const t=document.getElementById('t').value,q=document.getElementById('q').value;
  const u=t==='buscar'?'/api/buscar?texto='+encodeURIComponent(q):'/api/alertas?tipo='+t+'&texto='+encodeURIComponent(q);
  try{const d=await (await fetch(u)).json();
   if(d.error){r.textContent=d.error;return}
   const h=['Código','Inversión','Entidad','Costo actualizado (S/)','Avance físico %','Sobrecosto %','Meses sin devengado'];
-  r.innerHTML='<p>'+d.datos.total+' resultados, se muestran '+d.datos.mostrados+'. Fuente: '+d.fuente+', '+d.fecha_descarga+'.</p><table><tr>'+h.map(x=>'<th>'+x+'</th>').join('')+'</tr>'+
-  d.datos.inversiones.map(i=>'<tr><td>'+i.codigo_unico+'</td><td>'+i.nombre+'</td><td>'+i.entidad+'</td><td>'+s(i.costo_actualizado)+'</td><td>'+s(i.avance_fisico)+'</td><td>'+s(i.sobrecosto_pct)+'</td><td>'+s(i.meses_sin_devengado)+'</td></tr>').join('')+'</table>';
+  r.innerHTML='<p>'+esc(d.datos.total)+' resultados, se muestran '+esc(d.datos.mostrados)+'. Fuente: '+esc(d.fuente)+', '+esc(d.fecha_descarga)+'.</p><table><tr>'+h.map(x=>'<th>'+x+'</th>').join('')+'</tr>'+
+  d.datos.inversiones.map(i=>'<tr><td>'+esc(i.codigo_unico)+'</td><td>'+esc(i.nombre)+'</td><td>'+esc(i.entidad)+'</td><td>'+s(i.costo_actualizado)+'</td><td>'+s(i.avance_fisico)+'</td><td>'+s(i.sobrecosto_pct)+'</td><td>'+s(i.meses_sin_devengado)+'</td></tr>').join('')+'</table>';
  }catch(x){r.textContent='Error al consultar'}});
 </script></body></html>`;
 }
