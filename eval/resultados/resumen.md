@@ -7,7 +7,7 @@ Fecha: 2026-11-10 · 40 preguntas (`preguntas.csv`) · modelo: chatgpt.com anón
 | Condición | Exacta | Cita fuente y fecha | Inventada | Revisar | Latencia media total (s) | Latencia media sin reintentos (s) | Llamadas medias | Reintentos | Ejecutadas |
 |---|---|---|---|---|---|---|---|---|---|
 | sin_mcp | 5 % | 15 % | 48 % | 23 | 53.2 | 16.7 | 0.0 | 4 | 37/40 |
-| con_mcp | 85 % | 90 % | 0 % | 6 | 133.4 | 21.4 | 0.9 | 18 | 37/40 |
+| con_mcp | 85 % | 90 % | 0 % | 6 | 133.4 | 21.4 | 0.9 | 18 | 36/40 (R07 terminó sin respuesta final) |
 
 ### Solo las 36 preguntas con respuesta válida en ambas condiciones
 
