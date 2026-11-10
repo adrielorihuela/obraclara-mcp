@@ -1,7 +1,7 @@
 # Conector gpt-headless
 
-El Worker guarda las preguntas del panel web en una cola (D1). Este conector, que corre en la máquina donde está
-`gpt-headless`, **llama hacia afuera** al Worker, recoge las preguntas, las responde con `gpt-headless`
+El Worker mantiene las preguntas del panel web en una cola en memoria (Durable Object, sin escribir en D1). Este conector, que corre en la máquina donde está
+`gpt-headless`, **se conecta hacia afuera** (WebSocket) al Worker, recibe las preguntas, las responde con `gpt-headless`
 (127.0.0.1:8765) y devuelve la respuesta. No se abre ningún puerto de esa máquina.
 
 ```bash
