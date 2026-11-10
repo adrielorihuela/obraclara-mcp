@@ -46,13 +46,18 @@ async function askOnce(messages) {
   if (!r.ok || j.error) throw new Error(j.error?.message || 'HTTP ' + r.status);
   return j.choices[0].message.content;
 }
+// errors.ok_s acumula la duración de los intentos exitosos (latencia sin contar fallos ni reintentos)
+async function timed(messages, errors) {
+  const t = Date.now(); const out = await askOnce(messages);
+  errors.ok_s = (errors.ok_s || 0) + (Date.now() - t) / 1000; return out;
+}
 async function ask(messages, errors) {
   await sleep(2000);
-  try { return await askOnce(messages); }
+  try { return await timed(messages, errors); }
   catch (e) {
     errors.push('ask: ' + e.message);
     await sleep(5000);
-    return await askOnce(messages); // un reintento; si falla, se propaga
+    return await timed(messages, errors); // un reintento; si falla, se propaga
   }
 }
 
@@ -125,7 +130,7 @@ async function runA(q) {
   try { answer = await ask([{ role: 'system', content: SYS_A }, { role: 'user', content: q.pregunta }], errors); }
   catch (e) { errors.push('final: ' + e.message); }
   return { id: q.id, tipo: q.tipo, condicion: 'sin_mcp', answer, tool_calls: [], steps: answer ? 1 : 0,
-    latency_s: +((Date.now() - t0) / 1000).toFixed(1), errors, sin_json_final: false };
+    latency_s: +((Date.now() - t0) / 1000).toFixed(1), ask_ok_s: +(errors.ok_s || 0).toFixed(1), errors, sin_json_final: false };
 }
 
 async function runB(q, tools, toolNames) {
@@ -171,7 +176,7 @@ async function runB(q, tools, toolNames) {
   } catch (e) { errors.push('final: ' + e.message); }
   if (answer == null && lastText != null) { answer = lastText; noFinal = true; }
   return { id: q.id, tipo: q.tipo, condicion: 'con_mcp', answer, tool_calls: calls, steps,
-    latency_s: +((Date.now() - t0) / 1000).toFixed(1), errors, sin_json_final: noFinal };
+    latency_s: +((Date.now() - t0) / 1000).toFixed(1), ask_ok_s: +(errors.ok_s || 0).toFixed(1), errors, sin_json_final: noFinal };
 }
 
 function done(file) {

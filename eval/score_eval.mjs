@@ -133,7 +133,7 @@ for (const c of conds) {
   for (const q of qs) {
     const r = raw.get(q.id) || { answer: null, tool_calls: [], steps: 0, latency_s: null, errors: ['no ejecutada'] };
     const s = score(q, r);
-    rows.push({ id: q.id, tipo: q.tipo, condicion: c, ...s, llamadas: r.tool_calls.length, pasos: r.steps, latencia_s: r.latency_s,
+    rows.push({ id: q.id, tipo: q.tipo, condicion: c, ...s, llamadas: r.tool_calls.length, pasos: r.steps, latencia_s: r.latency_s, latencia_ok_s: r.ask_ok_s ?? null, reintentos: (r.errors || []).filter((e) => e.startsWith('ask')).length,
       herramientas: r.tool_calls.map((t) => t.name).join('+'), esperada: q.herramienta_esperada,
       respuesta_resumida: (r.answer || '').replace(/\s+/g, ' ').slice(0, 300), ejecutada: r.answer != null });
   }
@@ -147,10 +147,10 @@ fs.writeFileSync(path.join(OUT, 'resultados.csv'),
 const pct = (xs, k) => (xs.length ? ((100 * xs.filter((x) => x[k]).length) / xs.length).toFixed(0) + ' %' : '-');
 const mean = (xs, k) => { const v = xs.map((x) => x[k]).filter((x) => x != null); return v.length ? (v.reduce((a, b) => a + b, 0) / v.length).toFixed(1) : '-'; };
 let md = `# Evaluación ObraClara: sin MCP vs con MCP\n\nFecha: ${new Date().toISOString().slice(0, 10)} · 40 preguntas (\`preguntas.csv\`) · modelo: chatgpt.com anónimo vía gpt-headless · una corrida.\n\n`;
-md += '## Resultado global (porcentaje de las 40 preguntas)\n\n| Condición | Exacta | Cita fuente y fecha | Inventada | Revisar | Latencia media (s) | Llamadas medias | Ejecutadas |\n|---|---|---|---|---|---|---|---|\n';
+md += '## Resultado global (porcentaje de las 40 preguntas)\n\n| Condición | Exacta | Cita fuente y fecha | Inventada | Revisar | Latencia media total (s) | Latencia media sin reintentos (s) | Llamadas medias | Reintentos | Ejecutadas |\n|---|---|---|---|---|---|---|---|---|---|\n';
 for (const c of conds) {
   const xs = rows.filter((r) => r.condicion === c);
-  md += `| ${c} | ${pct(xs, 'exacta')} | ${pct(xs, 'cita')} | ${pct(xs, 'inventada')} | ${xs.filter((x) => x.revisar).length} | ${mean(xs, 'latencia_s')} | ${mean(xs, 'llamadas')} | ${xs.filter((x) => x.ejecutada).length}/40 |\n`;
+  md += `| ${c} | ${pct(xs, 'exacta')} | ${pct(xs, 'cita')} | ${pct(xs, 'inventada')} | ${xs.filter((x) => x.revisar).length} | ${mean(xs, 'latencia_s')} | ${mean(xs, 'latencia_ok_s')} | ${mean(xs, 'llamadas')} | ${xs.reduce((a, x) => a + x.reintentos, 0)} | ${xs.filter((x) => x.ejecutada).length}/40 |\n`;
 }
 md += '\n## Por tipo de pregunta (10 preguntas cada uno)\n\n| Tipo | Condición | Exacta | Cita | Inventada | Revisar |\n|---|---|---|---|---|---|\n';
 for (const t of [...new Set(qs.map((q) => q.tipo))]) for (const c of conds) {
@@ -170,6 +170,7 @@ md += `\n## Cómo se puntuó (automático)\n
 - chatgpt.com **anónimo** (sin cuenta) a través de un navegador headless; no se sabe qué modelo responde y puede cambiar entre preguntas. En «sin MCP» el chat puede usar su búsqueda web.
 - Con MCP se usa un protocolo de herramientas **en texto** (JSON en la respuesta), no llamadas nativas; resultados de más de ${15000} caracteres se recortan.
 - Puntuación **automática** con reglas simples: puede contar como exacta una coincidencia casual o perder respuestas correctas con otro formato. Los casos «revisar» deben verificarlos a mano dos integrantes del grupo.
+- La latencia total incluye los reintentos: gpt-headless a veces se queda 3 min sin leer la respuesta y el ejecutor reintenta una vez; «sin reintentos» suma solo los intentos exitosos (medida desde B08; antes no se registraba).
 - **Una sola corrida** por condición: no mide la variabilidad entre corridas.
 - Datos de referencia con corte 2026-11-10; el chat sin herramientas puede tener datos de otra fecha.
 `;

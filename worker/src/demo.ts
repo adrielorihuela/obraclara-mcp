@@ -5,11 +5,6 @@ import { buildSystemPrompt, parseSse, parseToolCall, truncate } from "./lib/agen
 // así que hay una sola fuente de verdad. test/agente.test.ts evalúa este script y lo compara con las exportaciones
 // (y falla si el empaquetador inyecta helpers como __name dentro de ellas).
 
-export const WEBLLM_VERSION = "0.2.86";
-export const WEBLLM_URL = `https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@${WEBLLM_VERSION}/+esm`;
-export const MODELO_LOCAL = "Qwen2.5-1.5B-Instruct-q4f16_1-MLC";
-export const MODELO_LOCAL_F32 = "Qwen2.5-1.5B-Instruct-q4f32_1-MLC";
-
 export const demoCss = String.raw`
 .demo{border:2px solid var(--ac);border-radius:12px;padding:12px 16px;margin:16px 0;background:var(--card)}
 .demo h2{margin:.2em 0 .4em}
@@ -32,7 +27,6 @@ export const demoCss = String.raw`
 #oc-log details{border:1px solid var(--bd);border-radius:8px;padding:6px 10px;background:var(--bg)}
 #oc-log pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;margin:6px 0 0;max-height:240px;overflow:auto}
 .fila{display:flex;gap:8px}.fila textarea{flex:1;min-width:0}
-progress{width:100%}
 `;
 
 export const demoHtml = String.raw`
@@ -43,15 +37,10 @@ export const demoHtml = String.raw`
 
 <label for="oc-modo">Modelo</label>
 <select id="oc-modo">
-<option value="local">Modelo local en tu dispositivo (se ejecuta en tu navegador, nada pasa por nuestro servidor)</option>
+<option value="cf" selected>IA en Cloudflare (gpt-oss, sin clave)</option>
 <option value="clave">Mi propia clave de API</option>
 </select>
-<div id="oc-local">
-<p class="mut" style="margin:6px 0">Descarga unos 1 GB la primera vez (el navegador lo guarda para después) y requiere WebGPU: Chrome o Edge de escritorio. Un modelo pequeño comete más errores que uno grande.</p>
-<button type="button" id="oc-cargar">Descargar y cargar el modelo</button>
-<progress id="oc-prog" max="1" value="0" hidden></progress>
-<div id="oc-estado" class="mut" role="status"></div>
-</div>
+<p class="mut" id="oc-info" style="margin:6px 0"></p>
 <div id="oc-clave" hidden>
 <label for="oc-prov">Proveedor</label>
 <select id="oc-prov">
@@ -82,7 +71,6 @@ export const demoHtml = String.raw`
 const nombres = `${parseToolCall.toString()}\n${parseSse.toString()}\n${buildSystemPrompt.toString()}\n${truncate.toString()}`;
 
 const app = String.raw`
-var OC_WEBLLM='__WEBLLM_URL__',OC_MODEL='__MODELO__',OC_MODEL32='__MODELO32__';
 var OC_PROV={
  openai:{base:'https://api.openai.com/v1',model:'gpt-4o-mini'},
  groq:{base:'https://api.groq.com/openai/v1',model:'llama-3.3-70b-versatile'},
@@ -91,7 +79,7 @@ var OC_PROV={
  anthropic:{base:'https://api.anthropic.com/v1',model:'claude-haiku-4-5'},
  otro:{base:'',model:''}
 };
-var ocMcp=true,ocHist=[],ocTools=null,ocEngine=null,ocBusy=false;
+var ocMcp=true,ocHist=[],ocTools=null,ocBusy=false;
 function $(id){return document.getElementById(id)}
 function ocLog(cls,txt){var d=document.createElement('div');d.className='msg '+cls;d.textContent=txt;$('oc-log').appendChild(d);d.scrollIntoView({block:'nearest'});return d}
 function ocTool(name,args,res){var d=document.createElement('details'),s=document.createElement('summary'),p=document.createElement('pre');
@@ -101,24 +89,16 @@ function ocStore(k,v){try{if(v===undefined)return sessionStorage.getItem(k)||loc
  if($('oc-rec').checked){localStorage.setItem(k,v);sessionStorage.removeItem(k)}else{sessionStorage.setItem(k,v);localStorage.removeItem(k)}}catch(e){return null}}
 function ocSwitchText(){var sw=$('oc-sw');sw.setAttribute('aria-checked',String(ocMcp));$('oc-swt').textContent=ocMcp?'MCP: ACTIVADO':'MCP: DESACTIVADO';
  $('oc-swd').textContent=ocMcp?'Con MCP: el modelo puede consultar los datos oficiales del MEF mediante las herramientas de este servidor.':'Sin MCP: chat normal con el mismo modelo, sin acceso a los datos; puede equivocarse o inventar.'}
-function ocCfgLoad(){try{var c=JSON.parse(ocStore('oc_cfg')||'null');if(!c)return;$('oc-modo').value=c.modo||'local';$('oc-prov').value=c.prov||'openai';$('oc-base').value=c.base||'';$('oc-model').value=c.model||'';$('oc-key').value=c.key||'';$('oc-rec').checked=!!c.rec}catch(e){}}
+function ocCfgLoad(){try{var c=JSON.parse(ocStore('oc_cfg')||'null');if(!c)return;$('oc-modo').value=c.modo==='clave'?'clave':'cf';$('oc-prov').value=c.prov||'openai';$('oc-base').value=c.base||'';$('oc-model').value=c.model||'';$('oc-key').value=c.key||'';$('oc-rec').checked=!!c.rec}catch(e){}}
 function ocCfgSave(){var c={modo:$('oc-modo').value,prov:$('oc-prov').value,base:$('oc-base').value,model:$('oc-model').value,key:$('oc-key').value,rec:$('oc-rec').checked};
  try{localStorage.removeItem('oc_cfg');sessionStorage.removeItem('oc_cfg')}catch(e){}ocStore('oc_cfg',JSON.stringify(c))}
-function ocUi(){var m=$('oc-modo').value,p=$('oc-prov').value;$('oc-local').hidden=m!=='local';$('oc-clave').hidden=m!=='clave';$('oc-basew').hidden=p!=='otro';
- if(m==='local'&&!navigator.gpu)$('oc-estado').textContent='Tu navegador no tiene WebGPU. Usa Chrome o Edge de escritorio, o elige «Mi propia clave de API».'}
+function ocUi(){var m=$('oc-modo').value,p=$('oc-prov').value;$('oc-clave').hidden=m!=='clave';$('oc-basew').hidden=p!=='otro';
+ $('oc-info').textContent=m==='cf'?'El modelo (gpt-oss) se ejecuta en los servidores de Cloudflare, no en tu dispositivo. Es compartido y tiene límite de uso por visitante. Con «Mi propia clave de API» las solicitudes van directo desde tu navegador al proveedor.':'Con tu propia clave, las solicitudes van directo desde tu navegador al proveedor que elijas; la clave nunca llega a nuestro servidor.'}
 function ocProvChange(){var p=OC_PROV[$('oc-prov').value];if(p&&p.model)$('oc-model').value=p.model;else $('oc-model').value='';ocUi();ocCfgSave()}
 function ocHttpError(st){if(st===401||st===403)return 'El proveedor rechazó la clave (error '+st+'). Revisa que sea correcta y tenga permiso para ese modelo.';
  if(st===429)return 'Límite de uso del proveedor alcanzado (429). Espera un momento o revisa tu cuota.';
  if(st===404)return 'El proveedor no encontró el modelo o la dirección (404). Revisa el nombre del modelo y la URL base.';
  return 'El proveedor respondió con error '+st+'.'}
-async function ocLoadLocal(){
- if(ocEngine)return ocEngine;
- if(!navigator.gpu)throw new Error('Tu navegador no tiene WebGPU. Usa Chrome o Edge de escritorio, o elige «Mi propia clave de API».');
- var id=OC_MODEL;try{var ad=await navigator.gpu.requestAdapter();if(ad&&!ad.features.has('shader-f16'))id=OC_MODEL32}catch(e){}
- $('oc-prog').hidden=false;$('oc-estado').textContent='Cargando el modelo…';
- var wl=await import(OC_WEBLLM);
- ocEngine=await wl.CreateMLCEngine(id,{initProgressCallback:function(p){$('oc-prog').value=p.progress||0;$('oc-estado').textContent=p.text||''}});
- $('oc-prog').hidden=true;$('oc-estado').textContent='Modelo listo ('+id+').';return ocEngine}
 async function ocPost(url,headers,body){var r;
  try{r=await fetch(url,{method:'POST',headers:headers,body:JSON.stringify(body)})}catch(e){throw new Error('No se pudo conectar con el proveedor. Revisa tu conexión (o si el proveedor permite llamadas desde el navegador).')}
  if(!r.ok){var eb=null;try{eb=await r.json()}catch(e){}
@@ -130,7 +110,13 @@ async function ocPost(url,headers,body){var r;
  try{return await r.json()}catch(e){throw new Error('Respuesta del proveedor no válida.')}}
 async function ocLlm(msgs){
  var modo=$('oc-modo').value;
- if(modo==='local'){var en=await ocLoadLocal();var o=await en.chat.completions.create({messages:msgs,temperature:0.2,max_tokens:700});return o.choices[0].message.content||''}
+ if(modo==='cf'){var r;
+  try{r=await fetch('/api/chat',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({messages:msgs})})}catch(e){throw new Error('No se pudo conectar con el servidor.')}
+  var d=null;try{d=await r.json()}catch(e){}
+  if(r.status===429)throw new Error('Muchas preguntas seguidas, espera un minuto o usa tu propia clave');
+  if(!r.ok){var et=d&&typeof d.error==='string'?d.error:'El servidor respondió con error '+r.status+'.';throw new Error(et.slice(0,200))}
+  if(!d||typeof d.content!=='string')throw new Error('Respuesta del servidor no válida.');
+  return d.content}
  var prov=$('oc-prov').value,key=$('oc-key').value.trim(),model=$('oc-model').value.trim();
  var base=(prov==='otro'?$('oc-base').value.trim():OC_PROV[prov].base).replace(/\/+$/,'');
  if(!key)throw new Error('Falta la clave de API.');if(!model)throw new Error('Falta el nombre del modelo.');if(!base)throw new Error('Falta la URL base.');
@@ -169,16 +155,13 @@ $('oc-sw').addEventListener('click',function(){ocMcp=!ocMcp;ocSwitchText();ocLog
 $('oc-modo').addEventListener('change',function(){ocUi();ocCfgSave()});
 $('oc-prov').addEventListener('change',ocProvChange);
 ['oc-base','oc-model','oc-key','oc-rec'].forEach(function(i){$(i).addEventListener('change',ocCfgSave)});
-$('oc-cargar').addEventListener('click',function(){ocLoadLocal().catch(function(e){$('oc-prog').hidden=true;$('oc-estado').textContent=e&&e.message?e.message:'No se pudo cargar el modelo.'})});
 $('oc-form').addEventListener('submit',function(e){e.preventDefault();ocSend($('oc-in').value)});
 $('oc-in').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();ocSend($('oc-in').value)}});
 $('oc-chips').addEventListener('click',function(e){var t=e.target;if(t&&t.tagName==='BUTTON')ocSend(t.textContent)});
 $('oc-nueva').addEventListener('click',function(){ocHist=[];$('oc-log').textContent='';ocLog('n','Nueva conversación.')});
-ocCfgLoad();if(!$('oc-model').value){var oc0=OC_PROV[$('oc-prov').value];$('oc-model').value=oc0?oc0.model:''}
+ocCfgLoad();
+if(!$('oc-model').value){var oc0=OC_PROV[$('oc-prov').value];$('oc-model').value=oc0?oc0.model:''}
 ocSwitchText();ocUi();
-`
-  .replace("__WEBLLM_URL__", WEBLLM_URL)
-  .replace("__MODELO__", MODELO_LOCAL)
-  .replace("__MODELO32__", MODELO_LOCAL_F32);
+`;
 
 export const demoScript = nombres + "\n" + app;
