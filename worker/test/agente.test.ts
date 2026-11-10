@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { buildSystemPrompt, parseSse, parseToolCall, truncate } from "../src/lib/agente";
+import {
+  buildSystemPrompt, construirPeticion, extraerRespuesta, migrarConfig, normalizarConexion, parseSse, parseToolCall,
+  presetsIA, truncate, validarConexion,
+} from "../src/lib/agente";
 import { demoScript } from "../src/demo";
 
 describe("parseToolCall", () => {
@@ -64,7 +67,7 @@ describe("script incrustado en el navegador", () => {
     expect(demoScript).not.toContain("__name");
     const fn = new Function(
       "document", "window", "navigator", "sessionStorage", "localStorage", "fetch",
-      demoScript + "\nreturn {parseToolCall,parseSse,buildSystemPrompt,truncate};",
+      demoScript + "\nreturn {parseToolCall,parseSse,buildSystemPrompt,truncate,presetsIA,normalizarConexion,validarConexion,migrarConfig,construirPeticion,extraerRespuesta};",
     );
     const el: any = new Proxy(function () {}, { get: () => el, apply: () => el, set: () => true });
     const api = fn(el, {}, {}, { getItem: () => null, setItem() {} }, { getItem: () => null, setItem() {} }, async () => ({}));
@@ -75,5 +78,71 @@ describe("script incrustado en el navegador", () => {
     const tools = [{ name: "n", description: "d", inputSchema: { properties: { p: { type: "string" } } } }];
     expect(api.buildSystemPrompt(tools, true)).toBe(buildSystemPrompt(tools, true));
     expect(api.buildSystemPrompt(tools, false)).toBe(buildSystemPrompt(tools, false));
+    expect(api.presetsIA()).toEqual(presetsIA());
+    const c = { nombre: " X ", baseUrl: "https://a.b/v1/", modelo: "m", clave: "k" };
+    expect(api.normalizarConexion(c)).toEqual(normalizarConexion(c));
+    expect(api.validarConexion(c)).toEqual(validarConexion(c));
+    const msgs = [{ role: "system", content: "s" }, { role: "user", content: "u" }];
+    expect(api.construirPeticion(c, msgs)).toEqual(construirPeticion(c, msgs));
+    expect(api.migrarConfig({ modo: "clave", prov: "groq", model: "m", key: "k" })).toEqual(migrarConfig({ modo: "clave", prov: "groq", model: "m", key: "k" }));
+    expect(api.extraerRespuesta("openai", { choices: [{ message: { content: "ok" } }] })).toBe("ok");
+  });
+});
+
+describe("conexiones de IA", () => {
+  const ok = { id: "a", nombre: "Mi Groq", tipo: "openai", baseUrl: "https://api.groq.com/openai/v1/", modelo: "m", clave: "k" };
+  it("presets: los siete, con base y modelo salvo 'otro'", () => {
+    const ps = presetsIA();
+    expect(ps.map((p) => p.id)).toEqual(["openai", "groq", "gemini", "nvidia", "openrouter", "anthropic", "otro"]);
+    ps.filter((p) => p.id !== "otro").forEach((p) => {
+      expect(p.baseUrl).toMatch(/^https:\/\//);
+      expect(p.modelo).not.toBe("");
+    });
+    expect(ps.find((p) => p.id === "anthropic")!.tipo).toBe("anthropic");
+    expect(ps.find((p) => p.id === "otro")!.baseUrl).toBe("");
+  });
+  it("normaliza: recorta, quita / final, tipo por defecto", () => {
+    const n = normalizarConexion({ ...ok, nombre: "  Mi Groq ", tipo: "raro" });
+    expect(n).toMatchObject({ nombre: "Mi Groq", tipo: "openai", baseUrl: "https://api.groq.com/openai/v1", recordar: false });
+    expect(normalizarConexion(null).nombre).toBe("");
+  });
+  it("valida campos obligatorios y esquema de la URL", () => {
+    expect(validarConexion(ok)).toEqual([]);
+    expect(validarConexion({}).length).toBe(4);
+    expect(validarConexion({ ...ok, baseUrl: "http://evil.com/v1" })[0]).toContain("https://");
+    expect(validarConexion({ ...ok, baseUrl: "http://localhost:11434/v1" })).toEqual([]);
+  });
+  it("migra la config antigua", () => {
+    expect(migrarConfig({ modo: "cf" })).toEqual({ conexiones: [], activa: "gpt-headless" });
+    expect(migrarConfig({ modo: "local" })).toEqual({ conexiones: [], activa: "gpt-headless" });
+    expect(migrarConfig(null).activa).toBe("gpt-headless");
+    expect(migrarConfig({ modo: "clave", prov: "groq", model: "m", key: "" }).conexiones).toEqual([]);
+    const m = migrarConfig({ modo: "clave", prov: "groq", base: "", model: "llama", key: "k", rec: true });
+    expect(m.activa).toBe("migrada");
+    expect(m.conexiones[0]).toMatchObject({ nombre: "Groq", tipo: "openai", baseUrl: "https://api.groq.com/openai/v1", modelo: "llama", clave: "k", recordar: true });
+    const o = migrarConfig({ modo: "clave", prov: "otro", base: "https://x.y/v1/", model: "m", key: "k" });
+    expect(o.conexiones[0]).toMatchObject({ nombre: "Otro (cualquier API compatible con OpenAI)", baseUrl: "https://x.y/v1" });
+  });
+  it("petición OpenAI", () => {
+    const q = construirPeticion(ok, [{ role: "system", content: "s" }, { role: "user", content: "u" }]);
+    expect(q.url).toBe("https://api.groq.com/openai/v1/chat/completions");
+    expect(q.headers.authorization).toBe("Bearer k");
+    expect(q.body.messages).toHaveLength(2);
+    expect(q.body.model).toBe("m");
+  });
+  it("petición Anthropic: system aparte y roles seguidos fusionados", () => {
+    const q = construirPeticion({ ...ok, tipo: "anthropic", baseUrl: "https://api.anthropic.com/v1" }, [
+      { role: "system", content: "s" }, { role: "user", content: "a" }, { role: "user", content: "b" }, { role: "assistant", content: "c" },
+    ]);
+    expect(q.url).toBe("https://api.anthropic.com/v1/messages");
+    expect(q.headers["x-api-key"]).toBe("k");
+    expect(q.headers["anthropic-dangerous-direct-browser-access"]).toBe("true");
+    expect(q.body.system).toBe("s");
+    expect(q.body.messages).toEqual([{ role: "user", content: "a\n\nb" }, { role: "assistant", content: "c" }]);
+  });
+  it("extrae la respuesta según el tipo", () => {
+    expect(extraerRespuesta("anthropic", { content: [{ text: "a" }, { text: "b" }] })).toBe("ab");
+    expect(extraerRespuesta("openai", { choices: [{ message: { content: "x" } }] })).toBe("x");
+    expect(extraerRespuesta("openai", {})).toBe("");
   });
 });

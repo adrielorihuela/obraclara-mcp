@@ -100,3 +100,115 @@ export function buildSystemPrompt(tools: Herramienta[], mcpOn: boolean): string 
     "Nunca inventes datos: usa únicamente lo que devuelvan las herramientas. Las alertas son indicadores técnicos, no prueban irregularidades.",
   ].join("\n");
 }
+
+// ---- Conexiones de IA propias (panel "Configuración") ----
+// Mismas reglas de sincronía: funciones de nivel superior que solo se llaman entre sí (todas se incrustan en el navegador).
+
+export type Conexion = {
+  id: string;
+  nombre: string;
+  tipo: "openai" | "anthropic";
+  baseUrl: string;
+  modelo: string;
+  clave: string;
+  recordar?: boolean;
+};
+
+/** Plantillas del formulario: base y modelo típicos por proveedor. */
+export function presetsIA(): { id: string; nombre: string; tipo: "openai" | "anthropic"; baseUrl: string; modelo: string }[] {
+  return [
+    { id: "openai", nombre: "OpenAI", tipo: "openai", baseUrl: "https://api.openai.com/v1", modelo: "gpt-4o-mini" },
+    { id: "groq", nombre: "Groq", tipo: "openai", baseUrl: "https://api.groq.com/openai/v1", modelo: "llama-3.3-70b-versatile" },
+    { id: "gemini", nombre: "Google Gemini", tipo: "openai", baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai", modelo: "gemini-2.5-flash" },
+    { id: "nvidia", nombre: "NVIDIA NIM", tipo: "openai", baseUrl: "https://integrate.api.nvidia.com/v1", modelo: "meta/llama-3.3-70b-instruct" },
+    { id: "openrouter", nombre: "OpenRouter", tipo: "openai", baseUrl: "https://openrouter.ai/api/v1", modelo: "openai/gpt-4o-mini" },
+    { id: "anthropic", nombre: "Anthropic", tipo: "anthropic", baseUrl: "https://api.anthropic.com/v1", modelo: "claude-haiku-4-5" },
+    { id: "otro", nombre: "Otro (cualquier API compatible con OpenAI)", tipo: "openai", baseUrl: "", modelo: "" },
+  ];
+}
+
+/** Texto recortado o "" si no es texto. */
+export function textoLimpio(v: unknown): string {
+  return typeof v === "string" ? v.trim() : "";
+}
+
+/** Limpia una conexión: recorta textos, quita "/" finales de la URL, tipo por defecto "openai". */
+export function normalizarConexion(c: any): Conexion {
+  const o = c && typeof c === "object" ? c : {};
+  return {
+    id: textoLimpio(o.id),
+    nombre: textoLimpio(o.nombre).slice(0, 60),
+    tipo: o.tipo === "anthropic" ? "anthropic" : "openai",
+    baseUrl: textoLimpio(o.baseUrl).replace(/\/+$/, ""),
+    modelo: textoLimpio(o.modelo),
+    clave: textoLimpio(o.clave),
+    recordar: !!o.recordar,
+  };
+}
+
+/** Lista de problemas (en español) de una conexión; vacía si es válida. */
+export function validarConexion(c: any): string[] {
+  const n = normalizarConexion(c);
+  const e: string[] = [];
+  if (!n.nombre) e.push("Falta el nombre.");
+  if (!n.baseUrl) e.push("Falta la URL base.");
+  else if (!/^https:\/\/[^\s/]+/i.test(n.baseUrl) && !/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$)/i.test(n.baseUrl)) e.push("La URL base debe empezar con https://");
+  if (!n.modelo) e.push("Falta el nombre del modelo.");
+  if (!n.clave) e.push("Falta la clave de API.");
+  return e;
+}
+
+/** Convierte la config antigua (modo cf/local/clave) al formato nuevo: { conexiones, activa }. */
+export function migrarConfig(old: any): { conexiones: Conexion[]; activa: string } {
+  const vacio = { conexiones: [] as Conexion[], activa: "gpt-headless" };
+  if (!old || typeof old !== "object" || old.modo !== "clave") return vacio;
+  const ps = presetsIA();
+  const p = ps.filter((x) => x.id === old.prov)[0];
+  const base = p && p.id !== "otro" ? p.baseUrl : typeof old.base === "string" ? old.base : "";
+  const c = normalizarConexion({
+    id: "migrada",
+    nombre: p ? p.nombre : "Mi API",
+    tipo: p ? p.tipo : "openai",
+    baseUrl: base,
+    modelo: old.model,
+    clave: old.key,
+    recordar: old.rec,
+  });
+  if (!c.clave) return vacio;
+  return { conexiones: [c], activa: c.id };
+}
+
+/** Arma la petición HTTP (url, headers, body) para una conexión y una lista de mensajes [{role, content}] con el system primero. */
+export function construirPeticion(c: any, msgs: { role: string; content: string }[]): { url: string; headers: Record<string, string>; body: any } {
+  const n = normalizarConexion(c);
+  if (n.tipo === "anthropic") {
+    const m2: { role: string; content: string }[] = [];
+    msgs.slice(1).forEach((m) => {
+      const l = m2[m2.length - 1];
+      if (l && l.role === m.role) l.content += "\n\n" + m.content;
+      else m2.push({ role: m.role, content: m.content });
+    });
+    return {
+      url: n.baseUrl + "/messages",
+      headers: {
+        "content-type": "application/json",
+        "x-api-key": n.clave,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true",
+      },
+      body: { model: n.modelo, max_tokens: 1024, system: msgs[0] ? msgs[0].content : "", messages: m2 },
+    };
+  }
+  return {
+    url: n.baseUrl + "/chat/completions",
+    headers: { "content-type": "application/json", authorization: "Bearer " + n.clave },
+    body: { model: n.modelo, messages: msgs, temperature: 0.2 },
+  };
+}
+
+/** Texto de la respuesta del proveedor según el tipo ("" si no hay). */
+export function extraerRespuesta(tipo: string, j: any): string {
+  if (tipo === "anthropic") return ((j && j.content) || []).map((c: any) => c.text || "").join("");
+  const ch = j && j.choices && j.choices[0];
+  return (ch && ch.message && ch.message.content) || "";
+}
