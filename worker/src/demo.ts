@@ -3,62 +3,191 @@ import {
   presetsIA, textoLimpio, truncate, validarConexion,
 } from "./lib/agente";
 
-// Panel "Prueba el asistente": HTML, CSS y script del navegador.
+// Panel "Prueba el asistente" (página /asistente): HTML, CSS y script del navegador.
 // SINCRONÍA con src/lib/agente.ts: el script incrusta esas funciones con Function.prototype.toString(),
 // así que hay una sola fuente de verdad. test/agente.test.ts evalúa este script y lo compara con las exportaciones
 // (y falla si el empaquetador inyecta helpers como __name dentro de ellas).
 
 export const demoCss = String.raw`
-.demo{border:2px solid var(--ac);border-radius:12px;padding:12px 16px;margin:16px 0;background:var(--card)}
-.demo h2{margin:.2em 0 .4em}
-.sw{display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;padding:14px 16px;font-size:18px;font-weight:700;border-radius:12px;border:2px solid var(--bd);background:var(--bg);color:var(--fg);cursor:pointer;text-align:left}
-.sw .pista{width:56px;height:30px;border-radius:15px;background:#8a929c;position:relative;flex:none;transition:background .15s}
-.sw .pista::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:left .15s}
-.sw[aria-checked=true]{border-color:#1a8f4c;background:rgba(26,143,76,.14)}
-.sw[aria-checked=true] .pista{background:#1a8f4c}
-.sw[aria-checked=true] .pista::after{left:29px}
-.sw:focus-visible,.demo button:focus-visible,#oc-cfg button:focus-visible,#oc-cfg input:focus-visible,#oc-cfg select:focus-visible,.demo input:focus-visible,.demo select:focus-visible,.demo textarea:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
-.demo label{display:block;margin:8px 0 2px;font-size:14px}
-.demo input,.demo select,.demo textarea{width:100%;box-sizing:border-box}
-.chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
-.chips button,.sec{background:var(--bg);color:var(--fg);border:1px solid var(--bd);font-size:14px;text-align:left}
-#oc-log{max-height:480px;overflow-y:auto;margin:12px 0;display:flex;flex-direction:column;gap:8px}
-.msg{padding:8px 12px;border-radius:10px;white-space:pre-wrap;overflow-wrap:anywhere;border:1px solid var(--bd);background:var(--bg)}
-.msg.u{background:var(--ac);color:#fff;border-color:var(--ac);align-self:flex-end;max-width:90%}
-.msg.e{border-color:#c62828;color:#c62828}
-.msg.n{font-size:13px;color:var(--mut);border-style:dashed;text-align:center}
-#oc-log details{border:1px solid var(--bd);border-radius:8px;padding:6px 10px;background:var(--bg)}
-#oc-log pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;margin:6px 0 0;max-height:240px;overflow:auto}
-.cab{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap}.cab>div{flex:1;min-width:180px}
-#oc-cfg{max-width:min(640px,94vw);width:100%;box-sizing:border-box;border:2px solid var(--ac);border-radius:12px;padding:16px;background:var(--card);color:var(--fg);max-height:90vh;overflow:auto}
-#oc-cfg::backdrop{background:rgba(0,0,0,.5)}
-#oc-lista{list-style:none;margin:8px 0;padding:0;display:flex;flex-direction:column;gap:6px}
-#oc-lista li{display:flex;gap:8px;align-items:center;border:1px solid var(--bd);border-radius:8px;padding:6px 10px;background:var(--bg)}
+body.es-app{height:100dvh;overflow:hidden;display:flex;flex-direction:column}
+body.es-app main{flex:1;min-height:0}
+.chat{height:100%;display:grid;grid-template-columns:300px minmax(0,1fr)}
+.lado{border-right:1px solid var(--line);background:var(--bg-2);padding:16px;display:flex;flex-direction:column;gap:20px;overflow-y:auto}
+.lado .lbl{display:block;font:500 12px/1 var(--mono);color:var(--mut);margin:0 0 10px}
+.lado p.ayuda{font-size:13px;line-height:1.5;color:var(--mut);margin-top:10px}
+.lado .pie-l{margin-top:auto;font-size:12px;line-height:1.5;color:var(--mut);display:grid;gap:8px;padding-top:16px;border-top:1px solid var(--line)}
+.nueva{display:flex;align-items:center;gap:10px;width:100%;min-height:42px;padding:0 14px;border-radius:10px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink);font:500 14px/1 var(--sans);cursor:pointer}
+.nueva:hover{border-color:var(--ink)}
+.nueva svg,.cfg-b svg{width:16px;height:16px;flex:none}
+
+.sw{display:flex;align-items:center;gap:14px;width:100%;padding:14px 14px 14px 16px;border-radius:12px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink);cursor:pointer;text-align:left;font:inherit;transition:border-color .2s,background .2s,box-shadow .2s}
+.sw .sw-t{flex:1;min-width:0;display:grid;gap:3px}
+.sw #oc-swt{font:700 15px/1.2 var(--mono);letter-spacing:.01em}
+.sw small{font-size:12.5px;color:var(--mut)}
+.sw .pista{width:52px;height:30px;border-radius:15px;background:var(--line-2);position:relative;flex:none;transition:background .2s}
+.sw .pista::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .2s cubic-bezier(.3,.7,.3,1)}
+.sw[aria-checked=true]{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 14%,transparent)}
+.sw[aria-checked=true] #oc-swt{color:var(--accent)}
+.sw[aria-checked=true] .pista{background:var(--accent)}
+.sw[aria-checked=true] .pista::after{transform:translateX(22px)}
+.sel{position:relative}
+.sel select{appearance:none;-webkit-appearance:none;width:100%;min-height:42px;padding:0 36px 0 12px;border-radius:10px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink);font:500 14px/1 var(--mono);cursor:pointer}
+.sel::after{content:"";position:absolute;right:14px;top:50%;width:7px;height:7px;border-right:1.5px solid var(--mut);border-bottom:1.5px solid var(--mut);transform:translateY(-70%) rotate(45deg);pointer-events:none}
+.cfg-b{display:flex;align-items:center;gap:8px;margin-top:8px;min-height:38px;padding:0 12px;border-radius:10px;border:1px solid transparent;background:transparent;color:var(--ink-2);font:500 14px/1 var(--sans);cursor:pointer;width:100%}
+.cfg-b:hover{background:var(--surface);border-color:var(--line)}
+.estado{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--mut);margin-top:10px}
+.estado i{width:8px;height:8px;border-radius:50%;background:var(--line-2);flex:none}
+.estado[hidden]{display:none}
+.estado.on i{background:var(--accent)}.estado.off i{background:var(--risk)}
+
+.conv{display:flex;flex-direction:column;min-height:0;min-width:0}
+.scroll{flex:1;overflow-y:auto;overscroll-behavior:contain}
+.col{max-width:780px;margin:0 auto;padding:0 24px}
+.vacio{padding:clamp(40px,10vh,120px) 0 24px}
+.vacio h1{font-size:var(--s3);max-width:18ch}
+.vacio p{color:var(--ink-2);margin-top:14px;max-width:56ch}
+.chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:28px}
+.chips button{text-align:left;padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);font:inherit;font-size:14.5px;line-height:1.45;cursor:pointer;transition:border-color .15s,transform .15s}
+.chips button:hover{border-color:var(--ink-2);transform:translateY(-1px)}
+#oc-log{display:flex;flex-direction:column;gap:18px;padding:24px 0 32px}
+#oc-log:empty{padding:0}
+.msg{overflow-wrap:anywhere;line-height:1.6;animation:entra .3s ease-out}
+@keyframes entra{from{opacity:0;transform:translateY(4px)}}
+.msg.u{align-self:flex-end;max-width:85%;background:var(--surface-2);border:1px solid var(--line);padding:10px 16px;border-radius:18px 18px 4px 18px;white-space:pre-wrap}
+.msg.a{display:grid;grid-template-columns:28px minmax(0,1fr);gap:14px}
+.msg.a::before{content:"";width:28px;height:28px;border-radius:8px;background:var(--ink) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='14.5' r='6.5' fill='none' stroke='white' stroke-width='2.6'/%3E%3Crect x='8' y='24' width='10' height='2.6' rx='1.3' fill='%234fc39c'/%3E%3C/svg%3E") center/22px no-repeat}
+.msg.a .t{display:grid;gap:10px;min-width:0;padding-top:2px}
+.msg.a .t p.h{font-weight:700}
+.msg.a .t ul,.msg.a .t ol{margin:0;padding-left:1.3em;display:grid;gap:4px}
+.msg.a .t .tb{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+.msg.a .t table{border-collapse:collapse;width:100%;font-size:13.5px;line-height:1.45}
+.msg.a .t th,.msg.a .t td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--line)}
+.msg.a .t th{font-weight:600;background:var(--surface-2);white-space:nowrap}
+.msg.a .t tr:last-child td{border-bottom:0}
+.msg.a .t code{background:var(--surface-2);padding:1px 5px;border-radius:4px}
+.msg.e{border:1px solid color-mix(in srgb,var(--risk) 40%,transparent);background:var(--risk-soft);color:var(--risk);padding:10px 14px;border-radius:10px;font-size:14.5px}
+.msg.n{align-self:center;font:500 12px/1.4 var(--mono);color:var(--mut);text-align:center;padding:4px 10px}
+.msg.w{align-self:flex-start;display:flex;align-items:center;gap:10px;font:400 14px/1 var(--sans);color:var(--mut);padding:6px 0 6px 42px}
+.msg.w::before{content:"";width:36px;height:8px;background:radial-gradient(circle,var(--mut) 3px,transparent 3.5px) 0 0/12px 8px repeat-x;animation:puntos 1.2s infinite linear;opacity:.7}
+@keyframes puntos{50%{opacity:.25}}
+.tc{margin-left:42px;border:1px solid var(--line);border-radius:12px;background:var(--surface);overflow:hidden;animation:entra .3s ease-out}
+.tc summary{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;list-style:none;font-size:13.5px;color:var(--ink-2)}
+.tc summary::-webkit-details-marker{display:none}
+.tc summary:hover{background:var(--surface-2)}
+.tc .tc-i{width:22px;height:22px;border-radius:6px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.tc .tc-i svg{width:13px;height:13px}
+.tc summary code{font:600 13px/1.3 var(--mono);color:var(--ink)}
+.tc .tc-a{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:400 12.5px/1.3 var(--mono);color:var(--mut)}
+.tc .tc-c{width:8px;height:8px;border-right:1.5px solid var(--mut);border-bottom:1.5px solid var(--mut);transform:rotate(-45deg);transition:transform .2s;flex:none;margin-right:4px}
+.tc[open] .tc-c{transform:rotate(45deg)}
+.tc .tc-b{border-top:1px solid var(--line);background:var(--code-bg);color:var(--code-ink)}
+.tc .tc-b p{margin:0;padding:10px 14px 0;font:500 11px/1 var(--mono);color:var(--code-mut);letter-spacing:.04em;text-transform:uppercase}
+.tc pre{margin:0;padding:8px 14px 12px;white-space:pre-wrap;overflow-wrap:anywhere;font:400 12px/1.55 var(--mono);max-height:300px;overflow:auto}
+
+.composer{padding:8px 24px 14px;background:linear-gradient(to bottom,transparent,var(--bg) 30%)}
+.composer .caja{max-width:780px;margin:0 auto;border:1px solid var(--line-2);border-radius:18px;background:var(--surface);box-shadow:var(--shadow);transition:border-color .15s}
+.composer .caja:focus-within{border-color:var(--ink-2)}
+.composer textarea{display:block;width:100%;border:0;background:transparent;resize:none;padding:14px 16px 4px;font:inherit;color:var(--ink);outline:none;max-height:200px;min-height:52px;line-height:1.5}
+.composer .barra{display:flex;align-items:center;gap:10px;padding:6px 8px 8px 14px}
+.ind{display:inline-flex;align-items:center;gap:6px;font:500 12px/1 var(--mono);color:var(--mut)}
+.ind i{width:7px;height:7px;border-radius:50%;background:var(--line-2)}
+.ind.on{color:var(--accent)}.ind.on i{background:var(--accent)}
+#oc-send{margin-left:auto;width:36px;height:36px;border-radius:50%;border:0;background:var(--ink);color:var(--bg);display:grid;place-items:center;cursor:pointer}
+#oc-send:disabled{opacity:.35;cursor:default}
+#oc-send svg{width:16px;height:16px}
+.composer .nota-c{max-width:780px;margin:8px auto 0;text-align:center;font-size:12px;color:var(--mut)}
+
+#oc-cfg{width:min(620px,calc(100vw - 32px));max-height:min(88vh,860px);padding:0;border:1px solid var(--line-2);border-radius:16px;background:var(--surface);color:var(--ink);box-shadow:0 30px 80px -20px rgba(0,0,0,.45);overflow:auto}
+#oc-cfg::backdrop{background:rgba(10,12,13,.55);backdrop-filter:blur(2px)}
+#oc-cfg .cfg-h{position:sticky;top:0;background:var(--surface);display:flex;align-items:center;gap:12px;padding:18px 22px;border-bottom:1px solid var(--line);z-index:1}
+#oc-cfg .cfg-h h2{font-size:var(--s1);font-family:var(--sans);letter-spacing:-.01em}
+#oc-cfg .cfg-in{padding:18px 22px 22px}
+#oc-cfg h3{font:500 12px/1 var(--mono);color:var(--mut);margin:22px 0 10px}
+#oc-cfg h3:first-child{margin-top:0}
+#oc-cfg .intro{font-size:14px;color:var(--ink-2);background:var(--surface-2);border-radius:10px;padding:12px 14px}
+#oc-cfg label{display:block;margin:14px 0 6px;font-size:13.5px;font-weight:600}
+#oc-cfg input:not([type=checkbox]),#oc-cfg select{width:100%;min-height:42px;padding:0 12px;border:1px solid var(--line-2);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit;font-size:14.5px}
+#oc-cfg input:focus,#oc-cfg select:focus{outline:none;border-color:var(--ink)}
+#oc-cfg label.chk{display:flex;gap:10px;align-items:center;font-weight:400}
+#oc-cfg label.chk input{width:18px;height:18px;accent-color:var(--accent)}
+#oc-lista{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+#oc-lista li{display:flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:8px 8px 8px 14px;font-size:14px}
 #oc-lista li span{flex:1;overflow-wrap:anywhere}
-#oc-presets{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
-.fila{display:flex;gap:8px}.fila textarea{flex:1;min-width:0}
+#oc-presets{display:flex;flex-wrap:wrap;gap:6px}
+#oc-cfg .b,#oc-presets button,#oc-lista button{min-height:34px;padding:0 12px;border-radius:8px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink);font:500 13.5px/1 var(--sans);cursor:pointer}
+#oc-cfg .b:hover,#oc-presets button:hover,#oc-lista button:hover{border-color:var(--ink)}
+#oc-cfg .b-p{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+#oc-cfg .acc-c{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+#oc-cest{font-size:13.5px;color:var(--ink-2);margin-top:12px;min-height:1.2em}
+#oc-cfg-x{margin-left:auto}
+.sw:focus-visible,.chips button:focus-visible,#oc-cfg button:focus-visible,#oc-cfg input:focus-visible,#oc-cfg select:focus-visible,.sel select:focus-visible,.tc summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+@media (max-width:860px){
+ .chat{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}
+ .lado{border-right:0;border-bottom:1px solid var(--line);padding:10px 16px;gap:8px;display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;overflow:visible}
+ .lado .b-sw{grid-column:1/-1}
+ .lado .lbl,.lado p.ayuda,.lado .pie-l,.lado .estado{display:none}
+ .sw{padding:8px 10px 8px 14px}.sw small{display:none}.sw #oc-swt{font-size:14px}
+ .sw .pista{width:44px;height:26px}.sw .pista::after{width:20px;height:20px}.sw[aria-checked=true] .pista::after{transform:translateX(18px)}
+ .lado .b-mod{display:contents}
+ .cfg-b{margin:0;width:42px;height:42px;padding:0;justify-content:center;border-color:var(--line-2);background:var(--surface)}
+ .cfg-b span,.nueva span{display:none}
+ .nueva{width:42px;height:42px;padding:0;justify-content:center}
+ .lado .b-nueva{order:3}
+ .col{padding:0 16px}.composer{padding:6px 12px 10px}
+ .vacio{padding:28px 0 16px}
+ .chips{grid-template-columns:minmax(0,1fr);margin-top:20px}
+ .tc{margin-left:0}.msg.a{grid-template-columns:minmax(0,1fr)}.msg.a::before{display:none}.msg.w{padding-left:0}
+}
 `;
 
-export const demoHtml = String.raw`
-<section class="demo" aria-labelledby="oc-t">
-<h2 id="oc-t">Prueba el asistente</h2>
-<button type="button" id="oc-sw" class="sw" role="switch" aria-checked="true"><span class="pista" aria-hidden="true"></span><span id="oc-swt">MCP: ACTIVADO</span></button>
-<p class="mut" id="oc-swd" style="margin:6px 0"></p>
+const icoMas = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>`;
+const icoEngranaje = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>`;
+const icoEnviar = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 13V3M3.5 7.5 8 3l4.5 4.5"/></svg>`;
 
-<div class="cab">
-<div><label for="oc-modo">Modelo de IA</label>
-<select id="oc-modo"><option value="gpt-headless" selected>gpt-headless</option></select></div>
-<button type="button" id="oc-gear" class="sec" aria-haspopup="dialog">&#9881; Configuración</button>
+export const demoHtml = String.raw`
+<div class="chat">
+<aside class="lado" aria-label="Opciones del asistente">
+<div class="b-nueva"><button type="button" id="oc-nueva" class="nueva" aria-label="Nueva conversación">${icoMas}<span>Nueva conversación</span></button></div>
+<div class="b-sw"><span class="lbl" id="oc-swl">Herramientas</span>
+<button type="button" id="oc-sw" class="sw" role="switch" aria-checked="true" aria-describedby="oc-swd"><span class="sw-t"><span id="oc-swt">MCP: ACTIVADO</span><small>obraclara · 4 herramientas</small></span><span class="pista" aria-hidden="true"></span></button>
+<p class="ayuda" id="oc-swd"></p></div>
+<div class="b-mod"><label class="lbl" for="oc-modo">Modelo de IA</label>
+<div class="sel"><select id="oc-modo"><option value="gpt-headless" selected>gpt-headless</option></select></div>
+<button type="button" id="oc-gear" class="cfg-b" aria-haspopup="dialog" aria-label="Configuración de IA">${icoEngranaje}<span>Configuración</span></button>
+<p class="estado" id="oc-estado" role="status"><i></i><span>Comprobando gpt-headless…</span></p>
+<p class="ayuda" id="oc-info"></p></div>
+<div class="pie-l"><p>Las alertas son indicios para revisar, no prueba de irregularidades.</p><p>Universidad de Lima · I.A. Aplicada · Grupo 1. Código hecho con ayuda de IA generativa y revisado por el grupo.</p></div>
+</aside>
+
+<section class="conv" aria-labelledby="oc-t">
+<div class="scroll" id="oc-scroll"><div class="col">
+<div class="vacio" id="oc-vacio">
+<h1 id="oc-t">¿Qué quieres saber de la inversión pública?</h1>
+<p>Pregunta por una obra, una entidad o una región. Con el MCP activado, el modelo consulta los datos del MEF y te muestra qué herramienta usó.</p>
+<div class="chips" id="oc-chips">
+<button type="button">¿Qué obras de salud en Cusco llevan 6 meses sin gasto?</button>
+<button type="button">Resume las inversiones de la Municipalidad Provincial de Piura</button>
+<button type="button">¿Cuál es el avance de la inversión 2716769?</button>
+</div></div>
+<div id="oc-log" aria-live="polite"></div>
+</div></div>
+<form id="oc-form" class="composer">
+<div class="caja"><textarea id="oc-in" rows="1" placeholder="Escribe tu pregunta" aria-label="Tu pregunta"></textarea>
+<div class="barra"><span class="ind on" id="oc-ind"><i></i><span>MCP activado</span></span><button id="oc-send" aria-label="Enviar">${icoEnviar}</button></div></div>
+<p class="nota-c">El modelo puede equivocarse. Verifica las cifras en la fuente oficial del MEF.</p>
+</form>
+</section>
 </div>
-<p class="mut" id="oc-info" style="margin:6px 0"></p>
 
 <dialog id="oc-cfg" aria-labelledby="oc-cfg-t">
-<h3 id="oc-cfg-t" style="margin:.2em 0">Configuración de IA</h3>
-<p class="mut">Agrega tus propias conexiones de IA. La clave se guarda solo en tu navegador (por defecto hasta cerrar la pestaña) y las solicitudes van directo de tu navegador al proveedor: la clave nunca llega a nuestro servidor.</p>
-<h4 style="margin:.6em 0 .2em">Conexiones guardadas</h4>
+<div class="cfg-h"><h2 id="oc-cfg-t">Configuración de IA</h2><button type="button" id="oc-cfg-x" class="b">Cerrar</button></div>
+<div class="cfg-in">
+<p class="intro">Agrega tus propias conexiones de IA. La clave se guarda solo en tu navegador (por defecto hasta cerrar la pestaña) y las solicitudes van directo de tu navegador al proveedor: la clave nunca llega a nuestro servidor.</p>
+<h3>Conexiones guardadas</h3>
 <ul id="oc-lista"></ul>
 <form id="oc-cform" autocomplete="off">
-<h4 id="oc-cform-t" style="margin:.6em 0 .2em">Agregar conexión</h4>
+<h3 id="oc-cform-t">Agregar conexión</h3>
 <div id="oc-presets" role="group" aria-label="Plantillas de proveedor"></div>
 <label for="oc-cnombre">Nombre</label><input id="oc-cnombre" maxlength="60" autocomplete="off">
 <label for="oc-ctipo">Tipo de API</label>
@@ -66,29 +195,16 @@ export const demoHtml = String.raw`
 <label for="oc-cbase">URL base (termina antes de /chat/completions)</label><input id="oc-cbase" type="url" placeholder="https://mi-proveedor.com/v1" autocomplete="off" spellcheck="false">
 <label for="oc-cmodel">Nombre del modelo</label><input id="oc-cmodel" autocomplete="off" spellcheck="false">
 <label for="oc-ckey">Clave de API</label><input id="oc-ckey" type="password" autocomplete="off" spellcheck="false">
-<label style="display:flex;gap:8px;align-items:center"><input id="oc-crec" type="checkbox" style="width:auto"> Recordar en este dispositivo</label>
-<p id="oc-cest" class="mut" role="status" aria-live="polite" style="margin:6px 0"></p>
-<div class="fila" style="flex-wrap:wrap">
-<button type="submit" id="oc-csave">Guardar</button>
-<button type="button" id="oc-ctest" class="sec">Probar conexión</button>
-<button type="button" id="oc-ccancel" class="sec" hidden>Cancelar edición</button>
-<button type="button" id="oc-cfg-x" class="sec" style="margin-left:auto">Cerrar</button>
+<label class="chk"><input id="oc-crec" type="checkbox"> Recordar en este dispositivo</label>
+<p id="oc-cest" role="status" aria-live="polite"></p>
+<div class="acc-c">
+<button type="submit" id="oc-csave" class="b b-p">Guardar</button>
+<button type="button" id="oc-ctest" class="b">Probar conexión</button>
+<button type="button" id="oc-ccancel" class="b" hidden>Cancelar edición</button>
 </div>
 </form>
+</div>
 </dialog>
-
-<div class="chips" id="oc-chips">
-<button type="button" class="sec">¿Qué obras de salud en Cusco llevan 6 meses sin gasto?</button>
-<button type="button" class="sec">Resume las inversiones de la Municipalidad Provincial de Piura</button>
-<button type="button" class="sec">¿Cuál es el avance de la inversión 2716769?</button>
-</div>
-<div id="oc-log" aria-live="polite"></div>
-<form id="oc-form" class="fila">
-<textarea id="oc-in" rows="2" placeholder="Escribe tu pregunta" aria-label="Tu pregunta"></textarea>
-<button id="oc-send">Enviar</button>
-</form>
-<p style="margin:8px 0 0"><button type="button" id="oc-nueva" class="sec">Nueva conversación</button></p>
-</section>
 `;
 
 const nombres = [
@@ -98,15 +214,42 @@ const nombres = [
 
 const app = String.raw`
 var ocMcp=true,ocHist=[],ocTools=null,ocBusy=false,ocConns=[],ocActiva='gpt-headless',ocEdit='',ocHL='gpt-headless';
+var OC_ICO_TOOL='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4h12M2 8h8M2 12h5"/><path d="m11 10 2 2-2 2"/></svg>';
 function $(id){return document.getElementById(id)}
-function ocLog(cls,txt){var d=document.createElement('div');d.className='msg '+cls;d.textContent=txt;$('oc-log').appendChild(d);d.scrollIntoView({block:'nearest'});return d}
-function ocTool(name,args,res){var d=document.createElement('details'),s=document.createElement('summary'),p=document.createElement('pre');
- s.textContent='Herramienta usada: '+name;p.textContent='Argumentos: '+JSON.stringify(args)+String.fromCharCode(10)+String.fromCharCode(10)+truncate(res,1200);
- d.appendChild(s);d.appendChild(p);$('oc-log').appendChild(d);d.scrollIntoView({block:'nearest'})}
+function ocBajar(){var s=$('oc-scroll');if(s)s.scrollTop=s.scrollHeight}
+function ocInl(n,s){String(s).split(/(\*\*[^*]+\*\*|` + "`[^`]+`" + String.raw`)/).forEach(function(x){if(!x)return;
+ if(x.length>4&&x.slice(0,2)==='**'&&x.slice(-2)==='**'){var b=document.createElement('strong');b.textContent=x.slice(2,-2);n.appendChild(b)}
+ else if(x.length>2&&x.charAt(0)==='` + "`" + String.raw`'&&x.slice(-1)==='` + "`" + String.raw`'){var c=document.createElement('code');c.textContent=x.slice(1,-1);n.appendChild(c)}
+ else n.appendChild(document.createTextNode(x))})}
+function ocMd(el,txt){var lst=null,p=null,tb=null;String(txt).replace(/\r/g,'').split('\n').forEach(function(l){var t=l.trim(),mm=/^([-*•]|\d+[.)])\s+(.*)$/.exec(t);
+ if(t.charAt(0)==='|'){lst=null;p=null;if(/^\|?[\s:|-]+$/.test(t))return;
+  var cs=t.replace(/^\||\|$/g,'').split('|');if(!tb){var w=document.createElement('div');w.className='tb';tb=document.createElement('table');w.appendChild(tb);el.appendChild(w);tb.ocHead=true}
+  var tr=document.createElement('tr');cs.forEach(function(x){var c=document.createElement(tb.ocHead?'th':'td');ocInl(c,x.trim());tr.appendChild(c)});tb.ocHead=false;tb.appendChild(tr);return}
+ tb=null;
+ if(!t){lst=null;p=null;return}
+ if(/^#{1,4}\s/.test(t)){lst=null;p=null;var h=document.createElement('p');h.className='h';ocInl(h,t.replace(/^#+\s*/,''));el.appendChild(h);return}
+ if(mm){var ord=/\d/.test(mm[1]);if(!lst||lst.ocOrd!==ord){lst=document.createElement(ord?'ol':'ul');lst.ocOrd=ord;el.appendChild(lst)}p=null;var li=document.createElement('li');ocInl(li,mm[2]);lst.appendChild(li);return}
+ lst=null;if(!p){p=document.createElement('p');el.appendChild(p)}else p.appendChild(document.createElement('br'));ocInl(p,t)})}
+function ocLog(cls,txt){var d=document.createElement('div');d.className='msg '+cls;$('oc-vacio').hidden=true;
+ if(cls==='a'){var t=document.createElement('div');t.className='t';ocMd(t,txt);d.appendChild(t)}else d.textContent=txt;
+ $('oc-log').appendChild(d);ocBajar();return d}
+function ocTool(name,args,res){var d=document.createElement('details'),s=document.createElement('summary'),b=document.createElement('div');d.className='tc';
+ var i=document.createElement('span');i.className='tc-i';i.innerHTML=OC_ICO_TOOL;
+ var n=document.createElement('code');n.textContent=name;var a=document.createElement('span');a.className='tc-a';
+ a.textContent=Object.keys(args||{}).map(function(k){return k+': '+JSON.stringify(args[k])}).join(' · ');
+ var c=document.createElement('span');c.className='tc-c';c.setAttribute('aria-hidden','true');
+ var lb=document.createElement('span');lb.className='sr';lb.textContent='Herramienta usada: ';
+ s.appendChild(i);s.appendChild(lb);s.appendChild(n);s.appendChild(a);s.appendChild(c);
+ var r=res;try{r=JSON.stringify(JSON.parse(res),null,2)}catch(e){}
+ var h1=document.createElement('p'),p1=document.createElement('pre'),h2=document.createElement('p'),p2=document.createElement('pre');
+ h1.textContent='Argumentos';p1.textContent=JSON.stringify(args||{},null,2);h2.textContent='Resultado';p2.textContent=truncate(r,2400);
+ b.className='tc-b';b.appendChild(h1);b.appendChild(p1);b.appendChild(h2);b.appendChild(p2);
+ d.appendChild(s);d.appendChild(b);$('oc-vacio').hidden=true;$('oc-log').appendChild(d);ocBajar()}
 function ocRead(st,k){try{return JSON.parse(st.getItem(k)||'null')}catch(e){return null}}
 function ocWrite(st,k,v){try{if(v===null)st.removeItem(k);else st.setItem(k,JSON.stringify(v))}catch(e){}}
 function ocSwitchText(){var sw=$('oc-sw');sw.setAttribute('aria-checked',String(ocMcp));$('oc-swt').textContent=ocMcp?'MCP: ACTIVADO':'MCP: DESACTIVADO';
- $('oc-swd').textContent=ocMcp?'Con MCP: el modelo puede consultar los datos oficiales del MEF mediante las herramientas de este servidor.':'Sin MCP: chat normal con el mismo modelo, sin acceso a los datos; puede equivocarse o inventar.'}
+ $('oc-swd').textContent=ocMcp?'Con MCP: el modelo puede consultar los datos oficiales del MEF mediante las herramientas de este servidor.':'Sin MCP: chat normal con el mismo modelo, sin acceso a los datos; puede equivocarse o inventar.';
+ var ind=$('oc-ind');ind.className='ind'+(ocMcp?' on':'');ind.lastChild.textContent=ocMcp?'MCP activado':'MCP desactivado · sin datos'}
 function ocConnById(id){for(var i=0;i<ocConns.length;i++)if(ocConns[i].id===id)return ocConns[i];return null}
 function ocPersist(){var s=[],l=[];ocConns.forEach(function(c){(c.recordar?l:s).push(c)});
  ocWrite(sessionStorage,'oc_conns',s.length?s:null);ocWrite(localStorage,'oc_conns',l.length?l:null);ocWrite(localStorage,'oc_activa',ocActiva)}
@@ -122,13 +265,16 @@ function ocRenderSel(){var s=$('oc-modo');s.textContent='';
  ocConns.forEach(function(c){var x=document.createElement('option');x.value=c.id;x.textContent=c.nombre;s.appendChild(x)});
  if(ocActiva!==ocHL&&!ocConnById(ocActiva))ocActiva=ocHL;
  s.value=ocActiva;ocUi()}
-function ocUi(){$('oc-info').textContent=ocActiva===ocHL?'gpt-headless se ejecuta en el servidor propio del grupo (no en tu dispositivo). Es compartido, tiene límite de uso por visitante y puede estar apagado. En «Configuración» puedes agregar tu propia IA con tu clave.':'Con tu propia IA, las solicitudes van directo desde tu navegador al proveedor; la clave nunca llega a nuestro servidor.'}
+function ocUi(){$('oc-info').textContent=ocActiva===ocHL?'gpt-headless se ejecuta en el servidor propio del grupo (no en tu dispositivo). Es compartido, tiene límite de uso por visitante y puede estar apagado. En «Configuración» puedes agregar tu propia IA con tu clave.':'Con tu propia IA, las solicitudes van directo desde tu navegador al proveedor; la clave nunca llega a nuestro servidor.';
+ $('oc-estado').hidden=ocActiva!==ocHL}
+async function ocEstado(){var e=$('oc-estado');try{var r=await fetch('/api/gpt-estado');var d=await r.json();var on=!!(d&&d.conectado);
+ e.className='estado '+(on?'on':'off');e.lastChild.textContent=on?'gpt-headless conectado':'gpt-headless apagado: agrega tu IA en Configuración'}catch(x){try{e.className='estado';e.lastChild.textContent='Estado de gpt-headless desconocido'}catch(y){}}}
 function ocRenderLista(){var u=$('oc-lista');u.textContent='';
  if(!ocConns.length){var e=document.createElement('li');var sp=document.createElement('span');sp.textContent='Aún no hay conexiones. Agrega una abajo.';e.appendChild(sp);u.appendChild(e);return}
  ocConns.forEach(function(c){var li=document.createElement('li'),sp=document.createElement('span'),be=document.createElement('button'),bd=document.createElement('button');
   sp.textContent=c.nombre+' ('+c.modelo+')'+(c.recordar?' · recordada en este dispositivo':'');
-  be.type='button';be.className='sec';be.textContent='Editar';be.setAttribute('aria-label','Editar '+c.nombre);be.addEventListener('click',function(){ocFormFill(c)});
-  bd.type='button';bd.className='sec';bd.textContent='Eliminar';bd.setAttribute('aria-label','Eliminar '+c.nombre);bd.addEventListener('click',function(){ocDelete(c.id)});
+  be.type='button';be.textContent='Editar';be.setAttribute('aria-label','Editar '+c.nombre);be.addEventListener('click',function(){ocFormFill(c)});
+  bd.type='button';bd.textContent='Eliminar';bd.setAttribute('aria-label','Eliminar '+c.nombre);bd.addEventListener('click',function(){ocDelete(c.id)});
   li.appendChild(sp);li.appendChild(be);li.appendChild(bd);u.appendChild(li)})}
 function ocFormFill(c){ocEdit=c?c.id:'';$('oc-cnombre').value=c?c.nombre:'';$('oc-ctipo').value=c?c.tipo:'openai';$('oc-cbase').value=c?c.baseUrl:'';
  $('oc-cmodel').value=c?c.modelo:'';$('oc-ckey').value=c?c.clave:'';$('oc-crec').checked=c?!!c.recordar:false;$('oc-cest').textContent='';
@@ -195,10 +341,11 @@ async function ocRun(q){
   ocHist.push({role:'user',content:'Resultado de '+c.tool+':'+String.fromCharCode(10)+truncate(txt,6000)+String.fromCharCode(10)+'Continúa: llama otra herramienta o termina con {"respuesta":"..."}.'});
  }
  ocLog('n','Se alcanzó el máximo de 5 pasos sin respuesta final. Prueba con una pregunta más concreta.')}
-async function ocSend(q){q=(q||'').trim();if(!q||ocBusy)return;ocBusy=true;$('oc-send').disabled=true;$('oc-in').value='';ocLog('u',q);var w=ocLog('n','Pensando…');
+function ocAlto(){var t=$('oc-in');t.style.height='auto';t.style.height=Math.min(t.scrollHeight,200)+'px'}
+async function ocSend(q){q=(q||'').trim();if(!q||ocBusy)return;ocBusy=true;$('oc-send').disabled=true;$('oc-in').value='';ocAlto();ocLog('u',q);var w=ocLog('w','Pensando…');
  try{await ocRun(q)}catch(e){ocLog('e',e&&e.message?e.message:'Error inesperado.')}
- w.remove();ocBusy=false;$('oc-send').disabled=false}
-$('oc-sw').addEventListener('click',function(){ocMcp=!ocMcp;ocSwitchText();ocLog('n','— MCP '+(ocMcp?'ACTIVADO':'DESACTIVADO')+' a partir de aquí —')});
+ w.remove();ocBusy=false;$('oc-send').disabled=false;ocBajar()}
+$('oc-sw').addEventListener('click',function(){ocMcp=!ocMcp;ocSwitchText();if($('oc-log').childNodes.length)ocLog('n','MCP '+(ocMcp?'activado':'desactivado')+' a partir de aquí')});
 $('oc-modo').addEventListener('change',function(){ocActiva=$('oc-modo').value;ocPersist();ocUi()});
 $('oc-gear').addEventListener('click',ocOpen);
 $('oc-cfg-x').addEventListener('click',ocClose);
@@ -206,12 +353,13 @@ $('oc-cfg').addEventListener('click',function(e){if(e.target===$('oc-cfg'))ocClo
 $('oc-cform').addEventListener('submit',function(e){e.preventDefault();ocSave()});
 $('oc-ctest').addEventListener('click',ocTest);
 $('oc-ccancel').addEventListener('click',function(){ocFormFill(null)});
-presetsIA().forEach(function(p){var b=document.createElement('button');b.type='button';b.className='sec';b.textContent=p.nombre.split(' (')[0];b.addEventListener('click',function(){ocPreset(p.id)});$('oc-presets').appendChild(b)});
+presetsIA().forEach(function(p){var b=document.createElement('button');b.type='button';b.textContent=p.nombre.split(' (')[0];b.addEventListener('click',function(){ocPreset(p.id)});$('oc-presets').appendChild(b)});
 $('oc-form').addEventListener('submit',function(e){e.preventDefault();ocSend($('oc-in').value)});
 $('oc-in').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();ocSend($('oc-in').value)}});
-$('oc-chips').addEventListener('click',function(e){var t=e.target;if(t&&t.tagName==='BUTTON')ocSend(t.textContent)});
-$('oc-nueva').addEventListener('click',function(){ocHist=[];$('oc-log').textContent='';ocLog('n','Nueva conversación.')});
-ocLoad();ocRenderSel();ocSwitchText();
+$('oc-in').addEventListener('input',ocAlto);
+$('oc-chips').addEventListener('click',function(e){var t=e.target&&e.target.closest?e.target.closest('button'):null;if(t)ocSend(t.textContent)});
+$('oc-nueva').addEventListener('click',function(){ocHist=[];$('oc-log').textContent='';$('oc-vacio').hidden=false;$('oc-in').focus()});
+ocLoad();ocRenderSel();ocSwitchText();ocEstado();
 `;
 
 export const demoScript = nombres + "\n" + app;

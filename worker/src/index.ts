@@ -1,5 +1,5 @@
 import { createMcpHandler } from "agents/mcp/server";
-import { pagina } from "./pagina";
+import { noEncontrada, paginaSitio } from "./pagina";
 import { crearServidor, ok } from "./server";
 import { alertas, buscar, meta, type Db, type Filtros } from "./lib/queries";
 import { validarMensajes } from "./lib/gptjobs";
@@ -15,6 +15,7 @@ interface Env {
 }
 
 const SITIO = "https://obraclara.adrielorihuela.net";
+const HTML = { "content-type": "text/html; charset=utf-8", "x-content-type-options": "nosniff", "referrer-policy": "strict-origin-when-cross-origin" };
 
 const json = (o: unknown, status = 200) =>
   new Response(JSON.stringify(o), { status, headers: { "content-type": "application/json; charset=utf-8", "access-control-allow-origin": "*" } });
@@ -62,7 +63,11 @@ export default {
         return json(JSON.parse(ok(await alertas(db, tipo, f), m).content[0].text));
       } catch (e) { return json({ error: (e as Error).message }, 400); }
     }
-    if (url.pathname === "/") return new Response(pagina(await meta(db)), { headers: { "content-type": "text/html; charset=utf-8" } });
+    if (req.method === "GET" || req.method === "HEAD") {
+      const html = paginaSitio(url.pathname, await meta(db));
+      if (html) return new Response(html, { headers: HTML });
+      if ((req.headers.get("accept") ?? "").includes("text/html")) return new Response(noEncontrada(await meta(db)), { status: 404, headers: HTML });
+    }
     return json({ error: "No encontrado" }, 404);
   },
 };
