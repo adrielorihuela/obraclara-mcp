@@ -35,8 +35,10 @@ function like(v: string): string {
 }
 
 // Cada palabra se busca por separado (todas deben aparecer), para que "posta medica" encuentre "POSTA MEDICA DE X".
+// Palabras de enlace que el usuario escribe pero los datos no tienen ("Gobierno Regional de Arequipa" = "GOBIERNO REGIONAL AREQUIPA").
+const ENLACES = new Set(["DE", "DEL", "LA", "LAS", "LOS", "EL", "Y", "EN", "A"]);
 function palabras(v: string): string[] {
-  return normalizar(v).replace(/[%_]/g, "").split(/\s+/).filter((w) => w.length > 1 || /\d/.test(w));
+  return normalizar(v).replace(/[%_]/g, "").split(/\s+/).filter((w) => (w.length > 1 || /\d/.test(w)) && !ENLACES.has(w));
 }
 
 export function construirWhere(f: Filtros, extra: string[] = []): { where: string; params: unknown[] } {

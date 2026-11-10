@@ -68,7 +68,8 @@ export function extractNumbers(text) {
 
 const MEF = /\bmef\b|ministerio de economia y finanzas|datosabiertos\.gob\.pe|detalle_inversiones|consulta amigable|invierte\.pe|banco de inversiones/;
 const FECHA = /2026-11-10|10\/11\/2026|10-11-2026|10 de noviembre(?: del?)? 2026|fecha[_ ]de[_ ]descarga|fecha_descarga|descargad[oa]s? el|corte (?:al|del?) 10/;
-const NODATA = /no (?:existen|hay|se (?:encontr|registr|identific|hall)|encontr|registra|tiene|figura|aparece|devolvi)|ningun[ao]?\b|sin resultados|0 (?:resultados|inversiones|proyectos|obras)|cero (?:resultados|inversiones|proyectos|obras)|no se dispone|no devuelve (?:datos|resultados)/;
+const ABST = /no (?:he podido|pude|puedo|es posible) (?:verificar|confirmar|determinar|identificar|precisar|encontrar|ubicar)|no (?:tengo|dispongo de) (?:acceso|datos|informacion)|no seria correcto|prefiero no/;
+const NODATA = /no he podido (?:identificar|encontrar|ubicar)|no (?:existen|hay|se (?:encontr|registr|identific|hall)|encontr|registra|tiene|figura|aparece|devolvi)|ningun[ao]?\b|sin resultados|0 (?:resultados|inversiones|proyectos|obras)|cero (?:resultados|inversiones|proyectos|obras)|no se dispone|no devuelve (?:datos|resultados)/;
 
 function score(q, r) {
   const a = r.answer || '';
@@ -80,7 +81,9 @@ function score(q, r) {
 
   const isNoData = /no existen resultados/i.test(q.respuesta_referencia) || (q.valor_oficial !== '' && Number(q.valor_oficial) === 0);
   const qNums = new Set(extractNumbers(q.pregunta).map((x) => x.v));
-  const clean = a.replace(/https?:\/\/\S+|www\.\S+/g, ' ').replace(/\b\d{4}-\d{2}-\d{2}\b|\b\d{1,2}\/\d{1,2}\/\d{4}\b/g, ' ');
+  const clean = a.replace(/https?:\/\/\S+|www\.\S+/g, ' ').replace(/\b\d{4}-\d{2}-\d{2}\b|\b\d{1,2}\/\d{1,2}\/\d{4}\b/g, ' ')
+    .replace(/\b\d{1,2}(?:°|º)? de (?:enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre)\b/gi, ' ')
+    .replace(/^\s*(?:#+\s*)?\d{1,2}[.)]\s/gm, ' ');
   const nums = extractNumbers(clean).filter((x) => !qNums.has(x.v) && !(Number.isInteger(x.v) && x.v >= 1990 && x.v <= 2035 && !x.pct));
   const codes = (a.match(/\b2\d{6}\b/g) || []).filter((c) => !q.pregunta.includes(c));
 
@@ -110,7 +113,8 @@ function score(q, r) {
     if (!hit) {
       const relevant = q.unidad === 'S/' ? nums.filter((x) => x.v >= 1000) : nums;
       inventada = relevant.length > 0;
-      if (!inventada) { revisar = true; notes.push('no da cifra comparable'); }
+      if (inventada && ABST.test(na)) { inventada = false; revisar = true; notes.push('se abstiene pero menciona cifras'); }
+      else if (!inventada) { revisar = true; notes.push(ABST.test(na) ? 'se abstiene' : 'no da cifra comparable'); }
       if (inventada && NODATA.test(na)) { revisar = true; notes.push('da cifras pero también dice que no hay datos'); }
     }
   }
@@ -157,6 +161,12 @@ for (const c of conds) {
   const xs = rows.filter((r) => r.condicion === c);
   md += `| ${c} | ${pct(xs, 'exacta')} | ${pct(xs, 'cita')} | ${pct(xs, 'inventada')} | ${xs.filter((x) => x.revisar).length} | ${mean(xs, 'latencia_s')} | ${mean(xs, 'latencia_ok_s')} | ${mean(xs, 'llamadas')} | ${xs.reduce((a, x) => a + x.reintentos, 0)} | ${xs.filter((x) => x.ejecutada).length}/40 |\n`;
 }
+const okIds = qs.map((q) => q.id).filter((id) => rows.filter((r) => r.id === id && r.ejecutada && !r.notes.includes('error')).length === 2);
+if (okIds.length < 40) {
+  md += `\n### Solo las ${okIds.length} preguntas con respuesta válida en ambas condiciones\n\n| Condición | Exacta | Cita | Inventada |\n|---|---|---|---|\n`;
+  for (const c of conds) { const xs = rows.filter((r) => r.condicion === c && okIds.includes(r.id)); md += `| ${c} | ${pct(xs, 'exacta')} | ${pct(xs, 'cita')} | ${pct(xs, 'inventada')} |\n`; }
+  md += `\nFaltan: ${qs.map((q) => q.id).filter((id) => !okIds.includes(id)).join(', ')} (chatgpt.com anónimo alcanzó su límite de uso: «pide iniciar sesión»; en la tabla global cuentan como no acertadas).\n`;
+}
 md += '\n## Por tipo de pregunta (10 preguntas cada uno)\n\n| Tipo | Condición | Exacta | Cita | Inventada | Revisar |\n|---|---|---|---|---|---|\n';
 for (const t of [...new Set(qs.map((q) => q.tipo))]) for (const c of conds) {
   const xs = rows.filter((r) => r.condicion === c && r.tipo === t);
@@ -177,6 +187,8 @@ md += `\n## Cómo se puntuó (automático)\n
 - Puntuación **automática** con reglas simples: puede contar como exacta una coincidencia casual o perder respuestas correctas con otro formato. Los casos «revisar» deben verificarlos a mano dos integrantes del grupo.
 - La latencia total incluye los reintentos: gpt-headless a veces se queda 3 min sin leer la respuesta y el ejecutor reintenta una vez; «sin reintentos» suma solo los intentos exitosos (medida desde B08; antes no se registraba).
 - «Inventada» es una cota superior: sin MCP el chat suele citar otras fuentes reales (Contraloría, notas de prensa, otras fechas) cuyas cifras no coinciden con el MEF al 2026-11-10; la regla las cuenta como inventadas aunque no sean fabricadas. Conviene revisarlas a mano.
+- gpt-headless lee solo el último mensaje del asistente; cuando chatgpt.com usa búsqueda web, algunas respuestas sin MCP llegan con marcado interno (<Cite>, imágenes) o empiezan a mitad de texto. Afecta sobre todo a «cita» sin MCP.
+- Abstenciones («no he podido verificar…») no cuentan como exactas ni como inventadas (se marcan «revisar»).
 - **Una sola corrida** por condición: no mide la variabilidad entre corridas.
 - Datos de referencia con corte 2026-11-10; el chat sin herramientas puede tener datos de otra fecha.
 `;

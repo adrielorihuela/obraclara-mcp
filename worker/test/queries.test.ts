@@ -18,6 +18,10 @@ describe("buscar", () => {
     const r = await buscar(db, { texto: "creacion posta medica" });
     expect(r.total).toBe(1); expect(r.inversiones[0]).toMatchObject({ codigo_unico: "2" });
   });
+  it("ignora palabras de enlace en entidad: 'Gobierno Regional de Cusco' encuentra 'GOBIERNO REGIONAL CUSCO'", async () => {
+    expect((await buscar(db, { entidad: "Gobierno Regional de Cusco" })).total).toBe(1);
+    expect((await resumen(db, { entidad: "Gobierno Regional del Cusco" }))?.inversiones).toBe(1);
+  });
   it("filtra por función con tildes opcionales", async () => expect((await buscar(db, { funcion: "educacion" })).total).toBe(1));
   it("la función es coincidencia exacta, no subcadena", async () => {
     const d2 = dbEnMemoria([fila({ codigo_unico: "a", nombre: "X", entidad: "E", funcion: "SALUD" }), fila({ codigo_unico: "b", nombre: "Y", entidad: "E", funcion: "SALUD Y SANEAMIENTO" })]);
