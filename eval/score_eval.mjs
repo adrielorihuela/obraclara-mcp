@@ -80,7 +80,8 @@ function score(q, r) {
 
   const isNoData = /no existen resultados/i.test(q.respuesta_referencia) || (q.valor_oficial !== '' && Number(q.valor_oficial) === 0);
   const qNums = new Set(extractNumbers(q.pregunta).map((x) => x.v));
-  const nums = extractNumbers(a).filter((x) => !qNums.has(x.v) && !(Number.isInteger(x.v) && x.v >= 1990 && x.v <= 2035 && !x.pct));
+  const clean = a.replace(/https?:\/\/\S+|www\.\S+/g, ' ').replace(/\b\d{4}-\d{2}-\d{2}\b|\b\d{1,2}\/\d{1,2}\/\d{4}\b/g, ' ');
+  const nums = extractNumbers(clean).filter((x) => !qNums.has(x.v) && !(Number.isInteger(x.v) && x.v >= 1990 && x.v <= 2035 && !x.pct));
   const codes = (a.match(/\b2\d{6}\b/g) || []).filter((c) => !q.pregunta.includes(c));
 
   if (isNoData) {
@@ -102,7 +103,10 @@ function score(q, r) {
     const val = Number(q.valor_oficial);
     const hit = nums.find((x) => Math.abs(x.v - val) <= TOL * Math.abs(val));
     exacta = !!hit;
-    if (hit && val < 100 && nums.length > 4) { revisar = true; notes.push('valor pequeño con muchas cifras (posible coincidencia)'); }
+    const at = hit ? clean.search(new RegExp('(?<![\\d.,])' + hit.raw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))) : -1;
+    const ctx = hit && clean.slice(Math.max(0, at - 2), at + hit.raw.length + 40);
+    const clear = ctx && (hit.pct || /^\*\*/.test(ctx) || /^\S*\s*(?:\*\*)?\s*(?:%|inversion|proyecto|obra|mes|persona|habitante|colegio)/.test(norm(ctx.slice(2 + hit.raw.length))));
+    if (hit && val < 100 && nums.length > 4 && !clear) { revisar = true; notes.push('valor pequeño con muchas cifras (posible coincidencia)'); }
     if (!hit) {
       const relevant = q.unidad === 'S/' ? nums.filter((x) => x.v >= 1000) : nums;
       inventada = relevant.length > 0;
@@ -120,7 +124,8 @@ function lastById(file) {
   if (!fs.existsSync(file)) return m;
   for (const l of fs.readFileSync(file, 'utf8').split('\n').filter(Boolean)) {
     const r = JSON.parse(l);
-    if (!m.has(r.id) || r.answer != null) m.set(r.id, r);
+    const ok = (x) => x.answer != null && !(x.errors || []).some((e) => e.startsWith('final'));
+    if (!m.has(r.id) || ok(r) || !ok(m.get(r.id))) m.set(r.id, r);
   }
   return m;
 }
@@ -171,6 +176,7 @@ md += `\n## Cómo se puntuó (automático)\n
 - Con MCP se usa un protocolo de herramientas **en texto** (JSON en la respuesta), no llamadas nativas; resultados de más de ${15000} caracteres se recortan.
 - Puntuación **automática** con reglas simples: puede contar como exacta una coincidencia casual o perder respuestas correctas con otro formato. Los casos «revisar» deben verificarlos a mano dos integrantes del grupo.
 - La latencia total incluye los reintentos: gpt-headless a veces se queda 3 min sin leer la respuesta y el ejecutor reintenta una vez; «sin reintentos» suma solo los intentos exitosos (medida desde B08; antes no se registraba).
+- «Inventada» es una cota superior: sin MCP el chat suele citar otras fuentes reales (Contraloría, notas de prensa, otras fechas) cuyas cifras no coinciden con el MEF al 2026-11-10; la regla las cuenta como inventadas aunque no sean fabricadas. Conviene revisarlas a mano.
 - **Una sola corrida** por condición: no mide la variabilidad entre corridas.
 - Datos de referencia con corte 2026-11-10; el chat sin herramientas puede tener datos de otra fecha.
 `;

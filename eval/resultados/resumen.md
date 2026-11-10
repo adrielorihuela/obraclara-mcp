@@ -4,25 +4,25 @@ Fecha: 2026-11-10 · 40 preguntas (`preguntas.csv`) · modelo: chatgpt.com anón
 
 ## Resultado global (porcentaje de las 40 preguntas)
 
-| Condición | Exacta | Cita fuente y fecha | Inventada | Revisar | Latencia media (s) | Llamadas medias | Ejecutadas |
-|---|---|---|---|---|---|---|---|
-| sin_mcp | 0 % | 0 % | 8 % | 38 | 13.1 | 0.0 | 3/40 |
-| con_mcp | 3 % | 3 % | 0 % | 39 | 13.2 | 0.0 | 3/40 |
+| Condición | Exacta | Cita fuente y fecha | Inventada | Revisar | Latencia media total (s) | Latencia media sin reintentos (s) | Llamadas medias | Reintentos | Ejecutadas |
+|---|---|---|---|---|---|---|---|---|---|
+| sin_mcp | 3 % | 15 % | 85 % | 10 | 53.2 | 16.7 | 0.0 | 4 | 37/40 |
+| con_mcp | 85 % | 90 % | 0 % | 6 | 133.4 | 21.4 | 0.9 | 18 | 37/40 |
 
 ## Por tipo de pregunta (10 preguntas cada uno)
 
 | Tipo | Condición | Exacta | Cita | Inventada | Revisar |
 |---|---|---|---|---|---|
-| busqueda | sin_mcp | 0 % | 0 % | 30 % | 8 |
-| busqueda | con_mcp | 10 % | 10 % | 0 % | 9 |
-| detalle | sin_mcp | 0 % | 0 % | 0 % | 10 |
-| detalle | con_mcp | 0 % | 0 % | 0 % | 10 |
-| alertas | sin_mcp | 0 % | 0 % | 0 % | 10 |
-| alertas | con_mcp | 0 % | 0 % | 0 % | 10 |
-| resumen | sin_mcp | 0 % | 0 % | 0 % | 10 |
-| resumen | con_mcp | 0 % | 0 % | 0 % | 10 |
+| busqueda | sin_mcp | 0 % | 0 % | 100 % | 1 |
+| busqueda | con_mcp | 100 % | 100 % | 0 % | 0 |
+| detalle | sin_mcp | 10 % | 30 % | 90 % | 0 |
+| detalle | con_mcp | 100 % | 100 % | 0 % | 0 |
+| alertas | sin_mcp | 0 % | 0 % | 100 % | 4 |
+| alertas | con_mcp | 100 % | 100 % | 0 % | 0 |
+| resumen | sin_mcp | 0 % | 30 % | 50 % | 5 |
+| resumen | con_mcp | 40 % | 60 % | 0 % | 6 |
 
-Con MCP, la herramienta esperada se usó en 0/40 preguntas; 39 respuestas no llamaron a ninguna herramienta.
+Con MCP, la herramienta esperada se usó en 34/40 preguntas; 3 respuestas no llamaron a ninguna herramienta.
 
 ## Cómo se puntuó (automático)
 
@@ -35,5 +35,6 @@ Con MCP, la herramienta esperada se usó en 0/40 preguntas; 39 respuestas no lla
 - chatgpt.com **anónimo** (sin cuenta) a través de un navegador headless; no se sabe qué modelo responde y puede cambiar entre preguntas. En «sin MCP» el chat puede usar su búsqueda web.
 - Con MCP se usa un protocolo de herramientas **en texto** (JSON en la respuesta), no llamadas nativas; resultados de más de 15000 caracteres se recortan.
 - Puntuación **automática** con reglas simples: puede contar como exacta una coincidencia casual o perder respuestas correctas con otro formato. Los casos «revisar» deben verificarlos a mano dos integrantes del grupo.
+- La latencia total incluye los reintentos: gpt-headless a veces se queda 3 min sin leer la respuesta y el ejecutor reintenta una vez; «sin reintentos» suma solo los intentos exitosos (medida desde B08; antes no se registraba).
 - **Una sola corrida** por condición: no mide la variabilidad entre corridas.
 - Datos de referencia con corte 2026-11-10; el chat sin herramientas puede tener datos de otra fecha.

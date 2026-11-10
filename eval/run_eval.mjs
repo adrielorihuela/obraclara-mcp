@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 const DIR = path.dirname(fileURLToPath(import.meta.url));
 const OUT = path.join(DIR, 'resultados');
-const GPT = 'http://127.0.0.1:8765/v1/chat/completions';
+const GPT = `http://127.0.0.1:${process.env.GPT_PORT || 8765}/v1/chat/completions`;
 const MCP = 'https://obraclara.adrielorihuela.net/mcp';
 const MAX_STEPS = 5;
 const MAX_TOOL_CHARS = 15000;
@@ -182,7 +182,7 @@ async function runB(q, tools, toolNames) {
 function done(file) {
   if (!fs.existsSync(file)) return new Set();
   return new Set(fs.readFileSync(file, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l))
-    .filter((r) => r.answer != null).map((r) => r.id));
+    .filter((r) => r.answer != null && !r.errors.some((e) => e.startsWith('final'))).map((r) => r.id));
 }
 
 async function main() {

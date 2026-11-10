@@ -1,16 +1,26 @@
 # Conector gpt-headless
 
-El Worker mantiene las preguntas del panel web en una cola en memoria (Durable Object, sin escribir en D1). Este conector, que corre en la máquina donde está
-`gpt-headless`, **se conecta hacia afuera** (WebSocket) al Worker, recibe las preguntas, las responde con `gpt-headless`
-(127.0.0.1:8765) y devuelve la respuesta. No se abre ningún puerto de esa máquina.
+Son dos proyectos separados:
+
+- **gpt-headless** (`~/projects/gpt-headless`): el proveedor de IA. Servicio compatible con OpenAI en 127.0.0.1:8765 que acepta imágenes y
+  hace su propio respaldo automático (ChatGPT web, luego Workers AI y luego Groq). Cada respuesta trae el campo `model` con quién respondió.
+- **ObraClara** (este repo): usa gpt-headless como su única IA a través de este conector. El Worker mantiene las preguntas del panel
+  en una cola en memoria (Durable Object, sin escribir en D1); el conector **se conecta hacia afuera** (WebSocket), reenvía los `messages`
+  completos (texto e imágenes) a gpt-headless y devuelve `{content, modelo}`. No se abre ningún puerto de la máquina.
+  El panel muestra «gpt-headless · <quién respondió>».
+
+Servicios systemd de usuario: `gpt-headless` (la IA) y `obraclara` (este conector). El conector avisa en su mensaje inicial `imagenes: true`.
 
 ```bash
-cd ~/projects/gpt && ./gpt start                       # enciende gpt-headless
+systemctl --user status gpt-headless obraclara
+# a mano (sin systemd):
 cd obraclara-mcp
 CONECTOR_SECRET_FILE=~/.local/share/obraclara-gpt/secret node gpt-bridge/conector.mjs
 ```
 
-El secreto es el mismo que el secreto `GPT_CONECTOR_SECRET` del Worker (`wrangler secret put GPT_CONECTOR_SECRET`).
+Respaldo de emergencia: solo si el conector no está conectado, falla o está en pausa, el Worker responde con Workers AI y luego Groq
+(rotando de modelo) y lo etiqueta «respaldo de ObraClara · <modelo>».
+
 Mientras el conector no esté corriendo, el panel muestra que la IA no está conectada y se puede usar «Mi propia clave».
 
 ## Consultas de datos en el servidor

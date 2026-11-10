@@ -28,7 +28,14 @@ function consultar(ws, m) {
 }
 const log = (...m) => console.log(new Date().toISOString(), ...m);
 
-let cola = Promise.resolve();   // gpt-headless atiende una pregunta a la vez
+// Varias preguntas a la vez (gpt-headless reparte entre sus trabajadores): CONCURRENCIA por defecto 3.
+const CONCURRENCIA = Number(process.env.CONCURRENCIA || 3);
+let activas = 0;
+const enCola = [];
+function lanzar(ws, tarea) {
+  const correr = () => { activas++; responder(ws, tarea).finally(() => { activas--; const sig = enCola.shift(); if (sig) sig(); }); };
+  if (activas < CONCURRENCIA) correr(); else enCola.push(correr);
+}
 async function responder(ws, tarea) {
   const t0 = Date.now();
   let msg;
@@ -40,8 +47,8 @@ async function responder(ws, tarea) {
     const j = await r.json();
     const texto = j?.choices?.[0]?.message?.content;
     if (!r.ok || !texto) throw new Error(j?.error?.message || `respuesta vacía (${r.status})`);
-    msg = { type: "resultado", id: tarea.id, content: texto };
-    log("ok", tarea.id.slice(0, 8), `${Date.now() - t0}ms`);
+    msg = { type: "resultado", id: tarea.id, content: texto, modelo: (typeof j.model === "string" && j.model.trim()) || "gpt-headless" };
+    log("ok", tarea.id.slice(0, 8), `${Date.now() - t0}ms`, msg.modelo);
   } catch (e) {
     log("error", tarea.id.slice(0, 8), e.message);
     msg = { type: "resultado", id: tarea.id, error: "gpt-headless: " + String(e.message).slice(0, 200) };
@@ -53,9 +60,9 @@ let espera = 1000;
 function conectar() {
   const ws = new WebSocket(SITIO.replace(/^http/, "ws") + "/gpt/ws", [SECRET]);
   let ping;
-  ws.addEventListener("open", () => { log("conectado", db ? "(SQL local activo)" : "(sin base local: el Worker usará D1)"); ws.send(JSON.stringify({ type: "hola", sql: !!db })); espera = 1000; ping = setInterval(() => { try { ws.send('{"type":"ping"}'); } catch {} }, 25000); });
+  ws.addEventListener("open", () => { log("conectado", db ? "(SQL local activo)" : "(sin base local: el Worker usará D1)"); ws.send(JSON.stringify({ type: "hola", sql: !!db, imagenes: true })); espera = 1000; ping = setInterval(() => { try { ws.send('{"type":"ping"}'); } catch {} }, 25000); });
   ws.addEventListener("message", (ev) => {
-    try { const m = JSON.parse(String(ev.data)); if (m.type === "job") cola = cola.then(() => responder(ws, m)); else if (m.type === "sql") consultar(ws, m); } catch { /* ignorar */ }
+    try { const m = JSON.parse(String(ev.data)); if (m.type === "job") lanzar(ws, m); else if (m.type === "sql") consultar(ws, m); } catch { /* ignorar */ }
   });
   ws.addEventListener("close", (ev) => { clearInterval(ping); log("desconectado", ev.code); setTimeout(conectar, espera); espera = Math.min(espera * 2, 30000); });
   ws.addEventListener("error", () => { /* 'close' se dispara después y reconecta */ });

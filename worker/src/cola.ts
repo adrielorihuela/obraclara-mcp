@@ -5,7 +5,7 @@ import { DurableObject } from "cloudflare:workers";
 import { MAX_PENDIENTES, type Mensaje } from "./lib/gptjobs";
 
 const TIEMPO_MAX_MS = 85_000;
-type Resp = { content?: string; error?: string; rows?: unknown[]; row?: unknown };
+type Resp = { content?: string; modelo?: string; error?: string; rows?: unknown[]; row?: unknown };
 const TIEMPO_SQL_MS = 8_000;
 
 export class ColaGpt extends DurableObject {
@@ -13,6 +13,7 @@ export class ColaGpt extends DurableObject {
   private pendientes = new Map<string, (r: Resp) => void>();
   private consultas = new Map<string, (r: Resp) => void>();
   private sqlListo = false;
+  private imagenes = false;
 
   async fetch(req: Request): Promise<Response> {
     const url = new URL(req.url);
@@ -24,18 +25,18 @@ export class ColaGpt extends DurableObject {
       this.conn = servidor;
       servidor.addEventListener("message", (ev) => {
         try {
-          const m = JSON.parse(String(ev.data)) as { type?: string; id?: string; content?: string; error?: string; rows?: unknown[]; row?: unknown; sql?: boolean };
+          const m = JSON.parse(String(ev.data)) as { type?: string; id?: string; content?: string; modelo?: string; error?: string; rows?: unknown[]; row?: unknown; sql?: boolean; imagenes?: boolean };
           if (m.type === "ping") return servidor.send(JSON.stringify({ type: "pong" }));
-          if (m.type === "hola") { this.sqlListo = !!m.sql; return; }
+          if (m.type === "hola") { this.sqlListo = !!m.sql; this.imagenes = !!m.imagenes; return; }
           if (m.type === "resultado" && m.id) {
             const r = this.pendientes.get(m.id) ?? this.consultas.get(m.id);
-            r?.({ content: m.content, error: m.error, rows: m.rows, row: m.row });
+            r?.({ content: m.content, modelo: typeof m.modelo === "string" ? m.modelo.slice(0, 100) : undefined, error: m.error, rows: m.rows, row: m.row });
             this.pendientes.delete(m.id); this.consultas.delete(m.id);
           }
         } catch { /* mensaje inválido: se ignora */ }
       });
       const caer = () => {
-        if (this.conn === servidor) { this.conn = null; this.sqlListo = false; }
+        if (this.conn === servidor) { this.conn = null; this.sqlListo = false; this.imagenes = false; }
         for (const m of [this.pendientes, this.consultas]) for (const [id, r] of m) { r({ error: "El conector se desconectó." }); m.delete(id); }
       };
       servidor.addEventListener("close", caer);
@@ -43,7 +44,7 @@ export class ColaGpt extends DurableObject {
       const proto = req.headers.get("sec-websocket-protocol");
       return new Response(null, { status: 101, webSocket: cliente, headers: proto ? { "sec-websocket-protocol": proto.split(",")[0].trim() } : {} });
     }
-    if (url.pathname === "/estado") return Response.json({ conectado: !!this.conn, sql: !!this.conn && this.sqlListo, pendientes: this.pendientes.size });
+    if (url.pathname === "/estado") return Response.json({ conectado: !!this.conn, sql: !!this.conn && this.sqlListo, imagenes: !!this.conn && this.imagenes, pendientes: this.pendientes.size });
     if (url.pathname === "/consultar" && req.method === "POST") {
       if (!this.conn || !this.sqlListo) return Response.json({ error: "sin servidor" }, { status: 503 });
       const { sql, params, modo } = (await req.json()) as { sql: string; params: unknown[]; modo: "all" | "first" };
@@ -69,7 +70,7 @@ export class ColaGpt extends DurableObject {
       try { this.conn.send(JSON.stringify({ type: "job", id, messages })); }
       catch { this.pendientes.delete(id); return Response.json({ error: "No se pudo enviar la pregunta al conector." }, { status: 502 }); }
       const r = await respuesta;
-      return r.content ? Response.json({ content: r.content, modelo: "gpt-headless" }) : Response.json({ error: r.error ?? "Error de la IA" }, { status: 502 });
+      return r.content ? Response.json({ content: r.content, modelo: r.modelo || "gpt-headless" }) : Response.json({ error: r.error ?? "Error de la IA" }, { status: 502 });
     }
     return new Response("no encontrado", { status: 404 });
   }

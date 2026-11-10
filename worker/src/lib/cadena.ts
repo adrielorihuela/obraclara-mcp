@@ -1,4 +1,5 @@
-// Cadena de IAs del servidor: gpt-headless primero, luego Workers AI y luego Groq rotando de modelo.
+// Cadena de IAs del servidor: gpt-headless primero (él ya tiene sus propios respaldos); solo si el conector no responde,
+// respaldo de emergencia en el Worker: Workers AI y luego Groq rotando de modelo.
 // Cada proveedor que falla (límite, error, apagado) queda en pausa un rato y se pasa al siguiente.
 
 export type Parte = { type: "text"; text: string } | { type: "image_url"; image_url: { url: string } };
@@ -40,7 +41,8 @@ export class ErrorProveedor extends Error {
   constructor(mensaje: string, public pausaMs = 30_000) { super(mensaje); }
 }
 
-export interface Proveedor { id: string; modelo: string; ejecutar(m: Msg[]): Promise<string> }
+/** Un proveedor devuelve el texto, o {content, modelo} si quiere cambiar la etiqueta (p. ej. quién respondió dentro de gpt-headless). */
+export interface Proveedor { id: string; modelo: string; ejecutar(m: Msg[]): Promise<string | { content: string; modelo?: string }> }
 
 export class Pausas {
   private hasta = new Map<string, number>();
@@ -54,8 +56,9 @@ export async function cadena(proveedores: Proveedor[], m: Msg[], pausas: Pausas,
   for (const p of proveedores) {
     if (!pausas.activo(p.id, ahora())) continue;
     try {
-      const t = (await p.ejecutar(m)).trim();
-      if (t) return { content: t, modelo: p.modelo };
+      const r = await p.ejecutar(m);
+      const t = (typeof r === "string" ? r : r.content ?? "").trim();
+      if (t) return { content: t, modelo: (typeof r === "string" ? undefined : r.modelo) || p.modelo };
       errores.push(`${p.modelo}: sin texto`);
       pausas.pausar(p.id, ahora(), 15_000);
     } catch (e) {
@@ -111,5 +114,7 @@ export function groq(clave: string, modelo: string, vision: boolean, f: typeof f
 
 export const GROQ_TEXTO = ["openai/gpt-oss-20b", "openai/gpt-oss-120b", "qwen/qwen3.8-27b", "allam-2-7b"];
 export const GROQ_VISION = ["qwen/qwen3.8-27b"];
+/** Etiqueta del respaldo de emergencia del Worker (cuando el conector no está disponible). */
+export const ETIQUETA_RESPALDO = "respaldo de ObraClara · ";
 export const CF_TEXTO = "@cf/openai/gpt-oss-20b";
 export const CF_VISION = "@cf/meta/llama-4-scout-17b-16e-instruct";

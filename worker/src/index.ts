@@ -2,7 +2,7 @@ import { createMcpHandler } from "agents/mcp/server";
 import { noEncontrada, paginaSitio } from "./pagina";
 import { crearServidor, ok } from "./server";
 import { alertas, buscar, meta, type Db, type Filtros } from "./lib/queries";
-import { CF_TEXTO, CF_VISION, ErrorProveedor, GROQ_TEXTO, GROQ_VISION, Pausas, cadena, groq, tieneImagenes, validarMensajes, workersAI, type Msg, type Proveedor } from "./lib/cadena";
+import { CF_TEXTO, CF_VISION, ETIQUETA_RESPALDO, ErrorProveedor, GROQ_TEXTO, GROQ_VISION, Pausas, cadena, groq, tieneImagenes, validarMensajes, workersAI, type Msg, type Proveedor } from "./lib/cadena";
 import { RespaldoDb } from "./lib/remotedb";
 export { ColaGpt } from "./cola";
 
@@ -45,19 +45,19 @@ export default {
       const mensajes = cuerpo.messages as Msg[];
       const vision = tieneImagenes(mensajes);
       const proveedores: Proveedor[] = [];
-      if (!vision) {
-        // 1) gpt-headless en el servidor del grupo (máx. 45 s para dejar tiempo a los respaldos)
-        proveedores.push({ id: "gpt-headless", modelo: "gpt-headless", async ejecutar(m) {
-          const r = await cola.fetch("https://cola/preguntar?max=45000", { method: "POST", body: JSON.stringify({ messages: m }) });
-          const j = (await r.json()) as { content?: string; error?: string };
-          if (!r.ok || !j.content) throw new ErrorProveedor(j.error ?? "sin respuesta", r.status === 503 ? 15_000 : 30_000);
-          return j.content;
-        } });
-      }
-      // 2) Workers AI
-      proveedores.push(workersAI(env.AI, vision ? CF_VISION : CF_TEXTO, vision));
+      // 1) gpt-headless en el servidor del grupo, para todo (también imágenes). Ya tiene sus propios respaldos (Workers AI, Groq):
+      //    espera hasta 60 s y la etiqueta muestra quién respondió.
+      proveedores.push({ id: "gpt-headless", modelo: "gpt-headless", async ejecutar(m) {
+        const r = await cola.fetch("https://cola/preguntar?max=60000", { method: "POST", body: JSON.stringify({ messages: m }) });
+        const j = (await r.json()) as { content?: string; modelo?: string; error?: string };
+        if (!r.ok || !j.content) throw new ErrorProveedor(j.error ?? "sin respuesta", r.status === 503 ? 15_000 : 30_000);
+        return { content: j.content, modelo: j.modelo ? "gpt-headless · " + j.modelo : "gpt-headless" };
+      } });
+      // 2) Solo si el conector no está disponible, falló o está en pausa: respaldo de emergencia del Worker.
+      const respaldo = (p: Proveedor): Proveedor => ({ ...p, modelo: ETIQUETA_RESPALDO + p.modelo });
+      proveedores.push(respaldo(workersAI(env.AI, vision ? CF_VISION : CF_TEXTO, vision)));
       // 3) Groq, rotando de modelo cuando uno llega a su límite
-      if (env.GROQ_API_KEY) for (const mod of vision ? GROQ_VISION : GROQ_TEXTO) proveedores.push(groq(env.GROQ_API_KEY, mod, vision));
+      if (env.GROQ_API_KEY) for (const mod of vision ? GROQ_VISION : GROQ_TEXTO) proveedores.push(respaldo(groq(env.GROQ_API_KEY, mod, vision)));
       try { return json(await cadena(proveedores, mensajes, pausas)); }
       catch (e) { return json({ error: (e as Error).message }, 502); }
     }

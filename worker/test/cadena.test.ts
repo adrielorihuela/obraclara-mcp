@@ -3,7 +3,7 @@ import { ErrorProveedor, Pausas, cadena, groq, soloTexto, tieneImagenes, validar
 
 const IMG = "data:image/png;base64,iVBORw0KGgo=";
 const U = [{ role: "user", content: "hola" }];
-const prov = (id: string, f: () => Promise<string>): Proveedor => ({ id, modelo: id, ejecutar: f });
+const prov = (id: string, f: Proveedor["ejecutar"]): Proveedor => ({ id, modelo: id, ejecutar: f });
 
 describe("validación con imágenes", () => {
   it("acepta texto, y texto con imágenes data URL", () => {
@@ -44,6 +44,11 @@ describe("cadena de proveedores", () => {
   });
   it("trata una respuesta vacía como fallo", async () => {
     expect((await cadena([prov("a", async () => "  "), prov("b", async () => "ok")], U, new Pausas())).modelo).toBe("b");
+  });
+  it("un proveedor puede devolver {content, modelo} y cambiar la etiqueta", async () => {
+    const r = await cadena([prov("a", async () => ({ content: " hola ", modelo: "gpt-headless · Groq · x" }))], U, new Pausas());
+    expect(r).toEqual({ content: "hola", modelo: "gpt-headless · Groq · x" });
+    expect((await cadena([prov("a", async () => ({ content: "t" }))], U, new Pausas())).modelo).toBe("a");
   });
   it("si todas fallan, explica por qué", async () => {
     await expect(cadena([prov("a", async () => { throw new Error("x"); })], U, new Pausas())).rejects.toThrow(/Ninguna IA/);
