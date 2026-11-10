@@ -60,10 +60,11 @@ export class ColaGpt extends DurableObject {
       if (!this.conn) return Response.json({ error: "La IA gpt-headless no está conectada en este momento. Usa «Mi propia clave de API» o inténtalo más tarde." }, { status: 503 });
       if (this.pendientes.size >= MAX_PENDIENTES) return Response.json({ error: "La IA está ocupada con otras preguntas. Inténtalo en unos segundos." }, { status: 503 });
       const { messages } = (await req.json()) as { messages: Mensaje[] };
+      const max = Math.min(Math.max(Number(url.searchParams.get("max")) || TIEMPO_MAX_MS, 5_000), TIEMPO_MAX_MS);
       const id = crypto.randomUUID();
       const respuesta = new Promise<Resp>((resolve) => {
         this.pendientes.set(id, resolve);
-        setTimeout(() => { if (this.pendientes.delete(id)) resolve({ error: "La IA tardó demasiado en responder. Inténtalo de nuevo." }); }, TIEMPO_MAX_MS);
+        setTimeout(() => { if (this.pendientes.delete(id)) resolve({ error: "La IA tardó demasiado en responder. Inténtalo de nuevo." }); }, max);
       });
       try { this.conn.send(JSON.stringify({ type: "job", id, messages })); }
       catch { this.pendientes.delete(id); return Response.json({ error: "No se pudo enviar la pregunta al conector." }, { status: 502 }); }

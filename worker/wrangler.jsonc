@@ -9,6 +9,7 @@
   "d1_databases": [
     { "binding": "DB", "database_name": "obraclara", "database_id": "e35c4c6d-c4cd-4b08-a9bd-9b881ec316b7" }
   ],
+  "ai": { "binding": "AI" },
   "durable_objects": { "bindings": [{ "name": "COLA", "class_name": "ColaGpt" }] },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["ColaGpt"] }],
   "ratelimits": [

@@ -82,7 +82,7 @@ export function parseToolCall(text: string): Llamada | null {
 
 /** Prompt de sistema: con MCP describe las herramientas y el protocolo JSON; sin MCP, chat simple. */
 export function buildSystemPrompt(tools: Herramienta[], mcpOn: boolean): string {
-  if (!mcpOn) return "Responde en español, con datos oficiales del Perú y cita la fuente.";
+  if (!mcpOn) return "Responde en español. Si la pregunta trata de datos oficiales del Perú, cita la fuente y no inventes cifras. Si el usuario adjunta una imagen, descríbela con lo que se ve.";
   const lista = (tools || []).map((t) => {
     const p = (t.inputSchema && t.inputSchema.properties) || {};
     const req = (t.inputSchema && t.inputSchema.required) || [];
@@ -178,15 +178,68 @@ export function migrarConfig(old: any): { conexiones: Conexion[]; activa: string
   return { conexiones: [c], activa: c.id };
 }
 
+// ---- Imágenes adjuntas ----
+
+export type ParteContenido = { type: string; text?: string; image_url?: { url: string }; source?: any };
+
+/** Límites de las imágenes adjuntas. */
+export function limitesImagen(): { maxImagenes: number; maxBytes: number; ladoMax: number; calidad: number; tipos: string[] } {
+  return { maxImagenes: 3, maxBytes: 10 * 1024 * 1024, ladoMax: 1280, calidad: 0.82, tipos: ["image/png", "image/jpeg", "image/webp", "image/gif"] };
+}
+
+/** "" si el archivo se puede adjuntar; si no, el motivo en español. */
+export function validarImagen(tipo: string, bytes: number, actuales: number): string {
+  const l = limitesImagen();
+  if (l.tipos.indexOf(String(tipo).toLowerCase()) < 0) return "Solo se aceptan imágenes PNG, JPEG, WebP o GIF.";
+  if (bytes > l.maxBytes) return "La imagen pesa más de 10 MB. Elige una más liviana.";
+  if (actuales >= l.maxImagenes) return "Máximo " + l.maxImagenes + " imágenes por mensaje.";
+  return "";
+}
+
+/** Tamaño reducido (sin ampliar) para que el lado mayor sea como máximo `max`. */
+export function escalarImagen(w: number, h: number, max: number): { w: number; h: number } {
+  const m = Math.max(w, h);
+  if (!(m > max) || !(w > 0) || !(h > 0)) return { w: Math.max(1, Math.round(w)), h: Math.max(1, Math.round(h)) };
+  const k = max / m;
+  return { w: Math.max(1, Math.round(w * k)), h: Math.max(1, Math.round(h * k)) };
+}
+
+/** Contenido de un mensaje de usuario: texto simple, o arreglo estilo OpenAI (texto primero, luego imágenes) si hay imágenes. */
+export function construirContenido(texto: string, urls: string[]): string | ParteContenido[] {
+  const t = typeof texto === "string" ? texto : "";
+  if (!urls || !urls.length) return t;
+  const partes: ParteContenido[] = [];
+  if (t) partes.push({ type: "text", text: t });
+  urls.forEach((u) => { partes.push({ type: "image_url", image_url: { url: u } }); });
+  return partes;
+}
+
+/** Bloques de Anthropic para un contenido (texto o arreglo OpenAI): image_url con data: URL pasa a {type:'image',source}. */
+export function aBloquesAnthropic(content: any): any[] {
+  if (typeof content === "string") return [{ type: "text", text: content }];
+  const out: any[] = [];
+  (Array.isArray(content) ? content : []).forEach((p: any) => {
+    if (!p) return;
+    if (p.type === "text") out.push({ type: "text", text: String(p.text || "") });
+    else if (p.type === "image_url" && p.image_url && typeof p.image_url.url === "string") {
+      const m = /^data:([^;,]+);base64,(.*)$/.exec(p.image_url.url);
+      if (m) out.push({ type: "image", source: { type: "base64", media_type: m[1], data: m[2] } });
+    } else if (p.type === "image" && p.source) out.push(p);
+  });
+  return out;
+}
+
 /** Arma la petición HTTP (url, headers, body) para una conexión y una lista de mensajes [{role, content}] con el system primero. */
-export function construirPeticion(c: any, msgs: { role: string; content: string }[]): { url: string; headers: Record<string, string>; body: any } {
+export function construirPeticion(c: any, msgs: { role: string; content: any }[]): { url: string; headers: Record<string, string>; body: any } {
   const n = normalizarConexion(c);
   if (n.tipo === "anthropic") {
-    const m2: { role: string; content: string }[] = [];
+    const m2: { role: string; content: any }[] = [];
     msgs.slice(1).forEach((m) => {
       const l = m2[m2.length - 1];
-      if (l && l.role === m.role) l.content += "\n\n" + m.content;
-      else m2.push({ role: m.role, content: m.content });
+      if (l && l.role === m.role) {
+        if (typeof l.content === "string" && typeof m.content === "string") l.content += "\n\n" + m.content;
+        else l.content = aBloquesAnthropic(l.content).concat(aBloquesAnthropic(m.content));
+      } else m2.push({ role: m.role, content: typeof m.content === "string" ? m.content : aBloquesAnthropic(m.content) });
     });
     return {
       url: n.baseUrl + "/messages",
@@ -211,4 +264,85 @@ export function extraerRespuesta(tipo: string, j: any): string {
   if (tipo === "anthropic") return ((j && j.content) || []).map((c: any) => c.text || "").join("");
   const ch = j && j.choices && j.choices[0];
   return (ch && ch.message && ch.message.content) || "";
+}
+
+// ---- Chats guardados en el navegador (solo en este dispositivo) ----
+
+export type MensajeGuardado = {
+  rol: "u" | "a" | "t";
+  texto: string;
+  modelo?: string;
+  mcp?: boolean;
+  herramienta?: { nombre: string; args: unknown; resultado: string };
+};
+export type ChatGuardado = { id: string; titulo: string; creado: number; actualizado: number; mensajes: MensajeGuardado[] };
+
+/** Título de un chat: la primera pregunta, sin saltos de línea, a 60 caracteres. */
+export function tituloChat(texto: unknown): string {
+  const t = (typeof texto === "string" ? texto : "").replace(/\s+/g, " ").trim();
+  return t ? t.slice(0, 60) : "Conversación";
+}
+
+/** Cambia cualquier data URL de imagen por la marca "[imagen adjunta]" (no se guardan imágenes). */
+export function sinImagenes(texto: unknown): string {
+  return String(typeof texto === "string" ? texto : "").replace(/data:image\/[a-z0-9.+-]+;base64,[A-Za-z0-9+\/=]*/gi, "[imagen adjunta]");
+}
+
+/** Mensaje válido y acotado, o null. */
+export function normalizarMensaje(m: any): MensajeGuardado | null {
+  if (!m || typeof m !== "object" || (m.rol !== "u" && m.rol !== "a" && m.rol !== "t")) return null;
+  const o: MensajeGuardado = { rol: m.rol, texto: sinImagenes(m.texto).slice(0, 20000) };
+  if (typeof m.modelo === "string" && m.modelo) o.modelo = m.modelo.slice(0, 120);
+  if (typeof m.mcp === "boolean") o.mcp = m.mcp;
+  if (m.rol === "t") {
+    const h = m.herramienta && typeof m.herramienta === "object" ? m.herramienta : {};
+    let a: unknown = {};
+    try { a = JSON.parse(JSON.stringify(h.args && typeof h.args === "object" ? h.args : {})); } catch (e) { a = {}; }
+    o.herramienta = { nombre: String(h.nombre || "").slice(0, 80), args: a, resultado: sinImagenes(h.resultado).slice(0, 2500) };
+  }
+  return o;
+}
+
+/** Chat válido con mensajes normalizados, o null si no tiene id. */
+export function normalizarChat(c: any): ChatGuardado | null {
+  if (!c || typeof c !== "object" || typeof c.id !== "string" || !c.id) return null;
+  const ms: MensajeGuardado[] = [];
+  (Array.isArray(c.mensajes) ? c.mensajes : []).forEach((m: any) => { const n = normalizarMensaje(m); if (n) ms.push(n); });
+  const cr = typeof c.creado === "number" && isFinite(c.creado) ? c.creado : 0;
+  const ac = typeof c.actualizado === "number" && isFinite(c.actualizado) ? c.actualizado : cr;
+  return { id: c.id.slice(0, 40), titulo: tituloChat(c.titulo), creado: cr, actualizado: ac, mensajes: ms };
+}
+
+/** "Hoy", "Ayer" o "Anteriores" según el día local de `ts` respecto de `ahora`. */
+export function grupoFecha(ts: number, ahora: number): string {
+  const d = new Date(ahora);
+  const hoy = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const ayer = new Date(d.getFullYear(), d.getMonth(), d.getDate() - 1).getTime();
+  if (ts >= hoy) return "Hoy";
+  if (ts >= ayer) return "Ayer";
+  return "Anteriores";
+}
+
+/** Orden más reciente primero; deja como máximo maxChats chats (50) y maxMsgs mensajes por chat (80), quitando los más antiguos. */
+export function recortarChats(chats: any[], maxChats?: number, maxMsgs?: number): ChatGuardado[] {
+  const mc = maxChats || 50;
+  const mm = maxMsgs || 80;
+  const out: ChatGuardado[] = [];
+  (Array.isArray(chats) ? chats : []).forEach((c) => { const n = normalizarChat(c); if (n) out.push(n); });
+  out.sort((a, b) => b.actualizado - a.actualizado);
+  return out.slice(0, mc).map((c) => ({ ...c, mensajes: c.mensajes.slice(-mm) }));
+}
+
+/** Texto JSON listo para guardar (recortado y sin imágenes). */
+export function serializarChats(chats: any[]): string {
+  return JSON.stringify(recortarChats(chats));
+}
+
+/** Lee el texto guardado; [] si está vacío o dañado. */
+export function deserializarChats(txt: unknown): ChatGuardado[] {
+  if (typeof txt !== "string" || !txt) return [];
+  try {
+    const j = JSON.parse(txt);
+    return recortarChats(Array.isArray(j) ? j : []);
+  } catch (e) { return []; }
 }

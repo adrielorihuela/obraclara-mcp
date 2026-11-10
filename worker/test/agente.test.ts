@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   buildSystemPrompt, construirPeticion, extraerRespuesta, migrarConfig, normalizarConexion, parseSse, parseToolCall,
-  presetsIA, truncate, validarConexion,
+  presetsIA, truncate, validarConexion, limitesImagen, validarImagen, escalarImagen, construirContenido, aBloquesAnthropic,
+  tituloChat, grupoFecha, recortarChats, serializarChats, deserializarChats, sinImagenes,
 } from "../src/lib/agente";
 import { demoScript } from "../src/demo";
 
@@ -47,7 +48,7 @@ describe("parseSse", () => {
 describe("buildSystemPrompt y truncate", () => {
   const tools = [{ name: "buscar_inversiones", description: "Busca", inputSchema: { properties: { texto: { type: "string", description: "palabras" } }, required: ["texto"] } }];
   it("MCP apagado", () => {
-    expect(buildSystemPrompt(tools, false)).toBe("Responde en español, con datos oficiales del Perú y cita la fuente.");
+    expect(buildSystemPrompt(tools, false)).toBe("Responde en español. Si la pregunta trata de datos oficiales del Perú, cita la fuente y no inventes cifras. Si el usuario adjunta una imagen, descríbela con lo que se ve.");
   });
   it("MCP activado lista herramientas y protocolo", () => {
     const p = buildSystemPrompt(tools, true);
@@ -67,7 +68,7 @@ describe("script incrustado en el navegador", () => {
     expect(demoScript).not.toContain("__name");
     const fn = new Function(
       "document", "window", "navigator", "sessionStorage", "localStorage", "fetch",
-      demoScript + "\nreturn {parseToolCall,parseSse,buildSystemPrompt,truncate,presetsIA,normalizarConexion,validarConexion,migrarConfig,construirPeticion,extraerRespuesta};",
+      demoScript + "\nreturn {parseToolCall,parseSse,buildSystemPrompt,truncate,presetsIA,normalizarConexion,validarConexion,migrarConfig,construirPeticion,extraerRespuesta,limitesImagen,validarImagen,escalarImagen,construirContenido,aBloquesAnthropic,tituloChat,grupoFecha,recortarChats,serializarChats,deserializarChats,sinImagenes};",
     );
     const el: any = new Proxy(function () {}, { get: () => el, apply: () => el, set: () => true });
     const api = fn(el, {}, {}, { getItem: () => null, setItem() {} }, { getItem: () => null, setItem() {} }, async () => ({}));
@@ -86,6 +87,45 @@ describe("script incrustado en el navegador", () => {
     expect(api.construirPeticion(c, msgs)).toEqual(construirPeticion(c, msgs));
     expect(api.migrarConfig({ modo: "clave", prov: "groq", model: "m", key: "k" })).toEqual(migrarConfig({ modo: "clave", prov: "groq", model: "m", key: "k" }));
     expect(api.extraerRespuesta("openai", { choices: [{ message: { content: "ok" } }] })).toBe("ok");
+    expect(api.construirContenido("a", ["data:image/jpeg;base64,QQ=="])).toEqual(construirContenido("a", ["data:image/jpeg;base64,QQ=="]));
+    expect(api.escalarImagen(2560, 1280, 1280)).toEqual({ w: 1280, h: 640 });
+    expect(api.validarImagen("image/png", 1, 0)).toBe("");
+    expect(api.tituloChat("  hola\n mundo ")).toBe(tituloChat("  hola\n mundo "));
+    expect(api.grupoFecha(1, 2e12)).toBe("Anteriores");
+    const cc = [{ id: "a", titulo: "t", creado: 1, actualizado: 2, mensajes: [{ rol: "u", texto: "x" }] }];
+    expect(api.deserializarChats(api.serializarChats(cc))).toEqual(deserializarChats(serializarChats(cc)));
+  });
+});
+
+describe("imágenes", () => {
+  const u = "data:image/jpeg;base64,QUJD";
+  it("límites y validación", () => {
+    expect(limitesImagen().maxImagenes).toBe(3);
+    expect(validarImagen("image/webp", 100, 0)).toBe("");
+    expect(validarImagen("image/bmp", 100, 0)).toMatch(/PNG/);
+    expect(validarImagen("image/png", 10 * 1024 * 1024 + 1, 0)).toMatch(/10 MB/);
+    expect(validarImagen("image/png", 100, 3)).toMatch(/Máximo 3/);
+  });
+  it("escala sin ampliar", () => {
+    expect(escalarImagen(800, 600, 1280)).toEqual({ w: 800, h: 600 });
+    expect(escalarImagen(1000, 4000, 1280)).toEqual({ w: 320, h: 1280 });
+  });
+  it("contenido: string sin imágenes, arreglo con texto primero", () => {
+    expect(construirContenido("hola", [])).toBe("hola");
+    expect(construirContenido("hola", [u])).toEqual([{ type: "text", text: "hola" }, { type: "image_url", image_url: { url: u } }]);
+  });
+  it("Anthropic: image_url a bloque image", () => {
+    expect(aBloquesAnthropic(construirContenido("q", [u]))).toEqual([
+      { type: "text", text: "q" }, { type: "image", source: { type: "base64", media_type: "image/jpeg", data: "QUJD" } },
+    ]);
+  });
+  it("petición: OpenAI deja el arreglo; Anthropic convierte y fusiona", () => {
+    const c = { id: "a", nombre: "n", tipo: "openai", baseUrl: "https://x.y/v1", modelo: "m", clave: "k" };
+    const msgs = [{ role: "system", content: "s" }, { role: "user", content: construirContenido("q", [u]) }];
+    expect(construirPeticion(c, msgs).body.messages[1].content[1].image_url.url).toBe(u);
+    const q = construirPeticion({ ...c, tipo: "anthropic" }, [...msgs, { role: "user", content: "más" }]);
+    expect(q.body.messages).toHaveLength(1);
+    expect(q.body.messages[0].content.map((b: any) => b.type)).toEqual(["text", "image", "text"]);
   });
 });
 
@@ -144,5 +184,49 @@ describe("conexiones de IA", () => {
     expect(extraerRespuesta("anthropic", { content: [{ text: "a" }, { text: "b" }] })).toBe("ab");
     expect(extraerRespuesta("openai", { choices: [{ message: { content: "x" } }] })).toBe("x");
     expect(extraerRespuesta("openai", {})).toBe("");
+  });
+});
+
+describe("chats guardados", () => {
+  const msg = (t: string) => ({ rol: "u" as const, texto: t });
+  it("título: primera pregunta, 60 caracteres, sin saltos", () => {
+    expect(tituloChat("  ¿Qué obras\n  hay?  ")).toBe("¿Qué obras hay?");
+    expect(tituloChat("a".repeat(100))).toHaveLength(60);
+    expect(tituloChat("")).toBe("Conversación");
+    expect(tituloChat(null)).toBe("Conversación");
+  });
+  it("grupos Hoy / Ayer / Anteriores", () => {
+    const ahora = new Date(2026, 10, 10, 15, 0).getTime();
+    expect(grupoFecha(new Date(2026, 10, 10, 0, 1).getTime(), ahora)).toBe("Hoy");
+    expect(grupoFecha(new Date(2026, 10, 9, 23, 59).getTime(), ahora)).toBe("Ayer");
+    expect(grupoFecha(new Date(2026, 10, 8, 23, 59).getTime(), ahora)).toBe("Anteriores");
+  });
+  it("recorta a 50 chats y 80 mensajes, quitando lo más antiguo", () => {
+    const chats = Array.from({ length: 55 }, (_, i) => ({ id: "c" + i, titulo: "t", creado: i, actualizado: i, mensajes: [msg("x")] }));
+    const r = recortarChats(chats);
+    expect(r).toHaveLength(50);
+    expect(r[0].id).toBe("c54");
+    expect(r.some((c) => c.id === "c4")).toBe(false);
+    const largo = { id: "g", titulo: "t", creado: 1, actualizado: 1, mensajes: Array.from({ length: 100 }, (_, i) => msg("m" + i)) };
+    const m = recortarChats([largo])[0].mensajes;
+    expect(m).toHaveLength(80);
+    expect(m[0].texto).toBe("m20");
+    expect(m[79].texto).toBe("m99");
+  });
+  it("serializa sin imágenes y deserializa de forma tolerante", () => {
+    const c = { id: "a", titulo: "T", creado: 1, actualizado: 2, mensajes: [
+      msg("mira data:image/jpeg;base64,QUJDRA== listo"),
+      { rol: "t" as const, texto: "", herramienta: { nombre: "x", args: { q: 1 }, resultado: "r".repeat(5000) } },
+      { rol: "a" as const, texto: "ok", modelo: "Groq · m", mcp: true },
+    ] };
+    const txt = serializarChats([c]);
+    expect(txt).not.toContain("base64");
+    const [r] = deserializarChats(txt);
+    expect(r.mensajes[0].texto).toBe("mira [imagen adjunta] listo");
+    expect(r.mensajes[1].herramienta?.resultado).toHaveLength(2500);
+    expect(r.mensajes[2]).toEqual({ rol: "a", texto: "ok", modelo: "Groq · m", mcp: true });
+    expect(deserializarChats("no json")).toEqual([]);
+    expect(deserializarChats('[{"x":1},null,{"id":"z","mensajes":[{"rol":"q"}]}]')).toEqual([{ id: "z", titulo: "Conversación", creado: 0, actualizado: 0, mensajes: [] }]);
+    expect(sinImagenes("a")).toBe("a");
   });
 });

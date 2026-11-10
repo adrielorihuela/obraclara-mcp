@@ -2,7 +2,7 @@ import { createMcpHandler } from "agents/mcp/server";
 import { noEncontrada, paginaSitio } from "./pagina";
 import { crearServidor, ok } from "./server";
 import { alertas, buscar, meta, type Db, type Filtros } from "./lib/queries";
-import { validarMensajes } from "./lib/gptjobs";
+import { CF_TEXTO, CF_VISION, ErrorProveedor, GROQ_TEXTO, GROQ_VISION, Pausas, cadena, groq, tieneImagenes, validarMensajes, workersAI, type Msg, type Proveedor } from "./lib/cadena";
 import { RespaldoDb } from "./lib/remotedb";
 export { ColaGpt } from "./cola";
 
@@ -11,10 +11,13 @@ interface Env {
   LIMITER: { limit(o: { key: string }): Promise<{ success: boolean }> };
   CHAT_LIMITER: { limit(o: { key: string }): Promise<{ success: boolean }> };
   GPT_CONECTOR_SECRET: string;
+  GROQ_API_KEY?: string;
+  AI: { run(model: string, input: unknown): Promise<unknown> };
   COLA: { idFromName(n: string): unknown; get(id: unknown): { fetch(req: Request | string, init?: RequestInit): Promise<Response> } };
 }
 
 const SITIO = "https://obraclara.adrielorihuela.net";
+const pausas = new Pausas(); // en memoria de este isolate: pausa a quien dio límite o error
 const HTML = { "content-type": "text/html; charset=utf-8", "x-content-type-options": "nosniff", "referrer-policy": "strict-origin-when-cross-origin" };
 
 const json = (o: unknown, status = 200) =>
@@ -39,7 +42,24 @@ export default {
       let cuerpo: { messages?: unknown };
       try { cuerpo = await req.json(); } catch { return json({ error: "JSON inválido" }, 400); }
       if (!validarMensajes(cuerpo.messages)) return json({ error: "Mensajes no válidos o demasiado largos" }, 400);
-      return cola.fetch("https://cola/preguntar", { method: "POST", body: JSON.stringify({ messages: cuerpo.messages }) });
+      const mensajes = cuerpo.messages as Msg[];
+      const vision = tieneImagenes(mensajes);
+      const proveedores: Proveedor[] = [];
+      if (!vision) {
+        // 1) gpt-headless en el servidor del grupo (máx. 45 s para dejar tiempo a los respaldos)
+        proveedores.push({ id: "gpt-headless", modelo: "gpt-headless", async ejecutar(m) {
+          const r = await cola.fetch("https://cola/preguntar?max=45000", { method: "POST", body: JSON.stringify({ messages: m }) });
+          const j = (await r.json()) as { content?: string; error?: string };
+          if (!r.ok || !j.content) throw new ErrorProveedor(j.error ?? "sin respuesta", r.status === 503 ? 15_000 : 30_000);
+          return j.content;
+        } });
+      }
+      // 2) Workers AI
+      proveedores.push(workersAI(env.AI, vision ? CF_VISION : CF_TEXTO, vision));
+      // 3) Groq, rotando de modelo cuando uno llega a su límite
+      if (env.GROQ_API_KEY) for (const mod of vision ? GROQ_VISION : GROQ_TEXTO) proveedores.push(groq(env.GROQ_API_KEY, mod, vision));
+      try { return json(await cadena(proveedores, mensajes, pausas)); }
+      catch (e) { return json({ error: (e as Error).message }, 502); }
     }
     // Conector de la máquina del grupo: se conecta por WebSocket (llamada saliente) con la contraseña como subprotocolo.
     if (url.pathname === "/gpt/ws") {
