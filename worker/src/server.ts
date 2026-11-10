@@ -13,7 +13,7 @@ Reglas para responder:
 const filtros = {
   entidad: z.string().optional().describe("Nombre o parte del nombre de la entidad, por ejemplo 'Municipalidad Provincial de Piura'"),
   departamento: z.string().optional().describe("Departamento, por ejemplo 'Cusco'"),
-  funcion: z.string().optional().describe("Función o sector, por ejemplo 'Salud', 'Educación', 'Saneamiento', 'Transporte'"),
+  funcion: z.string().optional().describe("Función exacta (sin importar tildes ni mayúsculas): Transporte, Educación, Saneamiento, Cultura y Deporte, Agropecuaria, Vivienda y Desarrollo Urbano, Salud, Orden Público y Seguridad, Ambiente, Energía, Protección Social, Comercio, Turismo, Justicia, Comunicaciones, Pesca, Planeamiento Gestión y Reserva de Contingencia"),
   nivel: z.string().optional().describe("Nivel de gobierno: local, regional o nacional"),
 };
 const limite = z.number().int().min(1).max(20).optional().describe("Cantidad máxima de resultados (por defecto y máximo 20)");

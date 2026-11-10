@@ -45,7 +45,8 @@ export function construirWhere(f: Filtros, extra: string[] = []): { where: strin
   if (f.texto) for (const w of palabras(f.texto)) { c.push("busqueda LIKE ?"); p.push(`%${w}%`); }
   if (f.entidad) for (const w of palabras(f.entidad)) { c.push("entidad_n LIKE ?"); p.push(`%${w}%`); }
   if (f.departamento) { c.push("departamento_n = ?"); p.push(normalizar(f.departamento)); }
-  if (f.funcion) { c.push("funcion_n LIKE ?"); p.push(like(f.funcion)); }
+  // Coincidencia exacta: "Salud" no debe traer también "SALUD Y SANEAMIENTO" (función antigua del MEF).
+  if (f.funcion) { c.push("funcion_n = ?"); p.push(normalizar(f.funcion)); }
   if (f.nivel) {
     const n = codigoNivel(f.nivel);
     if (!n) throw new Error(`Nivel no reconocido: "${f.nivel}". Use local, regional o nacional.`);

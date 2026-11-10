@@ -19,6 +19,10 @@ describe("buscar", () => {
     expect(r.total).toBe(1); expect(r.inversiones[0]).toMatchObject({ codigo_unico: "2" });
   });
   it("filtra por función con tildes opcionales", async () => expect((await buscar(db, { funcion: "educacion" })).total).toBe(1));
+  it("la función es coincidencia exacta, no subcadena", async () => {
+    const d2 = dbEnMemoria([fila({ codigo_unico: "a", nombre: "X", entidad: "E", funcion: "SALUD" }), fila({ codigo_unico: "b", nombre: "Y", entidad: "E", funcion: "SALUD Y SANEAMIENTO" })]);
+    expect((await buscar(d2, { funcion: "salud" })).total).toBe(1);
+  });
   it("filtra por departamento y nivel, ordena por costo", async () => {
     const r = await buscar(db, { departamento: "cusco" });
     expect(r.inversiones.map((x) => (x as { codigo_unico: string }).codigo_unico)).toEqual(["1", "2"]);
