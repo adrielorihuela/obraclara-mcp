@@ -1,8 +1,9 @@
-name: ETL semanal
+name: ETL a D1 (manual)
 
+# Solo manual. Recargar los 150 mil registros en D1 gasta mucho más que las 100 000 escrituras diarias del plan
+# gratuito (cada fila escribe también sus índices), así que ya no corre cada semana. Los datos se cargan en la
+# máquina del grupo (etl/cargar_sqlite.py) y el Worker los consulta por el conector; D1 queda como respaldo.
 on:
-  schedule:
-    - cron: "0 8 * * 1" # lunes 08:00 UTC
   workflow_dispatch:
 
 permissions:

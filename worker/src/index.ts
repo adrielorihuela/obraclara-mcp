@@ -3,6 +3,7 @@ import { pagina } from "./pagina";
 import { crearServidor, ok } from "./server";
 import { alertas, buscar, meta, type Db, type Filtros } from "./lib/queries";
 import { validarMensajes } from "./lib/gptjobs";
+import { RespaldoDb } from "./lib/remotedb";
 export { ColaGpt } from "./cola";
 
 interface Env {
@@ -21,7 +22,8 @@ const json = (o: unknown, status = 200) =>
 export default {
   async fetch(req: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(req.url);
-    const db = env.DB as unknown as Db;
+    const cola = env.COLA.get(env.COLA.idFromName("gpt"));
+    const db: Db = new RespaldoDb((r, i) => cola.fetch(r, i), env.DB as unknown as Db);
     const clave = req.headers.get("cf-connecting-ip") ?? "anonimo";
 
     if (url.pathname === "/mcp") {
@@ -36,7 +38,6 @@ export default {
       let cuerpo: { messages?: unknown };
       try { cuerpo = await req.json(); } catch { return json({ error: "JSON inválido" }, 400); }
       if (!validarMensajes(cuerpo.messages)) return json({ error: "Mensajes no válidos o demasiado largos" }, 400);
-      const cola = env.COLA.get(env.COLA.idFromName("gpt"));
       return cola.fetch("https://cola/preguntar", { method: "POST", body: JSON.stringify({ messages: cuerpo.messages }) });
     }
     // Conector de la máquina del grupo: se conecta por WebSocket (llamada saliente) con la contraseña como subprotocolo.
@@ -46,9 +47,9 @@ export default {
         crypto.subtle.timingSafeEqual(new TextEncoder().encode(t), new TextEncoder().encode(env.GPT_CONECTOR_SECRET));
       if (!ok) return json({ error: "no autorizado" }, 401);
       if (req.headers.get("upgrade") !== "websocket") return json({ error: "se esperaba WebSocket" }, 426);
-      return env.COLA.get(env.COLA.idFromName("gpt")).fetch(new Request("https://cola/ws", req));
+      return cola.fetch(new Request("https://cola/ws", req));
     }
-    if (url.pathname === "/api/gpt-estado") return env.COLA.get(env.COLA.idFromName("gpt")).fetch("https://cola/estado");
+    if (url.pathname === "/api/gpt-estado") return cola.fetch("https://cola/estado");
     if (url.pathname === "/salud") return json({ estado: "ok", ...(await meta(db)) });
     if (url.pathname === "/api/buscar" || url.pathname === "/api/alertas") {
       if (!(await env.LIMITER.limit({ key: clave })).success) return json({ error: "Demasiadas solicitudes, intenta en un minuto." }, 429);
