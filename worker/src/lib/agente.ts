@@ -62,16 +62,19 @@ export function parseToolCall(text: string): Llamada | null {
       else if (c === "}") {
         prof--;
         if (prof === 0) {
-          try {
-            const o = JSON.parse(s.slice(i, j + 1));
-            if (o && typeof o === "object") {
-              if (typeof o.respuesta === "string") return { tipo: "respuesta", texto: o.respuesta };
-              if (typeof o.tool === "string" && o.tool) {
-                const a = o.args && typeof o.args === "object" && !Array.isArray(o.args) ? o.args : {};
-                return { tipo: "tool", tool: o.tool, args: a };
-              }
+          const crudo = s.slice(i, j + 1);
+          let o: any = null;
+          try { o = JSON.parse(crudo); } catch (e) {
+            // Los modelos a veces escriben escapes que JSON no permite (p. ej. "¡Hola\!"): se quita la barra y se reintenta.
+            try { o = JSON.parse(crudo.replace(/\\(?!["\\\/bfnrtu])/g, "")); } catch (e2) { /* no era JSON; sigue buscando */ }
+          }
+          if (o && typeof o === "object") {
+            if (typeof o.respuesta === "string") return { tipo: "respuesta", texto: o.respuesta };
+            if (typeof o.tool === "string" && o.tool) {
+              const a = o.args && typeof o.args === "object" && !Array.isArray(o.args) ? o.args : {};
+              return { tipo: "tool", tool: o.tool, args: a };
             }
-          } catch (e) { /* no era JSON; sigue buscando */ }
+          }
           break;
         }
       }

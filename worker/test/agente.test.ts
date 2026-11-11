@@ -6,6 +6,18 @@ import {
 } from "../src/lib/agente";
 import { demoScript } from "../src/demo";
 
+describe("parseToolCall tolera escapes inválidos", () => {
+  it("respuesta con \\! (como escribe chatgpt)", () => {
+    expect(parseToolCall('{"respuesta":"¡Hola\\! Soy ObraClara. ¿Qué te gustaría consultar?"}')).toEqual({ tipo: "respuesta", texto: "¡Hola! Soy ObraClara. ¿Qué te gustaría consultar?" });
+  });
+  it("sigue respetando escapes válidos", () => {
+    expect(parseToolCall('{"respuesta":"línea1\\nlínea2 \\"cita\\""}')).toEqual({ tipo: "respuesta", texto: 'línea1\nlínea2 "cita"' });
+  });
+  it("llamada a herramienta con escape raro", () => {
+    expect(parseToolCall('{"tool":"buscar_inversiones","args":{"texto":"hospital\\! Piura"}}')).toEqual({ tipo: "tool", tool: "buscar_inversiones", args: { texto: "hospital! Piura" } });
+  });
+});
+
 describe("parseToolCall", () => {
   it("JSON simple", () => {
     expect(parseToolCall('{"tool":"buscar_inversiones","args":{"texto":"hospital"}}')).toEqual({ tipo: "tool", tool: "buscar_inversiones", args: { texto: "hospital" } });

@@ -21,10 +21,11 @@ body.es-app main{flex:1;min-height:0}
 .nueva:hover{border-color:var(--ink)}
 .nueva svg,.cfg-b svg{width:16px;height:16px;flex:none}
 
-.b-chats{display:grid;gap:6px;min-height:0}
+.b-chats{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;min-height:0;min-width:0;max-width:100%}
+#oc-chats{min-width:0;max-width:100%;overflow:hidden}
 .b-chats h4{font:500 11px/1 var(--mono);color:var(--mut);margin:10px 0 2px;letter-spacing:.04em;text-transform:uppercase}
-.b-chats ul{list-style:none;margin:0;padding:0;display:grid;gap:2px}
-.b-chats li{display:flex;align-items:center;gap:2px;border-radius:8px;border:1px solid transparent}
+.b-chats ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:minmax(0,1fr);gap:2px;min-width:0}
+.b-chats li{display:flex;align-items:center;gap:2px;min-width:0;border-radius:8px;border:1px solid transparent}
 .b-chats li.act{background:var(--accent-soft);border-color:var(--accent)}
 .b-chats li:hover:not(.act){background:var(--surface)}
 .b-chats .ch-t{flex:1;min-width:0;text-align:left;background:transparent;border:0;color:var(--ink);font:400 13.5px/1.3 var(--sans);padding:8px 8px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
