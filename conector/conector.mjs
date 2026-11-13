@@ -65,26 +65,35 @@ async function responder(ws, tarea) {
 // Modo agente: POST /v1/agente de la API local; los archivos nuevos se descargan y se devuelven en base64 (máx. 8 MB en total).
 const AGENTE_MAX_BYTES = 16 * 1024 * 1024;
 const TANDA_MAX = 10_000_000; // caracteres base64 por petición a la API local
-const INSTRUCCION_AGENTE = "(Usa tus herramientas de archivos para leer los adjuntos y crear o exportar los archivos que se pidan; entrega los archivos, no solo una descripción.)\n\n";
 const TIPOS = { txt: "text/plain", md: "text/markdown", csv: "text/csv", json: "application/json", html: "text/html", pdf: "application/pdf", zip: "application/zip", png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" };
+// A veces el modelo deja su JSON interno en la respuesta ({"final":"…"} con restos como «\</escape»): se extrae el texto.
+function limpiarRespuesta(t) {
+  const s = String(t).replace(/\\?<\/?escape[^>]*>?\s*$/i, "").trim();
+  const m = s.match(/^\{\s*"(?:final|respuesta|answer)"\s*:\s*("(?:[^"\\]|\\.)*")\s*\}\s*\\?$/s);
+  if (m) { try { return JSON.parse(m[1]); } catch { /* deja el original */ } }
+  return s;
+}
 async function agente(ws, tarea) {
   const t0 = Date.now();
   let msg;
   try {
     const cab = IA_KEY ? { authorization: "Bearer " + IA_KEY } : {};
     // La API local acepta cuerpos de ~12 MB: los archivos se suben en tandas al mismo chat (el agente conserva su espacio
-    // de trabajo) y la instrucción real va con la última tanda.
+    // de trabajo).
     const tandas = [[]]; let tam = 0;
     for (const a of tarea.archivos ?? []) {
       const n = (a.datos?.length || 0) + 200;
       if (tam + n > TANDA_MAX && tandas[tandas.length - 1].length) { tandas.push([]); tam = 0; }
       tandas[tandas.length - 1].push(a); tam += n;
     }
+    // Los archivos van en turnos propios y la instrucción en un turno final sin adjuntos: si la instrucción viaja junto
+    // con adjuntos grandes, el agente tiende a responder sin usar sus herramientas.
+    if (tandas[tandas.length - 1].length) tandas.push([]);
     let chatId = tarea.chat_id, r, j;
     for (let i = 0; i < tandas.length; i++) {
       const ultima = i === tandas.length - 1;
-      const mensaje = ultima ? INSTRUCCION_AGENTE + tarea.mensaje
-        : `Archivos adjuntos (parte ${i + 1} de ${tandas.length}). Solo guárdalos en el espacio de trabajo; las instrucciones llegan en el siguiente mensaje. Responde solo «recibido».`;
+      const mensaje = ultima ? tarea.mensaje
+        : `Archivos adjuntos (parte ${i + 1} de ${tandas.length - 1}). Solo guárdalos en el espacio de trabajo; las instrucciones llegan en el siguiente mensaje. Responde solo «recibido».`;
       r = await fetch(IA_URL + "/v1/agente", {
         method: "POST", headers: { "content-type": "application/json", ...cab },
         body: JSON.stringify({ ...(chatId ? { chat_id: chatId } : {}), mensaje, archivos: tandas[i] }), signal: AbortSignal.timeout(300000),
@@ -109,7 +118,7 @@ async function agente(ws, tarea) {
       } catch { omitidos.push(a?.ruta); }
     }
     // El proveedor real solo se registra aquí; al visitante no se le muestra.
-    msg = { type: "resultado", id: tarea.id, agente: { chat_id: j.chat_id, respuesta: j.respuesta, pasos: Array.isArray(j.pasos) ? j.pasos.length : Number(j.pasos) || 0, archivos, ...(omitidos.length ? { omitidos } : {}) } };
+    msg = { type: "resultado", id: tarea.id, agente: { chat_id: j.chat_id, respuesta: limpiarRespuesta(j.respuesta), pasos: Array.isArray(j.pasos) ? j.pasos.length : Number(j.pasos) || 0, archivos, ...(omitidos.length ? { omitidos } : {}) } };
     log("agente ok", tarea.id.slice(0, 8), `${Date.now() - t0}ms`, `archivos=${archivos.length}`, typeof j.proveedor === "string" ? j.proveedor : "");
   } catch (e) {
     log("agente error", tarea.id.slice(0, 8), e.message);
