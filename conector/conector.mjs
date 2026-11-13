@@ -37,8 +37,8 @@ const log = (...m) => console.log(new Date().toISOString(), ...m);
 const CONCURRENCIA = Number(process.env.CONCURRENCIA || 3);
 let activas = 0;
 const enCola = [];
-function lanzar(ws, tarea) {
-  const correr = () => { activas++; responder(ws, tarea).finally(() => { activas--; const sig = enCola.shift(); if (sig) sig(); }); };
+function lanzar(ws, tarea, fn = responder) {
+  const correr = () => { activas++; fn(ws, tarea).finally(() => { activas--; const sig = enCola.shift(); if (sig) sig(); }); };
   if (activas < CONCURRENCIA) correr(); else enCola.push(correr);
 }
 async function responder(ws, tarea) {
@@ -62,13 +62,51 @@ async function responder(ws, tarea) {
   try { ws.send(JSON.stringify(msg)); } catch { /* conexión caída: el Worker ya avisó al visitante */ }
 }
 
+// Modo agente: POST /v1/agente de la API local; los archivos nuevos se descargan y se devuelven en base64 (máx. 8 MB en total).
+const AGENTE_MAX_BYTES = 8 * 1024 * 1024;
+const TIPOS = { txt: "text/plain", md: "text/markdown", csv: "text/csv", json: "application/json", html: "text/html", pdf: "application/pdf", zip: "application/zip", png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" };
+async function agente(ws, tarea) {
+  const t0 = Date.now();
+  let msg;
+  try {
+    const cab = IA_KEY ? { authorization: "Bearer " + IA_KEY } : {};
+    const r = await fetch(IA_URL + "/v1/agente", {
+      method: "POST", headers: { "content-type": "application/json", ...cab },
+      body: JSON.stringify({ ...(tarea.chat_id ? { chat_id: tarea.chat_id } : {}), mensaje: tarea.mensaje, archivos: tarea.archivos ?? [] }), signal: AbortSignal.timeout(300000),
+    });
+    const j = await r.json();
+    if (!r.ok || typeof j?.respuesta !== "string") throw new Error(j?.error?.message || (typeof j?.error === "string" ? j.error : "") || `respuesta vacía (${r.status})`);
+    const archivos = []; const omitidos = []; let total = 0;
+    for (const a of Array.isArray(j.archivos_nuevos) ? j.archivos_nuevos : []) {
+      try {
+        if (typeof a?.url !== "string" || !a.url.startsWith("/") || a.url.startsWith("//")) continue;
+        if (total + (Number(a.bytes) || 0) > AGENTE_MAX_BYTES) { omitidos.push(a.ruta); continue; }
+        const d = await fetch(IA_URL + a.url, { headers: cab, signal: AbortSignal.timeout(60000) });
+        if (!d.ok) { omitidos.push(a.ruta); continue; }
+        const b = Buffer.from(await d.arrayBuffer());
+        if (total + b.length > AGENTE_MAX_BYTES) { omitidos.push(a.ruta); continue; }
+        total += b.length;
+        const ext = String(a.ruta).split(".").pop().toLowerCase();
+        archivos.push({ nombre: String(a.ruta), tipo: TIPOS[ext] || "application/octet-stream", datos: b.toString("base64") });
+      } catch { omitidos.push(a?.ruta); }
+    }
+    // El proveedor real solo se registra aquí; al visitante no se le muestra.
+    msg = { type: "resultado", id: tarea.id, agente: { chat_id: j.chat_id, respuesta: j.respuesta, pasos: Array.isArray(j.pasos) ? j.pasos.length : Number(j.pasos) || 0, archivos, ...(omitidos.length ? { omitidos } : {}) } };
+    log("agente ok", tarea.id.slice(0, 8), `${Date.now() - t0}ms`, `archivos=${archivos.length}`, typeof j.proveedor === "string" ? j.proveedor : "");
+  } catch (e) {
+    log("agente error", tarea.id.slice(0, 8), e.message);
+    msg = { type: "resultado", id: tarea.id, error: "Agente del servidor: " + String(e.message).slice(0, 200) };
+  }
+  try { ws.send(JSON.stringify(msg)); } catch { /* conexión caída */ }
+}
+
 let espera = 1000;
 function conectar() {
   const ws = new WebSocket(SITIO.replace(/^http/, "ws") + "/conector/ws", [SECRET]);
   let ping;
-  ws.addEventListener("open", () => { log("conectado", db ? "(SQL local activo)" : "(sin base local: el Worker usará D1)"); ws.send(JSON.stringify({ type: "hola", sql: !!db, imagenes: true })); espera = 1000; ping = setInterval(() => { try { ws.send('{"type":"ping"}'); } catch {} }, 25000); });
+  ws.addEventListener("open", () => { log("conectado", db ? "(SQL local activo)" : "(sin base local: el Worker usará D1)"); ws.send(JSON.stringify({ type: "hola", sql: !!db, imagenes: true, agente: true })); espera = 1000; ping = setInterval(() => { try { ws.send('{"type":"ping"}'); } catch {} }, 25000); });
   ws.addEventListener("message", (ev) => {
-    try { const m = JSON.parse(String(ev.data)); if (m.type === "job") lanzar(ws, m); else if (m.type === "sql") consultar(ws, m); } catch { /* ignorar */ }
+    try { const m = JSON.parse(String(ev.data)); if (m.type === "job") lanzar(ws, m); else if (m.type === "agente") lanzar(ws, m, agente); else if (m.type === "sql") consultar(ws, m); } catch { /* ignorar */ }
   });
   ws.addEventListener("close", (ev) => { clearInterval(ping); log("desconectado", ev.code); setTimeout(conectar, espera); espera = Math.min(espera * 2, 30000); });
   ws.addEventListener("error", () => { /* 'close' se dispara después y reconecta */ });

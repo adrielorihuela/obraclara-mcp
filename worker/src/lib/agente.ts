@@ -290,7 +290,7 @@ export type MensajeGuardado = {
   adj?: { n: string; t: string; c: number }[];
   ctx?: string;
 };
-export type ChatGuardado = { id: string; titulo: string; creado: number; actualizado: number; mensajes: MensajeGuardado[] };
+export type ChatGuardado = { id: string; titulo: string; creado: number; actualizado: number; mensajes: MensajeGuardado[]; agenteId?: string };
 
 /** Título de un chat: la primera pregunta, sin saltos de línea, a 60 caracteres. */
 export function tituloChat(texto: unknown): string {
@@ -329,7 +329,8 @@ export function normalizarChat(c: any): ChatGuardado | null {
   (Array.isArray(c.mensajes) ? c.mensajes : []).forEach((m: any) => { const n = normalizarMensaje(m); if (n) ms.push(n); });
   const cr = typeof c.creado === "number" && isFinite(c.creado) ? c.creado : 0;
   const ac = typeof c.actualizado === "number" && isFinite(c.actualizado) ? c.actualizado : cr;
-  return { id: c.id.slice(0, 40), titulo: tituloChat(c.titulo), creado: cr, actualizado: ac, mensajes: ms };
+  const ag = typeof c.agenteId === "string" && /^[A-Za-z0-9_-]{1,64}$/.test(c.agenteId) ? { agenteId: c.agenteId } : {};
+  return { id: c.id.slice(0, 40), titulo: tituloChat(c.titulo), creado: cr, actualizado: ac, mensajes: ms, ...ag };
 }
 
 /** "Hoy", "Ayer" o "Anteriores" según el día local de `ts` respecto de `ahora`. */

@@ -3,6 +3,7 @@ import { noEncontrada, paginaSitio } from "./pagina";
 import { crearServidor, ok } from "./server";
 import { alertas, buscar, meta, type Db, type Filtros } from "./lib/queries";
 import { CF_TEXTO, CF_VISION, ETIQUETA_RESPALDO, ErrorProveedor, GROQ_TEXTO, GROQ_VISION, Pausas, cadena, groq, tieneImagenes, validarMensajes, workersAI, type Msg, type Proveedor } from "./lib/cadena";
+import { AGENTE_MAX_CUERPO, validarAgente } from "./lib/agenteapi";
 import { RespaldoDb } from "./lib/remotedb";
 export { ColaIA } from "./cola";
 
@@ -60,6 +61,18 @@ export default {
       if (env.GROQ_API_KEY) for (const mod of vision ? GROQ_VISION : GROQ_TEXTO) proveedores.push(respaldo(groq(env.GROQ_API_KEY, mod, vision)));
       try { return json(await cadena(proveedores, mensajes, pausas)); }
       catch (e) { return json({ error: (e as Error).message }, 502); }
+    }
+    if (url.pathname === "/api/agente" && req.method === "POST") {
+      const origen = req.headers.get("origin");
+      if (origen && origen !== SITIO) return json({ error: "Origen no permitido" }, 403);
+      if (!(await env.CHAT_LIMITER.limit({ key: clave })).success) return json({ error: "Demasiadas preguntas seguidas. Espera un minuto." }, 429);
+      if (Number(req.headers.get("content-length") ?? 0) > AGENTE_MAX_CUERPO) return json({ error: "Los archivos superan 10 MB en total." }, 413);
+      let cuerpo: unknown;
+      try { const t = await req.text(); if (t.length > AGENTE_MAX_CUERPO) return json({ error: "Los archivos superan 10 MB en total." }, 413); cuerpo = JSON.parse(t); } catch { return json({ error: "JSON inválido" }, 400); }
+      const v = validarAgente(cuerpo);
+      if (!v.ok) return json({ error: v.error }, 400);
+      const r = await cola.fetch("https://cola/agente", { method: "POST", body: JSON.stringify(v.valor) });
+      return new Response(r.body, { status: r.status, headers: { "content-type": "application/json; charset=utf-8", "access-control-allow-origin": "*" } });
     }
     // Conector de la máquina del grupo: se conecta por WebSocket (llamada saliente) con la contraseña como subprotocolo.
     if (url.pathname === "/conector/ws") {

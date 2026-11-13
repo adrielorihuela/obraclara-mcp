@@ -195,7 +195,9 @@ export const demoHtml = String.raw`
 <nav class="b-chats" aria-label="Chats guardados"><p class="ch-est" id="oc-chat-est" role="status" hidden></p><div id="oc-chats"></div></nav>
 <div class="b-sw"><span class="lbl" id="oc-swl">Herramientas</span>
 <button type="button" id="oc-sw" class="sw" role="switch" aria-checked="true" aria-describedby="oc-swd"><span class="sw-t"><span id="oc-swt">MCP: ACTIVADO</span><small>obraclara · 4 herramientas</small></span><span class="pista" aria-hidden="true"></span></button>
-<p class="ayuda" id="oc-swd"></p></div>
+<p class="ayuda" id="oc-swd"></p>
+<button type="button" id="oc-ag" class="sw" role="switch" aria-checked="false" aria-describedby="oc-agd" hidden style="margin-top:10px"><span class="sw-t"><span id="oc-agt">AGENTE: DESACTIVADO</span><small>archivos y tareas</small></span><span class="pista" aria-hidden="true"></span></button>
+<p class="ayuda" id="oc-agd" hidden>El agente del servidor puede leer tus archivos adjuntos y crear archivos para descargar. No tiene las herramientas MCP de datos de inversión pública.</p></div>
 <div class="b-mod"><p class="ayuda" id="oc-info" style="margin:0 0 8px"></p>
 <button type="button" id="oc-gear" class="cfg-b" aria-haspopup="dialog" aria-label="Configuración de IA">${icoEngranaje}<span>Configuración</span></button></div>
 <div class="pie-l"><p>Los chats se guardan solo en este navegador y dispositivo (no en nuestro servidor). Si borras los datos del sitio, se pierden.</p><p>Las alertas son indicios para revisar, no prueba de irregularidades.</p><p>Universidad de Lima · I.A. Aplicada · Grupo 1. Código hecho con ayuda de IA generativa y revisado por el grupo.</p></div>
@@ -258,7 +260,7 @@ const nombres = [
 ].map((f) => f.toString()).join("\n");
 
 const app = String.raw`
-var ocMcp=true,ocHist=[],ocTools=null,ocBusy=false,ocConns=[],ocActiva='servidor',ocEdit='',ocHL='servidor',ocImgs=[],ocDocs=[],ocLeyendo=0,ocAvisoCtx=false,ocMsgs=[],ocChats=[],ocChatId='',ocRest=false,ocRen='';
+var ocMcp=true,ocHist=[],ocTools=null,ocBusy=false,ocConns=[],ocActiva='servidor',ocEdit='',ocHL='servidor',ocImgs=[],ocDocs=[],ocLeyendo=0,ocAvisoCtx=false,ocMsgs=[],ocChats=[],ocChatId='',ocRest=false,ocRen='',ocAg=false,ocAgOk=false,ocAgId='';
 var OC_FENCE=new RegExp('^\\s*('+String.fromCharCode(96)+'{3,})\\s*(.*)$');
 var OC_ICO_TOOL='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4h12M2 8h8M2 12h5"/><path d="m11 10 2 2-2 2"/></svg>';
 function $(id){return document.getElementById(id)}
@@ -320,7 +322,9 @@ function ocLoad(){var a=ocRead(sessionStorage,'oc_conns')||[],b=ocRead(localStor
  if(typeof act==='string'&&(act===ocHL||ocConnById(act)))ocActiva=act}
 function ocUi(){if(ocActiva!==ocHL&&!ocConnById(ocActiva))ocActiva=ocHL;
  $('oc-info').textContent=ocActiva===ocHL?'Por defecto la respuesta viene del servidor de ObraClara, que prueba primero la IA del grupo, luego Workers AI y luego Groq. En «Configuración» puedes usar tu propia IA con tu clave: nunca llega a nuestro servidor.':'Usando tu conexión «'+ocConnById(ocActiva).nombre+'»: las solicitudes van directo desde tu navegador al proveedor; la clave nunca llega a nuestro servidor.'}
-function ocElegir(id){ocActiva=id;ocPersist();ocUi();ocRenderLista()}
+function ocAgActivo(){return ocAg&&ocAgOk&&ocActiva===ocHL}
+function ocAgUi(){var v=ocAgOk&&ocActiva===ocHL;$('oc-ag').hidden=!v;$('oc-agd').hidden=!v;$('oc-ag').setAttribute('aria-checked',String(ocAgActivo()));$('oc-agt').textContent=ocAgActivo()?'AGENTE: ACTIVADO':'AGENTE: DESACTIVADO'}
+function ocElegir(id){ocActiva=id;ocPersist();ocUi();ocAgUi();ocRenderLista()}
 function ocRenderLista(){var u=$('oc-lista');u.textContent='';
  function fila(id,txt,extras){var li=document.createElement('li'),sp=document.createElement('span'),lb=document.createElement('label'),r=document.createElement('input');
   li.className=ocActiva===id?'act':'';sp.textContent=txt;
@@ -417,11 +421,11 @@ function ocGuardar(){var hay=false;ocMsgs.forEach(function(m){if(m.rol==='a')hay
  var ahora=Date.now(),c=null;ocChats.forEach(function(x){if(x.id===ocChatId)c=x});
  if(!c){var pu='';ocMsgs.forEach(function(m){if(!pu&&m.rol==='u')pu=m.texto});
   ocChatId='c'+ahora.toString(36)+Math.random().toString(36).slice(2,6);c={id:ocChatId,titulo:tituloChat(pu),creado:ahora,actualizado:ahora,mensajes:[]};ocChats.push(c)}
- c.mensajes=ocMsgs.slice();c.actualizado=ahora;ocPersistChats()}
+ c.mensajes=ocMsgs.slice();c.actualizado=ahora;if(ocAgId)c.agenteId=ocAgId;ocPersistChats()}
 async function ocCargarChats(){var t=await ocAlmLeer();ocChats=deserializarChats(t);ocRenderChats()}
-function ocLimpiar(){ocHist=[];ocMsgs=[];ocChatId='';ocImgs=[];ocDocs=[];ocThumbs();$('oc-log').textContent='';$('oc-vacio').hidden=false}
+function ocLimpiar(){ocAgId='';ocHist=[];ocMsgs=[];ocChatId='';ocImgs=[];ocDocs=[];ocThumbs();$('oc-log').textContent='';$('oc-vacio').hidden=false}
 function ocAbrir(id){if(ocBusy)return;var c=null;ocChats.forEach(function(x){if(x.id===id)c=x});if(!c)return;
- ocLimpiar();ocChatId=c.id;ocRest=true;
+ ocLimpiar();ocChatId=c.id;ocAgId=c.agenteId||'';ocRest=true;
  c.mensajes.forEach(function(m){
   if(m.rol==='u'){var ad=m.adj&&m.adj.length?{meta:m.adj,ctx:m.ctx||''}:null;ocLog('u',m.texto,null,ad);ocHist.push({role:'user',content:m.ctx?m.texto+'\n\n'+m.ctx:ad?m.texto+'\n\n[Adjuntos de este mensaje no disponibles: '+m.adj.map(function(x){return x.n}).join(', ')+']':m.texto})}
   else if(m.rol==='a'){ocLog('a',m.texto,m.modelo||'');ocHist.push({role:'assistant',content:m.texto})}
@@ -462,9 +466,9 @@ async function ocReducir(f){var L=limitesImagen(),src=await ocLeer(f),im=await o
  return cv.toDataURL('image/jpeg',L.calidad)}
 function ocTam(c){return c>=1000?(Math.round(c/100)/10)+' k car.':c+' car.'}
 function ocChip(m,leyendo,quitar){var w=document.createElement('div');w.className='th dchip';
- var ic=document.createElement('span');ic.className='dic';ic.textContent={zip:'ZIP',pdf:'PDF',docx:'DOC',texto:'TXT'}[m.t]||'DOC';
+ var ic=document.createElement('span');ic.className='dic';ic.textContent={zip:'ZIP',pdf:'PDF',docx:'DOC',texto:'TXT',imagen:'IMG'}[m.t]||'DOC';
  var nb=document.createElement('span');nb.className='dnm';nb.textContent=m.n;nb.title=m.n;
- var sz=document.createElement('span');sz.className='dsz';sz.textContent=leyendo?'Leyendo…':ocTam(m.c);
+ var sz=document.createElement('span');sz.className='dsz';sz.textContent=leyendo?'Leyendo…':(m.b?Math.round(m.b/1024)+' KB':ocTam(m.c));
  w.appendChild(ic);w.appendChild(nb);w.appendChild(sz);
  if(quitar){var b=document.createElement('button');b.type='button';b.textContent='×';b.setAttribute('aria-label','Quitar '+m.n);b.addEventListener('click',quitar);w.appendChild(b)}
  return w}
@@ -487,6 +491,7 @@ async function ocLeerDoc(f,tp){
  var t=new TextDecoder('utf-8').decode(b);if(!t.trim())throw new Error('el archivo está vacío.');
  return {nombre:nombreSeguro(f.name),tipo:'texto',texto:t}}
 async function ocAdjuntar(files){var msgs=[];
+ if(ocAgActivo())return ocAdjuntarAg(files);
  for(var i=0;i<files.length;i++){var f=files[i],tp=tipoAdjunto(f.name,f.type);
   if(tp==='imagen'){var er=validarImagen(f.type,f.size,ocImgs.length);if(er){msgs.push(er);continue}
    try{ocImgs.push(await ocReducir(f))}catch(e){msgs.push('«'+f.name+'»: '+(e&&e.message?e.message:'no se pudo procesar.'))}
@@ -499,6 +504,7 @@ async function ocAdjuntar(files){var msgs=[];
  ocThumbs();if(msgs.length)ocLog('n',msgs.join(' '))}
 async function ocSend(q){q=(q||'').trim();if(ocBusy)return;
  if(ocLeyendo>0){ocLog('n','Espera a que termine de leerse el archivo adjunto.');return}
+ if(ocAgActivo())return ocSendAg(q);
  var im=ocImgs.slice(),dc=ocDocs.map(function(d){return d.adj}).filter(function(a){return a});if(!q&&!im.length&&!dc.length)return;
  if(!q)q=dc.length?(im.length?'Describe la imagen y resume el archivo adjunto.':'Resume el contenido del archivo adjunto.'):'Describe la imagen y dime qué ves.';
  var cp=componerAdjuntos(dc),ad=dc.length?{meta:metaAdjuntos(dc),ctx:cp.texto}:null;
@@ -506,6 +512,40 @@ async function ocSend(q){q=(q||'').trim();if(ocBusy)return;
  if(cp.omitidos.length)ocLog('n','No cupieron en el límite de texto por mensaje y se omitieron: '+cp.omitidos.join(', ')+'.');
  try{await ocRun(ad?q+'\n\n'+cp.texto:q,im)}catch(e){ocLog('e',e&&e.message?e.message:'Error inesperado.')}
  w.remove();ocBusy=false;$('oc-send').disabled=false;ocBajar();ocGuardar()}
+function ocB64Bytes(b64){var bin=atob(b64),u=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return u}
+async function ocAdjuntarAg(files){var msgs=[];
+ for(var i=0;i<files.length;i++){var f=files[i],tot=0;ocDocs.forEach(function(x){tot+=x.raw?x.raw.length:0});
+  if(ocDocs.length>=5){msgs.push('Máximo 5 archivos en modo agente.');break}
+  if((tot+f.size*1.4)>10*1024*1024){msgs.push('«'+nombreSeguro(f.name)+'»: se superarían los 10 MB en total.');continue}
+  var d={meta:{n:nombreSeguro(f.name),t:tipoAdjunto(f.name,f.type),c:0,b:f.size},leyendo:true,adj:null,raw:''};ocDocs.push(d);ocLeyendo++;ocThumbs();
+  try{var u=await ocLeer(f);d.raw=u;d.leyendo=false}
+  catch(e){var k=ocDocs.indexOf(d);if(k>=0)ocDocs.splice(k,1);msgs.push('«'+d.meta.n+'»: no se pudo leer.')}
+  ocLeyendo--;ocThumbs()}
+ if(msgs.length)ocLog('n',msgs.join(' '))}
+async function ocSendAg(q){var fs=ocDocs.filter(function(d){return d.raw});if(!q&&!fs.length)return;
+ if(!q)q='Revisa los archivos adjuntos y resume su contenido.';
+ var meta=fs.map(function(d){return d.meta}),adj=fs.map(function(d){return {nombre:d.meta.n,datos:d.raw}});
+ ocBusy=true;$('oc-send').disabled=true;$('oc-in').value='';ocAlto();ocImgs=[];ocDocs=[];ocThumbs();ocLog('u',q,null,meta.length?{meta:meta,ctx:''}:null);var w=ocLog('w','El agente está trabajando…');
+ var msg=(ocMcp?'(Nota: no tienes las herramientas MCP de ObraClara. Para datos de inversión pública, el usuario puede desactivar el modo agente.)\n\n':'')+q;
+ try{var r,d=null;
+  try{r=await fetch('/api/agente',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({chat_id:ocAgId||undefined,mensaje:msg,archivos:adj})})}catch(e){throw new Error('No se pudo conectar con el servidor.')}
+  try{d=await r.json()}catch(e){}
+  if(!r.ok)throw new Error(d&&typeof d.error==='string'?d.error.slice(0,200):'El servidor respondió con error '+r.status+'.');
+  if(!d||typeof d.respuesta!=='string')throw new Error('Respuesta del agente no válida.');
+  if(typeof d.chat_id==='string'&&/^[A-Za-z0-9_-]{1,64}$/.test(d.chat_id))ocAgId=d.chat_id;
+  var el=ocLog('a',d.respuesta.trim()||'(sin respuesta)','Agente del servidor'),row=el.querySelector('.acc');
+  if(row&&Array.isArray(d.archivos))ocAgBotones(row,d.archivos.slice(0,20));
+  if(d.omitidos&&d.omitidos.length)ocLog('n','Algunos archivos no se enviaron por su tamaño: '+d.omitidos.join(', ')+'.')}
+ catch(e){ocLog('e',(e&&e.message?e.message:'Error inesperado.')+' Prueba a desactivar el modo agente.')}
+ w.remove();ocBusy=false;$('oc-send').disabled=false;ocBajar();ocGuardar()}
+function ocAgBotones(row,fs){var lista=[];
+ fs.forEach(function(f){if(!f||typeof f.datos!=='string'||typeof f.nombre!=='string')return;var ruta=rutaSegura(f.nombre)||'archivo',b;try{b=ocB64Bytes(f.datos)}catch(e){return}
+  lista.push({ruta:ruta,datos:b});
+  var bt=document.createElement('button');bt.type='button';bt.textContent=ruta.split('/').pop();bt.title='Descargar '+ruta;
+  bt.addEventListener('click',function(){ocDescargar(ruta.split('/').pop(),b,typeof f.tipo==='string'?f.tipo:'application/octet-stream')});row.appendChild(bt)});
+ if(lista.length>=2){var z=document.createElement('button');z.type='button';z.textContent='Todo (.zip)';z.title='Descargar los '+lista.length+' archivos en un .zip';
+  z.addEventListener('click',function(){ocDescargar('archivos-agente.zip',crearZip(lista),'application/zip')});row.appendChild(z)}}
+async function ocAgEstado(){try{var r=await fetch('/api/ia-estado');var j=await r.json();ocAgOk=!!(j&&j.agente)}catch(e){ocAgOk=false}ocAgUi()}
 var OC_MIME={docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',pdf:'application/pdf',zip:'application/zip'};
 function ocDescargar(nombre,datos,tipo){var u=URL.createObjectURL(new Blob([datos],{type:tipo||'application/octet-stream'})),a=document.createElement('a');
  a.href=u;a.download=nombre;a.rel='noopener';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},4000)}
@@ -535,6 +575,7 @@ function ocHayArchivos(e){var d=e.dataTransfer;return !!d&&Array.prototype.index
 ocZona.addEventListener('dragover',function(e){if(!ocHayArchivos(e))return;e.preventDefault();$('oc-form').firstElementChild.classList.add('arrastre')});
 ocZona.addEventListener('dragleave',function(e){if(!e.relatedTarget||!ocZona.contains(e.relatedTarget))$('oc-form').firstElementChild.classList.remove('arrastre')});
 ocZona.addEventListener('drop',function(e){if(!ocHayArchivos(e))return;e.preventDefault();$('oc-form').firstElementChild.classList.remove('arrastre');var d=e.dataTransfer;if(d&&d.files&&d.files.length)ocAdjuntar(Array.prototype.slice.call(d.files))});
+$('oc-ag').addEventListener('click',function(){if(ocBusy)return;ocAg=!ocAg;ocDocs=[];ocImgs=[];ocThumbs();ocAgUi()});
 $('oc-gear').addEventListener('click',ocOpen);
 $('oc-cfg-x').addEventListener('click',ocClose);
 $('oc-cfg').addEventListener('click',function(e){if(e.target===$('oc-cfg'))ocClose()});
@@ -547,7 +588,7 @@ $('oc-in').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKe
 $('oc-in').addEventListener('input',ocAlto);
 $('oc-chips').addEventListener('click',function(e){var t=e.target&&e.target.closest?e.target.closest('button'):null;if(t)ocSend(t.textContent)});
 $('oc-nueva').addEventListener('click',function(){if(ocBusy)return;ocLimpiar();ocRenderChats();$('oc-in').focus()});
-ocLoad();ocUi();ocSwitchText();ocCargarChats().catch(function(){});
+ocLoad();ocUi();ocSwitchText();ocAgEstado();ocCargarChats().catch(function(){});
 `;
 
 export const demoScript = nombres + "\n" + app;
