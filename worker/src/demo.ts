@@ -2,6 +2,9 @@ import {
   buildSystemPrompt, construirPeticion, extraerRespuesta, migrarConfig, normalizarConexion, parseSse, parseToolCall,
   presetsIA, textoLimpio, truncate, validarConexion, limitesImagen, validarImagen, escalarImagen, construirContenido, aBloquesAnthropic,
   tituloChat, grupoFecha, recortarChats, serializarChats, deserializarChats, sinImagenes, normalizarMensaje, normalizarChat,
+  limitesAdjuntos, recortarTexto, nombreSeguro, rutaSegura, extensionArchivo, tipoAdjunto, validarDocumento, esTextoBytes, clasificarRuta,
+  zipEntradas, zipExtraer, leerProyectoZip, docxATexto, leerDocx, textoPdfPagina, textoPdf, textoAdjunto, componerAdjuntos, metaAdjuntos, sinContexto,
+  largoContenido, acortarContenido, recortarMensajes, extraerArchivos, crc32, crearZip, xmlEscape, docxRuns, docxCuerpo, crearDocx, textoLatin1, mdALineasPdf,
 } from "./lib/agente";
 
 // Panel "Prueba el asistente" (página /asistente): HTML, CSS y script del navegador.
@@ -105,6 +108,20 @@ body.es-app main{flex:1;min-height:0}
 .thumbs .th{position:relative}
 .thumbs img{display:block;width:64px;height:64px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
 .thumbs .th button{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;border:1px solid var(--line-2);background:var(--surface);color:var(--ink);font:600 13px/1 var(--sans);cursor:pointer;display:grid;place-items:center;padding:0}
+.thumbs .dchip{display:flex;align-items:center;gap:8px;max-width:260px;height:44px;padding:0 12px 0 8px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);font:500 13px/1.2 var(--sans)}
+.dchip .dic{flex:none;font:600 10px/1 var(--mono);padding:5px 6px;border-radius:6px;background:var(--ink);color:var(--bg)}
+.dchip .dnm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dchip .dsz{flex:none;font:400 12px/1 var(--mono);color:var(--mut)}
+.msg.u .dchip{display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);font:500 13px/1.2 var(--sans);max-width:100%}
+.msg.a .cb{margin:10px 0}
+.msg.a .cb-n{margin:0;padding:6px 12px;font:500 12px/1.3 var(--mono);background:var(--surface-2);border:1px solid var(--line);border-bottom:0;border-radius:10px 10px 0 0}
+.msg.a .t pre{margin:0;padding:10px 14px;background:var(--code-bg);color:var(--code-ink);border-radius:10px;font:400 12.5px/1.55 var(--mono);white-space:pre-wrap;overflow-wrap:anywhere;max-height:360px;overflow:auto}
+.msg.a .cb-n+pre{border-radius:0 0 10px 10px}
+.msg.a .acc{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.msg.a .acc button{font:500 12px/1 var(--sans);padding:6px 10px;border-radius:999px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink);cursor:pointer}
+.msg.a .acc button:hover{background:var(--surface-2)}
+.msg.a .acc button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.msg.a .acc button:disabled{opacity:.6;cursor:wait}
 .caja.arrastre{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}
 #oc-adj{width:36px;height:36px;border-radius:50%;border:0;background:transparent;color:var(--ink-2);display:grid;place-items:center;cursor:pointer;flex:none}
 #oc-adj:hover{background:var(--surface-2)}#oc-adj svg{width:18px;height:18px}
@@ -198,7 +215,7 @@ export const demoHtml = String.raw`
 </div></div>
 <form id="oc-form" class="composer">
 <div class="caja"><div class="thumbs" id="oc-thumbs" hidden></div><textarea id="oc-in" rows="1" placeholder="Escribe tu pregunta" aria-label="Tu pregunta"></textarea>
-<div class="barra"><span class="ind on" id="oc-ind"><i></i><span>MCP activado</span></span><input type="file" id="oc-file" accept="image/png,image/jpeg,image/webp,image/gif" multiple hidden><button type="button" id="oc-adj" aria-label="Adjuntar imagen" title="Adjuntar imagen">${icoClip}</button><button id="oc-send" aria-label="Enviar">${icoEnviar}</button></div></div>
+<div class="barra"><span class="ind on" id="oc-ind"><i></i><span>MCP activado</span></span><input type="file" id="oc-file" multiple hidden><button type="button" id="oc-adj" aria-label="Adjuntar imagen, documento o .zip" title="Adjuntar imagen, documento o .zip">${icoClip}</button><button id="oc-send" aria-label="Enviar">${icoEnviar}</button></div></div>
 <p class="nota-c">El modelo puede equivocarse. Verifica las cifras en la fuente oficial del MEF.</p>
 </form>
 </section>
@@ -235,10 +252,14 @@ const nombres = [
   parseToolCall, parseSse, buildSystemPrompt, truncate, presetsIA, textoLimpio, normalizarConexion, validarConexion,
   migrarConfig, construirPeticion, extraerRespuesta, limitesImagen, validarImagen, escalarImagen, construirContenido, aBloquesAnthropic,
   tituloChat, grupoFecha, recortarChats, serializarChats, deserializarChats, sinImagenes, normalizarMensaje, normalizarChat,
+  limitesAdjuntos, recortarTexto, nombreSeguro, rutaSegura, extensionArchivo, tipoAdjunto, validarDocumento, esTextoBytes, clasificarRuta,
+  zipEntradas, zipExtraer, leerProyectoZip, docxATexto, leerDocx, textoPdfPagina, textoPdf, textoAdjunto, componerAdjuntos, metaAdjuntos, sinContexto,
+  largoContenido, acortarContenido, recortarMensajes, extraerArchivos, crc32, crearZip, xmlEscape, docxRuns, docxCuerpo, crearDocx, textoLatin1, mdALineasPdf,
 ].map((f) => f.toString()).join("\n");
 
 const app = String.raw`
-var ocMcp=true,ocHist=[],ocTools=null,ocBusy=false,ocConns=[],ocActiva='servidor',ocEdit='',ocHL='servidor',ocImgs=[],ocMsgs=[],ocChats=[],ocChatId='',ocRest=false,ocRen='';
+var ocMcp=true,ocHist=[],ocTools=null,ocBusy=false,ocConns=[],ocActiva='servidor',ocEdit='',ocHL='servidor',ocImgs=[],ocDocs=[],ocLeyendo=0,ocAvisoCtx=false,ocMsgs=[],ocChats=[],ocChatId='',ocRest=false,ocRen='';
+var OC_FENCE=new RegExp('^\\s*('+String.fromCharCode(96)+'{3,})\\s*(.*)$');
 var OC_ICO_TOOL='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4h12M2 8h8M2 12h5"/><path d="m11 10 2 2-2 2"/></svg>';
 function $(id){return document.getElementById(id)}
 function ocBajar(){var s=$('oc-scroll');if(s)s.scrollTop=s.scrollHeight}
@@ -246,7 +267,11 @@ function ocInl(n,s){String(s).split(/(\*\*[^*]+\*\*|` + "`[^`]+`" + String.raw`)
  if(x.length>4&&x.slice(0,2)==='**'&&x.slice(-2)==='**'){var b=document.createElement('strong');b.textContent=x.slice(2,-2);n.appendChild(b)}
  else if(x.length>2&&x.charAt(0)==='` + "`" + String.raw`'&&x.slice(-1)==='` + "`" + String.raw`'){var c=document.createElement('code');c.textContent=x.slice(1,-1);n.appendChild(c)}
  else n.appendChild(document.createTextNode(x))})}
-function ocMd(el,txt){var lst=null,p=null,tb=null;String(txt).replace(/\r/g,'').split('\n').forEach(function(l){var t=l.trim(),mm=/^([-*•]|\d+[.)])\s+(.*)$/.exec(t);
+function ocMd(el,txt){var lst=null,p=null,tb=null,cod=null;String(txt).replace(/\r/g,'').split('\n').forEach(function(l){var t=l.trim(),mm=/^([-*•]|\d+[.)])\s+(.*)$/.exec(t),fm=OC_FENCE.exec(l);
+ if(cod){if(fm&&fm[1].length>=cod.n&&!fm[2].trim()){cod=null;return}cod.pre.appendChild(document.createTextNode((cod.k++?'\n':'')+l));return}
+ if(fm){lst=null;p=null;tb=null;var nm=/^archivo\s*:\s*(.+)$/i.exec(fm[2].trim()),wc=document.createElement('div'),pr=document.createElement('pre');wc.className='cb';
+  if(nm){var cn=document.createElement('p');cn.className='cb-n';cn.textContent='Archivo: '+(rutaSegura(nm[1])||'archivo.txt');wc.appendChild(cn)}
+  wc.appendChild(pr);el.appendChild(wc);cod={n:fm[1].length,pre:pr,k:0};return}
  if(t.charAt(0)==='|'){lst=null;p=null;if(/^\|?[\s:|-]+$/.test(t))return;
   var cs=t.replace(/^\||\|$/g,'').split('|');if(!tb){var w=document.createElement('div');w.className='tb';tb=document.createElement('table');w.appendChild(tb);el.appendChild(w);tb.ocHead=true}
   var tr=document.createElement('tr');cs.forEach(function(x){var c=document.createElement(tb.ocHead?'th':'td');ocInl(c,x.trim());tr.appendChild(c)});tb.ocHead=false;tb.appendChild(tr);return}
@@ -256,14 +281,15 @@ function ocMd(el,txt){var lst=null,p=null,tb=null;String(txt).replace(/\r/g,'').
  if(mm){var ord=/\d/.test(mm[1]);if(!lst||lst.ocOrd!==ord){lst=document.createElement(ord?'ol':'ul');lst.ocOrd=ord;el.appendChild(lst)}p=null;var li=document.createElement('li');ocInl(li,mm[2]);lst.appendChild(li);return}
  lst=null;if(!p){p=document.createElement('p');el.appendChild(p)}else p.appendChild(document.createElement('br'));ocInl(p,t)})}
 function ocRec(m){if(!ocRest)ocMsgs.push(m)}
-function ocLog(cls,txt,extra){if(cls==='u')ocRec({rol:'u',texto:txt+(extra&&extra.length?'\n'+extra.map(function(){return '[imagen adjunta]'}).join(' '):''),mcp:ocMcp});
+function ocLog(cls,txt,extra,adj){if(cls==='u')ocRec({rol:'u',texto:txt+(extra&&extra.length?'\n'+extra.map(function(){return '[imagen adjunta]'}).join(' '):''),mcp:ocMcp,adj:adj?adj.meta:undefined,ctx:adj?adj.ctx:undefined});
  if(cls==='a')ocRec({rol:'a',texto:txt,modelo:typeof extra==='string'?extra:'',mcp:ocMcp});
 var d=document.createElement('div');d.className='msg '+cls;$('oc-vacio').hidden=true;
  if(cls==='a'){var t=document.createElement('div');t.className='t';ocMd(t,txt);
   if(typeof extra==='string'&&extra){var m=document.createElement('p');m.className='mod';m.textContent='Respondió: '+extra;t.appendChild(m)}
-  d.appendChild(t)}
+  ocAcciones(t,txt);d.appendChild(t)}
  else{d.textContent=txt;
-  if(cls==='u'&&extra&&extra.length){var g=document.createElement('div');g.className='ims';extra.forEach(function(u){var im=document.createElement('img');im.alt='Imagen adjunta';im.src=u;g.appendChild(im)});d.appendChild(g)}}
+  if(cls==='u'&&extra&&extra.length){var g=document.createElement('div');g.className='ims';extra.forEach(function(u){var im=document.createElement('img');im.alt='Imagen adjunta';im.src=u;g.appendChild(im)});d.appendChild(g)}
+  if(cls==='u'&&adj&&adj.meta&&adj.meta.length){var g2=document.createElement('div');g2.className='ims';adj.meta.forEach(function(x){g2.appendChild(ocChip(x,false,null))});d.appendChild(g2)}}
  $('oc-log').appendChild(d);ocBajar();return d}
 function ocTool(name,args,res){ocRec({rol:'t',texto:'',herramienta:{nombre:name,args:args||{},resultado:truncate(typeof res==='string'?res:String(res),2400)}});var d=document.createElement('details'),s=document.createElement('summary'),b=document.createElement('div');d.className='tc';
  var i=document.createElement('span');i.className='tc-i';i.innerHTML=OC_ICO_TOOL;
@@ -340,7 +366,7 @@ async function ocPost(url,headers,body){var r;
 async function ocLlmConn(c,msgs){var q=construirPeticion(c,msgs);var j=await ocPost(q.url,q.headers,q.body);return extraerRespuesta(c.tipo,j)}
 async function ocLlm(msgs){
  if(ocActiva===ocHL){var r;
-  try{r=await fetch('/api/chat',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({messages:msgs})})}catch(e){throw new Error('No se pudo conectar con el servidor.')}
+  try{r=await fetch('/api/chat',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({messages:recortarMensajes(msgs,140000)})})}catch(e){throw new Error('No se pudo conectar con el servidor.')}
   var d=null;try{d=await r.json()}catch(e){}
   if(r.status===429)throw new Error('Muchas preguntas seguidas, espera un minuto o agrega tu propia IA en Configuración.');
   if(r.status===503||r.status===504)throw new Error('El servidor de ObraClara no pudo responder ahora (ninguna IA disponible). Inténtalo de nuevo o agrega tu propia IA en Configuración.');
@@ -382,7 +408,10 @@ async function ocAlmEscribir(txt){var fallo=null;
 function ocChatEst(m){var e=$('oc-chat-est');e.textContent=m||'';e.hidden=!m}
 async function ocPersistChats(){ocChats=recortarChats(ocChats);
  try{await ocAlmEscribir(serializarChats(ocChats));ocChatEst('')}
- catch(e){ocChatEst(e&&e.message==='cuota'?'No se pudo guardar el chat: el almacenamiento del navegador está lleno. Borra chats antiguos.':'Este navegador no permite guardar chats (almacenamiento bloqueado). Puedes seguir chateando, pero no se guardará.')}
+ catch(e){var ok2=false;
+  if(e&&e.message==='cuota'){try{await ocAlmEscribir(serializarChats(sinContexto(ocChats)));ok2=true;
+   if(!ocAvisoCtx){ocAvisoCtx=true;ocChatEst('El almacenamiento del navegador está casi lleno: los chats se guardaron sin el contenido de los archivos adjuntos (solo sus nombres).')}}catch(e2){}}
+  if(!ok2)ocChatEst(e&&e.message==='cuota'?'No se pudo guardar el chat: el almacenamiento del navegador está lleno. Borra chats antiguos.':'Este navegador no permite guardar chats (almacenamiento bloqueado). Puedes seguir chateando, pero no se guardará.')}
  ocRenderChats()}
 function ocGuardar(){var hay=false;ocMsgs.forEach(function(m){if(m.rol==='a')hay=true});if(!hay)return;
  var ahora=Date.now(),c=null;ocChats.forEach(function(x){if(x.id===ocChatId)c=x});
@@ -390,11 +419,11 @@ function ocGuardar(){var hay=false;ocMsgs.forEach(function(m){if(m.rol==='a')hay
   ocChatId='c'+ahora.toString(36)+Math.random().toString(36).slice(2,6);c={id:ocChatId,titulo:tituloChat(pu),creado:ahora,actualizado:ahora,mensajes:[]};ocChats.push(c)}
  c.mensajes=ocMsgs.slice();c.actualizado=ahora;ocPersistChats()}
 async function ocCargarChats(){var t=await ocAlmLeer();ocChats=deserializarChats(t);ocRenderChats()}
-function ocLimpiar(){ocHist=[];ocMsgs=[];ocChatId='';ocImgs=[];ocThumbs();$('oc-log').textContent='';$('oc-vacio').hidden=false}
+function ocLimpiar(){ocHist=[];ocMsgs=[];ocChatId='';ocImgs=[];ocDocs=[];ocThumbs();$('oc-log').textContent='';$('oc-vacio').hidden=false}
 function ocAbrir(id){if(ocBusy)return;var c=null;ocChats.forEach(function(x){if(x.id===id)c=x});if(!c)return;
  ocLimpiar();ocChatId=c.id;ocRest=true;
  c.mensajes.forEach(function(m){
-  if(m.rol==='u'){ocLog('u',m.texto);ocHist.push({role:'user',content:m.texto})}
+  if(m.rol==='u'){var ad=m.adj&&m.adj.length?{meta:m.adj,ctx:m.ctx||''}:null;ocLog('u',m.texto,null,ad);ocHist.push({role:'user',content:m.ctx?m.texto+'\n\n'+m.ctx:ad?m.texto+'\n\n[Adjuntos de este mensaje no disponibles: '+m.adj.map(function(x){return x.n}).join(', ')+']':m.texto})}
   else if(m.rol==='a'){ocLog('a',m.texto,m.modelo||'');ocHist.push({role:'assistant',content:m.texto})}
   else if(m.rol==='t'&&m.herramienta)ocTool(m.herramienta.nombre,m.herramienta.args,m.herramienta.resultado)});
  ocRest=false;ocMsgs=c.mensajes.slice();ocRenderChats();ocBajar()}
@@ -418,10 +447,11 @@ function ocRenderChats(){var r=$('oc-chats');r.textContent='';if(!ocChats.length
   li.appendChild(b);li.appendChild(rn);li.appendChild(dl);ul.appendChild(li)});
  var t=document.createElement('button');t.type='button';t.className='ch-todos';t.textContent='Borrar todos los chats';t.addEventListener('click',ocBorrarTodos);r.appendChild(t)}
 function ocAlto(){var t=$('oc-in');t.style.height='auto';t.style.height=Math.min(t.scrollHeight,200)+'px'}
-function ocThumbs(){var g=$('oc-thumbs');g.textContent='';g.hidden=!ocImgs.length;
+function ocThumbs(){var g=$('oc-thumbs');g.textContent='';g.hidden=!(ocImgs.length||ocDocs.length);
  ocImgs.forEach(function(u,i){var w=document.createElement('div'),im=document.createElement('img'),b=document.createElement('button');
   w.className='th';im.alt='Imagen adjunta '+(i+1);im.src=u;b.type='button';b.textContent='×';b.setAttribute('aria-label','Quitar imagen '+(i+1));
-  b.addEventListener('click',function(){ocImgs.splice(i,1);ocThumbs()});w.appendChild(im);w.appendChild(b);g.appendChild(w)})}
+  b.addEventListener('click',function(){ocImgs.splice(i,1);ocThumbs()});w.appendChild(im);w.appendChild(b);g.appendChild(w)});
+ ocDocs.forEach(function(d){g.appendChild(ocChip(d.meta,d.leyendo,function(){var i=ocDocs.indexOf(d);if(i>=0)ocDocs.splice(i,1);ocThumbs()}))})}
 function ocLeer(f){return new Promise(function(ok,no){var r=new FileReader();r.onload=function(){ok(r.result)};r.onerror=function(){no(new Error('No se pudo leer el archivo.'))};r.readAsDataURL(f)})}
 function ocCargarImg(url){return new Promise(function(ok,no){var im=new Image();im.onload=function(){ok(im)};im.onerror=function(){no(new Error('No se pudo abrir la imagen.'))};im.src=url})}
 async function ocReducir(f){var L=limitesImagen(),src=await ocLeer(f),im=await ocCargarImg(src);
@@ -430,23 +460,81 @@ async function ocReducir(f){var L=limitesImagen(),src=await ocLeer(f),im=await o
  if(f.type==='image/png'){var pu=cv.toDataURL('image/png');if(pu.length<400000)return pu}
  cx.globalCompositeOperation='destination-over';cx.fillStyle='#fff';cx.fillRect(0,0,e.w,e.h);
  return cv.toDataURL('image/jpeg',L.calidad)}
+function ocTam(c){return c>=1000?(Math.round(c/100)/10)+' k car.':c+' car.'}
+function ocChip(m,leyendo,quitar){var w=document.createElement('div');w.className='th dchip';
+ var ic=document.createElement('span');ic.className='dic';ic.textContent={zip:'ZIP',pdf:'PDF',docx:'DOC',texto:'TXT'}[m.t]||'DOC';
+ var nb=document.createElement('span');nb.className='dnm';nb.textContent=m.n;nb.title=m.n;
+ var sz=document.createElement('span');sz.className='dsz';sz.textContent=leyendo?'Leyendo…':ocTam(m.c);
+ w.appendChild(ic);w.appendChild(nb);w.appendChild(sz);
+ if(quitar){var b=document.createElement('button');b.type='button';b.textContent='×';b.setAttribute('aria-label','Quitar '+m.n);b.addEventListener('click',quitar);w.appendChild(b)}
+ return w}
+var OC_PDF_URL='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',OC_PDF_WK='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',OC_JSPDF='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',ocLibs={};
+function ocScript(url){if(ocLibs[url])return ocLibs[url];
+ ocLibs[url]=new Promise(function(ok,no){var s=document.createElement('script');s.src=url;s.async=true;s.onload=function(){ok()};s.onerror=function(){delete ocLibs[url];no(new Error('No se pudo cargar una biblioteca externa (revisa tu conexión).'))};document.head.appendChild(s)});
+ return ocLibs[url]}
+async function ocLeerPdf(f){await ocScript(OC_PDF_URL);var lib=window.pdfjsLib;if(!lib)throw new Error('no se pudo cargar el lector de PDF.');
+ lib.GlobalWorkerOptions.workerSrc=OC_PDF_WK;
+ var doc=await lib.getDocument({data:new Uint8Array(await f.arrayBuffer())}).promise,L=limitesAdjuntos(),pags=[],tot=0;
+ for(var p=1;p<=doc.numPages&&p<=L.maxPaginasPdf;p++){var pg=await doc.getPage(p),tc=await pg.getTextContent(),t=textoPdfPagina(tc.items);pags.push(t);tot+=t.length;if(tot>L.maxCharsTotal*2)break}
+ if(!pags.some(function(t){return t}))throw new Error('el PDF no tiene texto seleccionable (¿escaneado?). No se puede leer; si es un escaneo, adjunta capturas como imágenes.');
+ return {nombre:nombreSeguro(f.name),tipo:'pdf',texto:textoPdf(pags),paginas:doc.numPages}}
+async function ocLeerDoc(f,tp){
+ if(tp==='pdf')return await ocLeerPdf(f);
+ var b=new Uint8Array(await f.arrayBuffer());
+ if(tp==='zip'){var z=await leerProyectoZip(f.name,b);if(!z.arbol.length)throw new Error(z.avisos.length?z.avisos.join(' '):'el .zip no tiene archivos útiles.');return z}
+ if(tp==='docx')return await leerDocx(f.name,b);
+ if(!esTextoBytes(b))throw new Error('no parece un archivo de texto (es binario). Se aceptan texto o código, PDF, .docx y .zip.');
+ var t=new TextDecoder('utf-8').decode(b);if(!t.trim())throw new Error('el archivo está vacío.');
+ return {nombre:nombreSeguro(f.name),tipo:'texto',texto:t}}
 async function ocAdjuntar(files){var msgs=[];
- for(var i=0;i<files.length;i++){var f=files[i];
-  if(!f.type||f.type.indexOf('image/')!==0){msgs.push('«'+f.name+'»: no es una imagen.');continue}
-  var er=validarImagen(f.type,f.size,ocImgs.length);if(er){msgs.push(er);continue}
-  try{ocImgs.push(await ocReducir(f))}catch(e){msgs.push('«'+f.name+'»: '+(e&&e.message?e.message:'no se pudo procesar.'))}}
+ for(var i=0;i<files.length;i++){var f=files[i],tp=tipoAdjunto(f.name,f.type);
+  if(tp==='imagen'){var er=validarImagen(f.type,f.size,ocImgs.length);if(er){msgs.push(er);continue}
+   try{ocImgs.push(await ocReducir(f))}catch(e){msgs.push('«'+f.name+'»: '+(e&&e.message?e.message:'no se pudo procesar.'))}
+   ocThumbs();continue}
+  var er2=validarDocumento(f.name,f.size,ocDocs.length);if(er2){msgs.push(er2);continue}
+  var d={meta:{n:nombreSeguro(f.name),t:tp,c:0},leyendo:true,adj:null};ocDocs.push(d);ocLeyendo++;ocThumbs();
+  try{var a=await ocLeerDoc(f,tp);if(ocDocs.indexOf(d)>=0){d.adj=a;d.meta.c=textoAdjunto(a,Infinity).length;d.leyendo=false}}
+  catch(e){var k=ocDocs.indexOf(d);if(k>=0)ocDocs.splice(k,1);msgs.push('«'+d.meta.n+'»: '+(e&&e.message?e.message:'no se pudo leer.'))}
+  ocLeyendo--;ocThumbs()}
  ocThumbs();if(msgs.length)ocLog('n',msgs.join(' '))}
-async function ocSend(q){q=(q||'').trim();var im=ocImgs.slice();if((!q&&!im.length)||ocBusy)return;if(!q)q='Describe la imagen y dime qué ves.';
- ocBusy=true;$('oc-send').disabled=true;$('oc-in').value='';ocAlto();ocImgs=[];ocThumbs();ocLog('u',q,im);var w=ocLog('w','Pensando…');
- try{await ocRun(q,im)}catch(e){ocLog('e',e&&e.message?e.message:'Error inesperado.')}
+async function ocSend(q){q=(q||'').trim();if(ocBusy)return;
+ if(ocLeyendo>0){ocLog('n','Espera a que termine de leerse el archivo adjunto.');return}
+ var im=ocImgs.slice(),dc=ocDocs.map(function(d){return d.adj}).filter(function(a){return a});if(!q&&!im.length&&!dc.length)return;
+ if(!q)q=dc.length?(im.length?'Describe la imagen y resume el archivo adjunto.':'Resume el contenido del archivo adjunto.'):'Describe la imagen y dime qué ves.';
+ var cp=componerAdjuntos(dc),ad=dc.length?{meta:metaAdjuntos(dc),ctx:cp.texto}:null;
+ ocBusy=true;$('oc-send').disabled=true;$('oc-in').value='';ocAlto();ocImgs=[];ocDocs=[];ocThumbs();ocLog('u',q,im,ad);var w=ocLog('w','Pensando…');
+ if(cp.omitidos.length)ocLog('n','No cupieron en el límite de texto por mensaje y se omitieron: '+cp.omitidos.join(', ')+'.');
+ try{await ocRun(ad?q+'\n\n'+cp.texto:q,im)}catch(e){ocLog('e',e&&e.message?e.message:'Error inesperado.')}
  w.remove();ocBusy=false;$('oc-send').disabled=false;ocBajar();ocGuardar()}
-$('oc-sw').addEventListener('click',function(){ocMcp=!ocMcp;ocSwitchText();if($('oc-log').childNodes.length)ocLog('n','MCP '+(ocMcp?'activado':'desactivado')+' a partir de aquí')});
+var OC_MIME={docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',pdf:'application/pdf',zip:'application/zip'};
+function ocDescargar(nombre,datos,tipo){var u=URL.createObjectURL(new Blob([datos],{type:tipo||'application/octet-stream'})),a=document.createElement('a');
+ a.href=u;a.download=nombre;a.rel='noopener';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},4000)}
+async function ocPdfBytes(md){await ocScript(OC_JSPDF);var J=window.jspdf&&window.jspdf.jsPDF;if(!J)throw new Error('No se pudo cargar el generador de PDF.');
+ var doc=new J({unit:'pt',format:'a4'}),W=595.28,H=841.89,M=56,y=M;
+ mdALineasPdf(md).forEach(function(b){doc.setFont(b.mono?'courier':'helvetica',b.neg?'bold':'normal');doc.setFontSize(b.tam);
+  var lh=b.tam*1.35;doc.splitTextToSize(b.t,W-2*M-b.sangria).forEach(function(l){if(y+lh>H-M){doc.addPage();y=M}doc.text(l,M+b.sangria,y+b.tam*0.9);y+=lh});y+=b.despues});
+ return new Uint8Array(doc.output('arraybuffer'))}
+async function ocBytesArchivo(ruta,contenido){var e=extensionArchivo(ruta);
+ if(e==='docx')return crearDocx(contenido);if(e==='pdf')return await ocPdfBytes(contenido);return new TextEncoder().encode(contenido)}
+async function ocBajarArchivo(ruta,contenido){ocDescargar(ruta.split('/').pop(),await ocBytesArchivo(ruta,contenido),OC_MIME[extensionArchivo(ruta)]||'text/plain;charset=utf-8')}
+async function ocBajarZip(fs){var l=[];for(var i=0;i<fs.length;i++)l.push({ruta:fs[i].ruta,datos:await ocBytesArchivo(fs[i].ruta,fs[i].contenido)});ocDescargar('archivos-obraclara.zip',crearZip(l),'application/zip')}
+function ocAcciones(t,txt){var s=String(txt||'').trim();if(!s||s==='(sin respuesta)')return;
+ var fs=extraerArchivos(s),row=document.createElement('div');row.className='acc';row.setAttribute('role','group');row.setAttribute('aria-label','Descargar');
+ function bt(et,tit,fn){var b=document.createElement('button'),ant=et;b.type='button';b.textContent=et;b.title=tit;
+  b.addEventListener('click',async function(){b.disabled=true;b.textContent='…';try{await fn()}catch(e){ocLog('n','No se pudo generar la descarga: '+(e&&e.message?e.message:'error desconocido')+'.')}b.disabled=false;b.textContent=ant});row.appendChild(b)}
+ bt('Word','Descargar la respuesta como documento Word (.docx)',function(){return ocBajarArchivo('respuesta-obraclara.docx',s)});
+ bt('PDF','Descargar la respuesta como PDF',function(){return ocBajarArchivo('respuesta-obraclara.pdf',s)});
+ fs.forEach(function(f){bt(f.ruta.split('/').pop(),'Descargar '+f.ruta,function(){return ocBajarArchivo(f.ruta,f.contenido)})});
+ if(fs.length>=2)bt('Todo (.zip)','Descargar los '+fs.length+' archivos en un .zip',function(){return ocBajarZip(fs)});
+ t.appendChild(row)}
 $('oc-adj').addEventListener('click',function(){$('oc-file').click()});
 $('oc-file').addEventListener('change',function(){var fs=Array.prototype.slice.call($('oc-file').files||[]);$('oc-file').value='';ocAdjuntar(fs)});
 $('oc-in').addEventListener('paste',function(e){var cd=e.clipboardData,fs=[];if(cd&&cd.files)for(var i=0;i<cd.files.length;i++)if(cd.files[i].type&&cd.files[i].type.indexOf('image/')===0)fs.push(cd.files[i]);if(fs.length){e.preventDefault();ocAdjuntar(fs)}});
-$('oc-form').addEventListener('dragover',function(e){e.preventDefault();$('oc-form').firstElementChild.classList.add('arrastre')});
-$('oc-form').addEventListener('dragleave',function(){$('oc-form').firstElementChild.classList.remove('arrastre')});
-$('oc-form').addEventListener('drop',function(e){e.preventDefault();$('oc-form').firstElementChild.classList.remove('arrastre');var d=e.dataTransfer;if(d&&d.files&&d.files.length)ocAdjuntar(Array.prototype.slice.call(d.files))});
+var ocZona=$('oc-form').parentNode;
+function ocHayArchivos(e){var d=e.dataTransfer;return !!d&&Array.prototype.indexOf.call(d.types||[],'Files')>=0}
+ocZona.addEventListener('dragover',function(e){if(!ocHayArchivos(e))return;e.preventDefault();$('oc-form').firstElementChild.classList.add('arrastre')});
+ocZona.addEventListener('dragleave',function(e){if(!e.relatedTarget||!ocZona.contains(e.relatedTarget))$('oc-form').firstElementChild.classList.remove('arrastre')});
+ocZona.addEventListener('drop',function(e){if(!ocHayArchivos(e))return;e.preventDefault();$('oc-form').firstElementChild.classList.remove('arrastre');var d=e.dataTransfer;if(d&&d.files&&d.files.length)ocAdjuntar(Array.prototype.slice.call(d.files))});
 $('oc-gear').addEventListener('click',ocOpen);
 $('oc-cfg-x').addEventListener('click',ocClose);
 $('oc-cfg').addEventListener('click',function(e){if(e.target===$('oc-cfg'))ocClose()});

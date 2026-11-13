@@ -63,3 +63,17 @@ describe("groq", () => {
     await expect(groq("k", "m", false, f(429, {}, { "retry-after": "7" })).ejecutar(U)).rejects.toMatchObject({ pausaMs: 7000 });
   });
 });
+
+describe("límites de conversación", () => {
+  it("acepta hasta 150 000 caracteres y rechaza más", () => {
+    expect(validarMensajes([{ role: "user", content: "x".repeat(149_000) }])).toBe(true);
+    expect(validarMensajes([{ role: "user", content: "x".repeat(150_001) }])).toBe(false);
+  });
+  it("un proveedor con límite recibe la conversación recortada en vez de fallar", async () => {
+    let visto = 0;
+    const p: Proveedor = { id: "p", modelo: "p", maxChars: 1000, async ejecutar(m) { visto = JSON.stringify(m).length; return "ok"; } };
+    const largo = [{ role: "user", content: "viejo ".repeat(500) }, { role: "assistant", content: "r" }, { role: "user", content: "pregunta " + "z".repeat(4000) }];
+    expect((await cadena([p], largo, new Pausas())).content).toBe("ok");
+    expect(visto).toBeLessThan(1700);
+  });
+});

@@ -2,13 +2,15 @@
 // respaldo de emergencia en el Worker: Workers AI y luego Groq rotando de modelo.
 // Cada proveedor que falla (límite, error, apagado) queda en pausa un rato y se pasa al siguiente.
 
+import { recortarMensajes } from "./agente";
+
 export type Parte = { type: "text"; text: string } | { type: "image_url"; image_url: { url: string } };
 export interface Msg { role: string; content: string | Parte[] }
 
 export const MAX_IMAGENES = 3;
 const DATA_URL = /^data:image\/(png|jpe?g|webp|gif);base64,[A-Za-z0-9+/=]+$/;
 const MAX_IMAGEN_B64 = 2_800_000;   // ≈ 2 MB por imagen
-const MAX_TEXTO = 24_000;
+const MAX_TEXTO = 150_000;   // texto total de la conversación (incluye el texto de documentos y proyectos adjuntos)
 
 export function validarMensajes(m: unknown): m is Msg[] {
   if (!Array.isArray(m) || m.length === 0 || m.length > 24) return false;
@@ -42,7 +44,7 @@ export class ErrorProveedor extends Error {
 }
 
 /** Un proveedor devuelve el texto, o {content, modelo} si quiere cambiar la etiqueta (p. ej. quién respondió dentro de la IA del servidor). */
-export interface Proveedor { id: string; modelo: string; ejecutar(m: Msg[]): Promise<string | { content: string; modelo?: string }> }
+export interface Proveedor { id: string; modelo: string; maxChars?: number; ejecutar(m: Msg[]): Promise<string | { content: string; modelo?: string }> }
 
 export class Pausas {
   private hasta = new Map<string, number>();
@@ -56,7 +58,8 @@ export async function cadena(proveedores: Proveedor[], m: Msg[], pausas: Pausas,
   for (const p of proveedores) {
     if (!pausas.activo(p.id, ahora())) continue;
     try {
-      const r = await p.ejecutar(m);
+      // Si la conversación excede lo que admite el proveedor, se recortan los mensajes más antiguos / el adjunto en vez de fallar.
+      const r = await p.ejecutar(p.maxChars ? recortarMensajes(m, p.maxChars) : m);
       const t = (typeof r === "string" ? r : r.content ?? "").trim();
       if (t) return { content: t, modelo: (typeof r === "string" ? undefined : r.modelo) || p.modelo };
       errores.push(`${p.modelo}: sin texto`);
@@ -82,7 +85,7 @@ export function textoDeIA(r: unknown): string {
 
 export function workersAI(ai: { run(model: string, input: unknown): Promise<unknown> }, modelo: string, vision: boolean): Proveedor {
   return {
-    id: "cf:" + modelo, modelo: "Workers AI · " + modelo.replace("@cf/", ""),
+    id: "cf:" + modelo, modelo: "Workers AI · " + modelo.replace("@cf/", ""), maxChars: 100_000,
     async ejecutar(m) {
       try { return textoDeIA(await ai.run(modelo, { messages: vision ? m : soloTexto(m), max_tokens: 1200, temperature: 0.2 })); }
       catch (e) { throw new ErrorProveedor((e as Error).message.slice(0, 120), /limit|quota|exceed|429/i.test((e as Error).message) ? 10 * 60_000 : 30_000); }
@@ -92,7 +95,7 @@ export function workersAI(ai: { run(model: string, input: unknown): Promise<unkn
 
 export function groq(clave: string, modelo: string, vision: boolean, f: typeof fetch = fetch): Proveedor {
   return {
-    id: "groq:" + modelo, modelo: "Groq · " + modelo,
+    id: "groq:" + modelo, modelo: "Groq · " + modelo, maxChars: LIMITE_GROQ[modelo] ?? 24_000,
     async ejecutar(m) {
       const r = await f("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST", headers: { authorization: "Bearer " + clave, "content-type": "application/json" },
@@ -112,6 +115,8 @@ export function groq(clave: string, modelo: string, vision: boolean, f: typeof f
   };
 }
 
+/** Caracteres de conversación que admite cada modelo de Groq (el plan gratuito limita los tokens por minuto; allam-2-7b tiene 4k de contexto). */
+const LIMITE_GROQ: Record<string, number> = { "allam-2-7b": 8_000 };
 export const GROQ_TEXTO = ["openai/gpt-oss-20b", "openai/gpt-oss-120b", "qwen/qwen3.8-27b", "allam-2-7b"];
 export const GROQ_VISION = ["qwen/qwen3.8-27b"];
 /** Etiqueta del respaldo de emergencia del Worker (cuando el conector no está disponible). */

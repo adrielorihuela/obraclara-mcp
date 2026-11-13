@@ -6,7 +6,7 @@ describe("validarMensajes", () => {
   it("rechaza vacío, roles raros y exceso de tamaño", () => {
     expect(validarMensajes([])).toBe(false);
     expect(validarMensajes([{ role: "tool", content: "x" }])).toBe(false);
-    expect(validarMensajes([{ role: "user", content: "x".repeat(25000) }])).toBe(false);
+    expect(validarMensajes([{ role: "user", content: "x".repeat(150001) }])).toBe(false);
     expect(validarMensajes("hola")).toBe(false);
   });
 });

@@ -3,6 +3,7 @@ import {
   buildSystemPrompt, construirPeticion, extraerRespuesta, migrarConfig, normalizarConexion, parseSse, parseToolCall,
   presetsIA, truncate, validarConexion, limitesImagen, validarImagen, escalarImagen, construirContenido, aBloquesAnthropic,
   tituloChat, grupoFecha, recortarChats, serializarChats, deserializarChats, sinImagenes,
+  limitesAdjuntos, rutaSegura, extraerArchivos, crearZip, crearDocx, mdALineasPdf, recortarMensajes, componerAdjuntos,
 } from "../src/lib/agente";
 import { demoScript } from "../src/demo";
 
@@ -60,7 +61,7 @@ describe("parseSse", () => {
 describe("buildSystemPrompt y truncate", () => {
   const tools = [{ name: "buscar_inversiones", description: "Busca", inputSchema: { properties: { texto: { type: "string", description: "palabras" } }, required: ["texto"] } }];
   it("MCP apagado", () => {
-    expect(buildSystemPrompt(tools, false)).toBe("Responde en español. Si la pregunta trata de datos oficiales del Perú, cita la fuente y no inventes cifras. Si el usuario adjunta una imagen, descríbela con lo que se ve.");
+    expect(buildSystemPrompt(tools, false)).toMatch(/^Responde en español\. Si la pregunta trata de datos oficiales del Perú, cita la fuente y no inventes cifras\. Si el usuario adjunta una imagen, descríbela con lo que se ve\./);
   });
   it("MCP activado lista herramientas y protocolo", () => {
     const p = buildSystemPrompt(tools, true);
@@ -80,7 +81,7 @@ describe("script incrustado en el navegador", () => {
     expect(demoScript).not.toContain("__name");
     const fn = new Function(
       "document", "window", "navigator", "sessionStorage", "localStorage", "fetch",
-      demoScript + "\nreturn {parseToolCall,parseSse,buildSystemPrompt,truncate,presetsIA,normalizarConexion,validarConexion,migrarConfig,construirPeticion,extraerRespuesta,limitesImagen,validarImagen,escalarImagen,construirContenido,aBloquesAnthropic,tituloChat,grupoFecha,recortarChats,serializarChats,deserializarChats,sinImagenes};",
+      demoScript + "\nreturn {parseToolCall,parseSse,buildSystemPrompt,truncate,presetsIA,normalizarConexion,validarConexion,migrarConfig,construirPeticion,extraerRespuesta,limitesImagen,validarImagen,escalarImagen,construirContenido,aBloquesAnthropic,tituloChat,grupoFecha,recortarChats,serializarChats,deserializarChats,sinImagenes,limitesAdjuntos,recortarTexto,nombreSeguro,rutaSegura,extensionArchivo,tipoAdjunto,validarDocumento,esTextoBytes,clasificarRuta,zipEntradas,zipExtraer,leerProyectoZip,docxATexto,leerDocx,textoPdfPagina,textoPdf,textoAdjunto,componerAdjuntos,metaAdjuntos,sinContexto,largoContenido,acortarContenido,recortarMensajes,extraerArchivos,crc32,crearZip,xmlEscape,docxRuns,docxCuerpo,crearDocx,textoLatin1,mdALineasPdf};",
     );
     const el: any = new Proxy(function () {}, { get: () => el, apply: () => el, set: () => true });
     const api = fn(el, {}, {}, { getItem: () => null, setItem() {} }, { getItem: () => null, setItem() {} }, async () => ({}));
@@ -106,6 +107,16 @@ describe("script incrustado en el navegador", () => {
     expect(api.grupoFecha(1, 2e12)).toBe("Anteriores");
     const cc = [{ id: "a", titulo: "t", creado: 1, actualizado: 2, mensajes: [{ rol: "u", texto: "x" }] }];
     expect(api.deserializarChats(api.serializarChats(cc))).toEqual(deserializarChats(serializarChats(cc)));
+    expect(api.limitesAdjuntos()).toEqual(limitesAdjuntos());
+    expect(api.rutaSegura("../a/b c.txt")).toBe(rutaSegura("../a/b c.txt"));
+    expect(api.tipoAdjunto("x.PDF", "")).toBe("pdf");
+    expect(api.extraerArchivos("```archivo:a.md\nhola\n```")).toEqual(extraerArchivos("```archivo:a.md\nhola\n```"));
+    expect(Array.from(api.crearZip([{ ruta: "a.txt", datos: "hola" }]))).toEqual(Array.from(crearZip([{ ruta: "a.txt", datos: "hola" }])));
+    expect(Array.from(api.crearDocx("# T\n\n- x"))).toEqual(Array.from(crearDocx("# T\n\n- x")));
+    expect(api.mdALineasPdf("# Año\ntexto")).toEqual(mdALineasPdf("# Año\ntexto"));
+    expect(api.recortarMensajes([{ role: "user", content: "x".repeat(50) }], 10)).toEqual(recortarMensajes([{ role: "user", content: "x".repeat(50) }], 10));
+    const adj = [{ nombre: "a.txt", tipo: "texto", texto: "hola" }];
+    expect(api.componerAdjuntos(adj)).toEqual(componerAdjuntos(adj as any));
   });
 });
 
