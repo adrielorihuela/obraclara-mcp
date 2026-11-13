@@ -46,8 +46,8 @@ describe("cadena de proveedores", () => {
     expect((await cadena([prov("a", async () => "  "), prov("b", async () => "ok")], U, new Pausas())).modelo).toBe("b");
   });
   it("un proveedor puede devolver {content, modelo} y cambiar la etiqueta", async () => {
-    const r = await cadena([prov("a", async () => ({ content: " hola ", modelo: "gpt-headless · Groq · x" }))], U, new Pausas());
-    expect(r).toEqual({ content: "hola", modelo: "gpt-headless · Groq · x" });
+    const r = await cadena([prov("a", async () => ({ content: " hola ", modelo: "IA del servidor · Groq · x" }))], U, new Pausas());
+    expect(r).toEqual({ content: "hola", modelo: "IA del servidor · Groq · x" });
     expect((await cadena([prov("a", async () => ({ content: "t" }))], U, new Pausas())).modelo).toBe("a");
   });
   it("si todas fallan, explica por qué", async () => {

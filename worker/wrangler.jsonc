@@ -10,8 +10,8 @@
     { "binding": "DB", "database_name": "obraclara", "database_id": "e35c4c6d-c4cd-4b08-a9bd-9b881ec316b7" }
   ],
   "ai": { "binding": "AI" },
-  "durable_objects": { "bindings": [{ "name": "COLA", "class_name": "ColaGpt" }] },
-  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["ColaGpt"] }],
+  "durable_objects": { "bindings": [{ "name": "COLA", "class_name": "ColaIA" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["ColaGpt"] }, { "tag": "v2", "renamed_classes": [{ "from": "ColaGpt", "to": "ColaIA" }] }],
   "ratelimits": [
     { "name": "LIMITER", "namespace_id": "4101", "simple": { "limit": 60, "period": 60 } },
     { "name": "CHAT_LIMITER", "namespace_id": "4102", "simple": { "limit": 20, "period": 60 } }

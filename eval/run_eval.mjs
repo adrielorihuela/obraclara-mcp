@@ -1,4 +1,4 @@
-// Evaluación ObraClara: 40 preguntas sin MCP vs con MCP, usando gpt-headless (127.0.0.1:8765).
+// Evaluación ObraClara: 40 preguntas sin MCP vs con MCP, usando la API de IA privada del grupo (compatible con OpenAI; dirección en IA_URL, fuera del repo).
 // Uso: node run_eval.mjs [--solo sin_mcp|con_mcp] [--ids B01,B02] [--max N]
 // Reanudable: salta los ids que ya están en resultados/raw_<condicion>.jsonl.
 import fs from 'node:fs';
@@ -7,7 +7,8 @@ import { fileURLToPath } from 'node:url';
 
 const DIR = path.dirname(fileURLToPath(import.meta.url));
 const OUT = path.join(DIR, 'resultados');
-const GPT = `http://127.0.0.1:${process.env.GPT_PORT || 8765}/v1/chat/completions`;
+if (!process.env.IA_URL) { console.error('Falta IA_URL (API compatible con OpenAI).'); process.exit(1); }
+const IA = process.env.IA_URL.replace(/\/+$/, '') + '/v1/chat/completions';
 const MCP = 'https://obraclara.adrielorihuela.net/mcp';
 const MAX_STEPS = 5;
 const MAX_TOOL_CHARS = 15000;
@@ -36,11 +37,11 @@ export function parseCSV(text) {
   return rest.filter((r) => r.length > 1).map((r) => Object.fromEntries(h.map((k, i) => [k, r[i] ?? ''])));
 }
 
-// --- gpt-headless ---
+// --- IA del servidor ---
 async function askOnce(messages) {
-  const r = await fetch(GPT, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: 'gpt-anon', messages }), signal: AbortSignal.timeout(300000),
+  const r = await fetch(IA, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', ...(process.env.IA_KEY ? { Authorization: 'Bearer ' + process.env.IA_KEY } : {}) },
+    body: JSON.stringify({ ...(process.env.IA_MODELO ? { model: process.env.IA_MODELO } : {}), messages }), signal: AbortSignal.timeout(300000),
   });
   const j = await r.json().catch(() => ({ error: { message: 'respuesta no JSON (HTTP ' + r.status + ')' } }));
   if (!r.ok || j.error) throw new Error(j.error?.message || 'HTTP ' + r.status);

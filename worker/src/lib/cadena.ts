@@ -1,4 +1,4 @@
-// Cadena de IAs del servidor: gpt-headless primero (él ya tiene sus propios respaldos); solo si el conector no responde,
+// Cadena de IAs del servidor: la IA del servidor primero (ya tiene sus propios respaldos); solo si el conector no responde,
 // respaldo de emergencia en el Worker: Workers AI y luego Groq rotando de modelo.
 // Cada proveedor que falla (límite, error, apagado) queda en pausa un rato y se pasa al siguiente.
 
@@ -41,7 +41,7 @@ export class ErrorProveedor extends Error {
   constructor(mensaje: string, public pausaMs = 30_000) { super(mensaje); }
 }
 
-/** Un proveedor devuelve el texto, o {content, modelo} si quiere cambiar la etiqueta (p. ej. quién respondió dentro de gpt-headless). */
+/** Un proveedor devuelve el texto, o {content, modelo} si quiere cambiar la etiqueta (p. ej. quién respondió dentro de la IA del servidor). */
 export interface Proveedor { id: string; modelo: string; ejecutar(m: Msg[]): Promise<string | { content: string; modelo?: string }> }
 
 export class Pausas {

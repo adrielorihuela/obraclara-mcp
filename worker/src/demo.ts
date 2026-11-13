@@ -207,7 +207,7 @@ export const demoHtml = String.raw`
 <dialog id="oc-cfg" aria-labelledby="oc-cfg-t">
 <div class="cfg-h"><h2 id="oc-cfg-t">Configuración de IA</h2><button type="button" id="oc-cfg-x" class="b">Cerrar</button></div>
 <div class="cfg-in">
-<p class="intro">Por defecto la respuesta la da el servidor de ObraClara, que prueba gpt-headless, luego Workers AI y luego Groq. Si prefieres, agrega tus propias conexiones de IA y elige cuál usar. La clave se guarda solo en tu navegador (por defecto hasta cerrar la pestaña) y las solicitudes van directo de tu navegador al proveedor: tus claves nunca llegan a nuestro servidor.</p>
+<p class="intro">Por defecto la respuesta la da el servidor de ObraClara, que prueba primero la IA del grupo, luego Workers AI y luego Groq. Si prefieres, agrega tus propias conexiones de IA y elige cuál usar. La clave se guarda solo en tu navegador (por defecto hasta cerrar la pestaña) y las solicitudes van directo de tu navegador al proveedor: tus claves nunca llegan a nuestro servidor.</p>
 <h3>Conexión activa</h3>
 <ul id="oc-lista"></ul>
 <form id="oc-cform" autocomplete="off">
@@ -238,7 +238,7 @@ const nombres = [
 ].map((f) => f.toString()).join("\n");
 
 const app = String.raw`
-var ocMcp=true,ocHist=[],ocTools=null,ocBusy=false,ocConns=[],ocActiva='gpt-headless',ocEdit='',ocHL='gpt-headless',ocImgs=[],ocMsgs=[],ocChats=[],ocChatId='',ocRest=false,ocRen='';
+var ocMcp=true,ocHist=[],ocTools=null,ocBusy=false,ocConns=[],ocActiva='servidor',ocEdit='',ocHL='servidor',ocImgs=[],ocMsgs=[],ocChats=[],ocChatId='',ocRest=false,ocRen='';
 var OC_ICO_TOOL='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4h12M2 8h8M2 12h5"/><path d="m11 10 2 2-2 2"/></svg>';
 function $(id){return document.getElementById(id)}
 function ocBajar(){var s=$('oc-scroll');if(s)s.scrollTop=s.scrollHeight}
@@ -293,7 +293,7 @@ function ocLoad(){var a=ocRead(sessionStorage,'oc_conns')||[],b=ocRead(localStor
  var act=null;try{act=localStorage.getItem('oc_activa');if(act)act=JSON.parse(act)}catch(e){act=null}
  if(typeof act==='string'&&(act===ocHL||ocConnById(act)))ocActiva=act}
 function ocUi(){if(ocActiva!==ocHL&&!ocConnById(ocActiva))ocActiva=ocHL;
- $('oc-info').textContent=ocActiva===ocHL?'Por defecto la respuesta viene del servidor de ObraClara, que prueba gpt-headless, luego Workers AI y luego Groq. En «Configuración» puedes usar tu propia IA con tu clave: nunca llega a nuestro servidor.':'Usando tu conexión «'+ocConnById(ocActiva).nombre+'»: las solicitudes van directo desde tu navegador al proveedor; la clave nunca llega a nuestro servidor.'}
+ $('oc-info').textContent=ocActiva===ocHL?'Por defecto la respuesta viene del servidor de ObraClara, que prueba primero la IA del grupo, luego Workers AI y luego Groq. En «Configuración» puedes usar tu propia IA con tu clave: nunca llega a nuestro servidor.':'Usando tu conexión «'+ocConnById(ocActiva).nombre+'»: las solicitudes van directo desde tu navegador al proveedor; la clave nunca llega a nuestro servidor.'}
 function ocElegir(id){ocActiva=id;ocPersist();ocUi();ocRenderLista()}
 function ocRenderLista(){var u=$('oc-lista');u.textContent='';
  function fila(id,txt,extras){var li=document.createElement('li'),sp=document.createElement('span'),lb=document.createElement('label'),r=document.createElement('input');
@@ -301,7 +301,7 @@ function ocRenderLista(){var u=$('oc-lista');u.textContent='';
   lb.className='usar';r.type='radio';r.name='oc-act';r.checked=ocActiva===id;r.addEventListener('change',function(){ocElegir(id)});
   lb.appendChild(r);lb.appendChild(document.createTextNode(id===ocHL?'Usar el servidor de ObraClara (predeterminado)':'Usar esta conexión'));
   li.appendChild(sp);(extras||[]).forEach(function(x){li.appendChild(x)});li.appendChild(lb);u.appendChild(li)}
- fila(ocHL,'Servidor de ObraClara: gpt-headless, luego Workers AI, luego Groq',[]);
+ fila(ocHL,'Servidor de ObraClara: IA del grupo, luego Workers AI, luego Groq',[]);
  ocConns.forEach(function(c){var be=document.createElement('button'),bd=document.createElement('button');
   be.type='button';be.textContent='Editar';be.setAttribute('aria-label','Editar '+c.nombre);be.addEventListener('click',function(){ocFormFill(c)});
   bd.type='button';bd.textContent='Eliminar';bd.setAttribute('aria-label','Eliminar '+c.nombre);bd.addEventListener('click',function(){ocDelete(c.id)});

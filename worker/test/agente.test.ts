@@ -7,7 +7,7 @@ import {
 import { demoScript } from "../src/demo";
 
 describe("parseToolCall tolera escapes inválidos", () => {
-  it("respuesta con \\! (como escribe chatgpt)", () => {
+  it("respuesta con \\! (como escriben algunos modelos)", () => {
     expect(parseToolCall('{"respuesta":"¡Hola\\! Soy ObraClara. ¿Qué te gustaría consultar?"}')).toEqual({ tipo: "respuesta", texto: "¡Hola! Soy ObraClara. ¿Qué te gustaría consultar?" });
   });
   it("sigue respetando escapes válidos", () => {
@@ -165,9 +165,10 @@ describe("conexiones de IA", () => {
     expect(validarConexion({ ...ok, baseUrl: "http://localhost:11434/v1" })).toEqual([]);
   });
   it("migra la config antigua", () => {
-    expect(migrarConfig({ modo: "cf" })).toEqual({ conexiones: [], activa: "gpt-headless" });
-    expect(migrarConfig({ modo: "local" })).toEqual({ conexiones: [], activa: "gpt-headless" });
-    expect(migrarConfig(null).activa).toBe("gpt-headless");
+    expect(migrarConfig({ modo: "cf" })).toEqual({ conexiones: [], activa: "servidor" });
+    expect(migrarConfig({ modo: "local" })).toEqual({ conexiones: [], activa: "servidor" });
+    expect(migrarConfig(null).activa).toBe("servidor");
+    expect(migrarConfig({ conexiones: [], activa: "nombre-antiguo" })).toEqual({ conexiones: [], activa: "servidor" });
     expect(migrarConfig({ modo: "clave", prov: "groq", model: "m", key: "" }).conexiones).toEqual([]);
     const m = migrarConfig({ modo: "clave", prov: "groq", base: "", model: "llama", key: "k", rec: true });
     expect(m.activa).toBe("migrada");

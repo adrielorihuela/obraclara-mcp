@@ -155,7 +155,7 @@ fs.writeFileSync(path.join(OUT, 'resultados.csv'),
 
 const pct = (xs, k) => (xs.length ? ((100 * xs.filter((x) => x[k]).length) / xs.length).toFixed(0) + ' %' : '-');
 const mean = (xs, k) => { const v = xs.map((x) => x[k]).filter((x) => x != null); return v.length ? (v.reduce((a, b) => a + b, 0) / v.length).toFixed(1) : '-'; };
-let md = `# Evaluación ObraClara: sin MCP vs con MCP\n\nFecha: ${new Date().toISOString().slice(0, 10)} · 40 preguntas (\`preguntas.csv\`) · modelo: chatgpt.com anónimo vía gpt-headless · una corrida.\n\n`;
+let md = `# Evaluación ObraClara: sin MCP vs con MCP\n\nFecha: ${new Date().toISOString().slice(0, 10)} · 40 preguntas (\`preguntas.csv\`) · modelo: IA del servidor del grupo (API privada compatible con OpenAI, con respaldo automático) · una corrida.\n\n`;
 md += '## Resultado global (porcentaje de las 40 preguntas)\n\n| Condición | Exacta | Cita fuente y fecha | Inventada | Revisar | Latencia media total (s) | Latencia media sin reintentos (s) | Llamadas medias | Reintentos | Ejecutadas |\n|---|---|---|---|---|---|---|---|---|---|\n';
 for (const c of conds) {
   const xs = rows.filter((r) => r.condicion === c);
@@ -165,7 +165,7 @@ const okIds = qs.map((q) => q.id).filter((id) => rows.filter((r) => r.id === id 
 if (okIds.length < 40) {
   md += `\n### Solo las ${okIds.length} preguntas con respuesta válida en ambas condiciones\n\n| Condición | Exacta | Cita | Inventada |\n|---|---|---|---|\n`;
   for (const c of conds) { const xs = rows.filter((r) => r.condicion === c && okIds.includes(r.id)); md += `| ${c} | ${pct(xs, 'exacta')} | ${pct(xs, 'cita')} | ${pct(xs, 'inventada')} |\n`; }
-  md += `\nFaltan: ${qs.map((q) => q.id).filter((id) => !okIds.includes(id)).join(', ')} (chatgpt.com anónimo alcanzó su límite de uso: «pide iniciar sesión»; en la tabla global cuentan como no acertadas).\n`;
+  md += `\nFaltan: ${qs.map((q) => q.id).filter((id) => !okIds.includes(id)).join(', ')} (el proveedor de IA alcanzó su límite de uso; en la tabla global cuentan como no acertadas).\n`;
 }
 md += '\n## Por tipo de pregunta (10 preguntas cada uno)\n\n| Tipo | Condición | Exacta | Cita | Inventada | Revisar |\n|---|---|---|---|---|---|\n';
 for (const t of [...new Set(qs.map((q) => q.tipo))]) for (const c of conds) {
@@ -182,12 +182,12 @@ md += `\n## Cómo se puntuó (automático)\n
 - **Revisar**: casos dudosos para revisión manual (columna \`revisar\` de \`resultados.csv\` con el motivo).
 
 ## Advertencias
-- chatgpt.com **anónimo** (sin cuenta) a través de un navegador headless; no se sabe qué modelo responde y puede cambiar entre preguntas. En «sin MCP» el chat puede usar su búsqueda web.
+- El proveedor de IA es un servicio de uso gratuito con límite de uso; no se controla qué modelo responde y puede cambiar entre preguntas. En «sin MCP» el modelo puede usar búsqueda web.
 - Con MCP se usa un protocolo de herramientas **en texto** (JSON en la respuesta), no llamadas nativas; resultados de más de ${15000} caracteres se recortan.
 - Puntuación **automática** con reglas simples: puede contar como exacta una coincidencia casual o perder respuestas correctas con otro formato. Los casos «revisar» deben verificarlos a mano dos integrantes del grupo.
-- La latencia total incluye los reintentos: gpt-headless a veces se queda 3 min sin leer la respuesta y el ejecutor reintenta una vez; «sin reintentos» suma solo los intentos exitosos (medida desde B08; antes no se registraba).
+- La latencia total incluye los reintentos: el proveedor a veces tarda hasta 3 min en responder y el ejecutor reintenta una vez; «sin reintentos» suma solo los intentos exitosos (medida desde B08; antes no se registraba).
 - «Inventada» es una cota superior: sin MCP el chat suele citar otras fuentes reales (Contraloría, notas de prensa, otras fechas) cuyas cifras no coinciden con el MEF al 2026-11-10; la regla las cuenta como inventadas aunque no sean fabricadas. Conviene revisarlas a mano.
-- gpt-headless lee solo el último mensaje del asistente; cuando chatgpt.com usa búsqueda web, algunas respuestas sin MCP llegan con marcado interno (<Cite>, imágenes) o empiezan a mitad de texto. Afecta sobre todo a «cita» sin MCP.
+- Cuando el modelo usa búsqueda web, algunas respuestas sin MCP llegan con marcado interno (<Cite>, imágenes) o empiezan a mitad de texto. Afecta sobre todo a «cita» sin MCP.
 - Abstenciones («no he podido verificar…») no cuentan como exactas ni como inventadas (se marcan «revisar»).
 - **Una sola corrida** por condición: no mide la variabilidad entre corridas.
 - Datos de referencia con corte 2026-11-10; el chat sin herramientas puede tener datos de otra fecha.

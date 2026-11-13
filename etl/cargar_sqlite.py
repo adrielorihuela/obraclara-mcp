@@ -1,6 +1,6 @@
 """Construye la base SQLite local (en la máquina del grupo) a partir de la salida del ETL.
 
-Uso: python etl/cargar_sqlite.py --build build/ --db ~/.local/share/obraclara-gpt/inversiones.db
+Uso: python etl/cargar_sqlite.py --build build/ --db ~/.local/share/obraclara/inversiones.db
 
 Sirve las consultas pesadas sin gastar lecturas ni escrituras del plan gratuito de Cloudflare D1.
 """

@@ -132,7 +132,7 @@ ${tabla(FILTROS)}
 <section id="limites"><h2>Límites</h2>
 <table class="ref"><tbody>
 <tr><td>/mcp</td><td>60 solicitudes por minuto por dirección IP.</td></tr>
-<tr><td>panel web</td><td>20 preguntas por minuto al modelo gpt-headless. Con tu propia clave, el límite es el de tu proveedor.</td></tr>
+<tr><td>panel web</td><td>20 preguntas por minuto a la IA del servidor. Con tu propia clave, el límite es el de tu proveedor.</td></tr>
 <tr><td>resultados</td><td>Hasta 20 inversiones por consulta; <code>total</code> indica cuántas coinciden.</td></tr>
 <tr><td>datos</td><td>Corte del ${esc(fechaLarga(m.fecha_descarga))}. Se recargan cada lunes; durante la recarga, unos minutos, las consultas pueden devolver menos resultados.</td></tr>
 </tbody></table>
@@ -176,7 +176,7 @@ export function acerca(m: Meta): string {
 <h2>Limitaciones</h2><div><ul>
 <li>Los datos se actualizan una vez por semana y pueden no reflejar el estado más reciente en el MEF.</li>
 <li>Las alertas son aproximaciones con reglas simples. No prueban irregularidades.</li>
-<li>El modelo por defecto del panel, gpt-headless, corre en un equipo del grupo: es compartido, tiene límite de uso y puede estar apagado.</li>
+<li>La IA por defecto del panel, un proveedor de IA del grupo (API compatible con OpenAI), corre en un equipo del grupo: es compartido, tiene límite de uso y puede estar apagado.</li>
 <li>Durante la recarga semanal, por unos minutos, las consultas pueden devolver pocos resultados.</li></ul></div>
 <h2>Código</h2><div><p>Abierto con licencia MIT en <a href="${REPO}">github.com/adrielorihuela/obraclara-mcp</a>: ETL en Python, Worker en TypeScript, pruebas y banco de preguntas de evaluación.</p></div>
 <h2>Uso de IA</h2><div><p>El código se desarrolló con ayuda de IA generativa y fue revisado y probado por el grupo.</p></div>

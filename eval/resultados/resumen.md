@@ -1,6 +1,6 @@
 # Evaluación ObraClara: sin MCP vs con MCP
 
-Fecha: 2026-11-10 · 40 preguntas (`preguntas.csv`) · modelo: chatgpt.com anónimo vía gpt-headless · una corrida.
+Fecha: 2026-11-10 · 40 preguntas (`preguntas.csv`) · modelo: IA del servidor del grupo (API privada compatible con OpenAI, con respaldo automático) · una corrida.
 
 ## Resultado global (porcentaje de las 40 preguntas)
 
@@ -16,7 +16,7 @@ Fecha: 2026-11-10 · 40 preguntas (`preguntas.csv`) · modelo: chatgpt.com anón
 | sin_mcp | 6 % | 14 % | 53 % |
 | con_mcp | 94 % | 100 % | 0 % |
 
-Faltan: R07, R08, R09, R10 (chatgpt.com anónimo alcanzó su límite de uso: «pide iniciar sesión»; en la tabla global cuentan como no acertadas).
+Faltan: R07, R08, R09, R10 (el proveedor de IA alcanzó su límite de uso; en la tabla global cuentan como no acertadas).
 
 ## Por tipo de pregunta (10 preguntas cada uno)
 
@@ -41,12 +41,12 @@ Con MCP, la herramienta esperada se usó en 34/40 preguntas; 3 respuestas no lla
 - **Revisar**: casos dudosos para revisión manual (columna `revisar` de `resultados.csv` con el motivo).
 
 ## Advertencias
-- chatgpt.com **anónimo** (sin cuenta) a través de un navegador headless; no se sabe qué modelo responde y puede cambiar entre preguntas. En «sin MCP» el chat puede usar su búsqueda web.
+- El proveedor de IA es un servicio de uso gratuito con límite de uso; no se controla qué modelo responde y puede cambiar entre preguntas. En «sin MCP» el modelo puede usar búsqueda web.
 - Con MCP se usa un protocolo de herramientas **en texto** (JSON en la respuesta), no llamadas nativas; resultados de más de 15000 caracteres se recortan.
 - Puntuación **automática** con reglas simples: puede contar como exacta una coincidencia casual o perder respuestas correctas con otro formato. Los casos «revisar» deben verificarlos a mano dos integrantes del grupo.
-- La latencia total incluye los reintentos: gpt-headless a veces se queda 3 min sin leer la respuesta y el ejecutor reintenta una vez; «sin reintentos» suma solo los intentos exitosos (medida desde B08; antes no se registraba).
+- La latencia total incluye los reintentos: el proveedor a veces tarda hasta 3 min en responder y el ejecutor reintenta una vez; «sin reintentos» suma solo los intentos exitosos (medida desde B08; antes no se registraba).
 - «Inventada» es una cota superior: sin MCP el chat suele citar otras fuentes reales (Contraloría, notas de prensa, otras fechas) cuyas cifras no coinciden con el MEF al 2026-11-10; la regla las cuenta como inventadas aunque no sean fabricadas. Conviene revisarlas a mano.
-- gpt-headless lee solo el último mensaje del asistente; cuando chatgpt.com usa búsqueda web, algunas respuestas sin MCP llegan con marcado interno (<Cite>, imágenes) o empiezan a mitad de texto. Afecta sobre todo a «cita» sin MCP.
+- Cuando el modelo usa búsqueda web, algunas respuestas sin MCP llegan con marcado interno (<Cite>, imágenes) o empiezan a mitad de texto. Afecta sobre todo a «cita» sin MCP.
 - Abstenciones («no he podido verificar…») no cuentan como exactas ni como inventadas (se marcan «revisar»).
 - **Una sola corrida** por condición: no mide la variabilidad entre corridas.
 - Datos de referencia con corte 2026-11-10; el chat sin herramientas puede tener datos de otra fecha.

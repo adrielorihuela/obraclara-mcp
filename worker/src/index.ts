@@ -4,13 +4,13 @@ import { crearServidor, ok } from "./server";
 import { alertas, buscar, meta, type Db, type Filtros } from "./lib/queries";
 import { CF_TEXTO, CF_VISION, ETIQUETA_RESPALDO, ErrorProveedor, GROQ_TEXTO, GROQ_VISION, Pausas, cadena, groq, tieneImagenes, validarMensajes, workersAI, type Msg, type Proveedor } from "./lib/cadena";
 import { RespaldoDb } from "./lib/remotedb";
-export { ColaGpt } from "./cola";
+export { ColaIA } from "./cola";
 
 interface Env {
   DB: D1Database;
   LIMITER: { limit(o: { key: string }): Promise<{ success: boolean }> };
   CHAT_LIMITER: { limit(o: { key: string }): Promise<{ success: boolean }> };
-  GPT_CONECTOR_SECRET: string;
+  CONECTOR_SECRET: string;
   GROQ_API_KEY?: string;
   AI: { run(model: string, input: unknown): Promise<unknown> };
   COLA: { idFromName(n: string): unknown; get(id: unknown): { fetch(req: Request | string, init?: RequestInit): Promise<Response> } };
@@ -45,13 +45,13 @@ export default {
       const mensajes = cuerpo.messages as Msg[];
       const vision = tieneImagenes(mensajes);
       const proveedores: Proveedor[] = [];
-      // 1) gpt-headless en el servidor del grupo, para todo (también imágenes). Ya tiene sus propios respaldos (Workers AI, Groq):
+      // 1) IA del servidor (API privada compatible con OpenAI en un equipo del grupo), para todo (también imágenes). Ya tiene sus propios respaldos:
       //    espera hasta 60 s y la etiqueta muestra quién respondió.
-      proveedores.push({ id: "gpt-headless", modelo: "gpt-headless", async ejecutar(m) {
+      proveedores.push({ id: "servidor", modelo: "IA del servidor", async ejecutar(m) {
         const r = await cola.fetch("https://cola/preguntar?max=60000", { method: "POST", body: JSON.stringify({ messages: m }) });
         const j = (await r.json()) as { content?: string; modelo?: string; error?: string };
         if (!r.ok || !j.content) throw new ErrorProveedor(j.error ?? "sin respuesta", r.status === 503 ? 15_000 : 30_000);
-        return { content: j.content, modelo: j.modelo ? "gpt-headless · " + j.modelo : "gpt-headless" };
+        return { content: j.content, modelo: j.modelo || "IA del servidor" };
       } });
       // 2) Solo si el conector no está disponible, falló o está en pausa: respaldo de emergencia del Worker.
       const respaldo = (p: Proveedor): Proveedor => ({ ...p, modelo: ETIQUETA_RESPALDO + p.modelo });
@@ -62,15 +62,15 @@ export default {
       catch (e) { return json({ error: (e as Error).message }, 502); }
     }
     // Conector de la máquina del grupo: se conecta por WebSocket (llamada saliente) con la contraseña como subprotocolo.
-    if (url.pathname === "/gpt/ws") {
+    if (url.pathname === "/conector/ws") {
       const t = (req.headers.get("sec-websocket-protocol") ?? "").split(",")[0].trim();
-      const ok = !!env.GPT_CONECTOR_SECRET && t.length === env.GPT_CONECTOR_SECRET.length &&
-        crypto.subtle.timingSafeEqual(new TextEncoder().encode(t), new TextEncoder().encode(env.GPT_CONECTOR_SECRET));
+      const ok = !!env.CONECTOR_SECRET && t.length === env.CONECTOR_SECRET.length &&
+        crypto.subtle.timingSafeEqual(new TextEncoder().encode(t), new TextEncoder().encode(env.CONECTOR_SECRET));
       if (!ok) return json({ error: "no autorizado" }, 401);
       if (req.headers.get("upgrade") !== "websocket") return json({ error: "se esperaba WebSocket" }, 426);
       return cola.fetch(new Request("https://cola/ws", req));
     }
-    if (url.pathname === "/api/gpt-estado") return cola.fetch("https://cola/estado");
+    if (url.pathname === "/api/ia-estado") return cola.fetch("https://cola/estado");
     if (url.pathname === "/salud") return json({ estado: "ok", ...(await meta(db)) });
     if (url.pathname === "/api/buscar" || url.pathname === "/api/alertas") {
       if (!(await env.LIMITER.limit({ key: clave })).success) return json({ error: "Demasiadas solicitudes, intenta en un minuto." }, 429);

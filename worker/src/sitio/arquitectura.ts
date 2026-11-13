@@ -23,7 +23,7 @@ function defs(id: string): string {
 export function arquitecturaAncha(): string {
   const id = "arA";
   return `<svg class="arq arq-w" viewBox="0 0 1240 480" role="img" aria-labelledby="arA-t arA-d"><title id="arA-t">Arquitectura de ObraClara</title>
-<desc id="arA-d">El CSV del MEF pasa por un ETL en Python ejecutado por GitHub Actions; se carga en Cloudflare D1 y en una base SQLite del servidor del grupo. Un Cloudflare Worker expone el servidor MCP y el sitio; los clientes MCP se conectan por Streamable HTTP. En el servidor del grupo, un conector abre un WebSocket saliente hacia el Worker para responder con gpt-headless y ejecutar las consultas en SQLite; si no está conectado, el Worker lee D1.</desc>
+<desc id="arA-d">El CSV del MEF pasa por un ETL en Python ejecutado por GitHub Actions; se carga en Cloudflare D1 y en una base SQLite del servidor del grupo. Un Cloudflare Worker expone el servidor MCP y el sitio; los clientes MCP se conectan por Streamable HTTP. En el servidor del grupo, un conector abre un WebSocket saliente hacia el Worker para responder con la IA del servidor y ejecutar las consultas en SQLite; si no está conectado, el Worker lee D1.</desc>
 ${defs(id)}
 ${caja({ x: 0, y: 40, w: 190, h: 120, t: "MEF · datos abiertos", l: ["DETALLE_INVERSIONES.csv", "≈ 248 MB", "licencia ODC-BY"] })}
 ${caja({ x: 240, y: 40, w: 190, h: 120, t: "ETL en Python", l: ["etl/inversiones.py", "GitHub Actions", "lunes 08:00 UTC"] })}
@@ -35,7 +35,7 @@ ${flecha("M670 100H738", id)}${rotulo(705, 88, "respaldo")}
 ${flecha("M987 140H1033", id, false, true)}${rotulo(1010, 128, "HTTP")}
 ${caja({ x: 240, y: 300, w: 745, h: 170, t: "Servidor del grupo (equipo propio, sin puertos abiertos)", tipo: "grupo" })}
 ${caja({ x: 260, y: 345, w: 200, h: 100, t: "SQLite local", l: ["inversiones.db", "consultas SELECT"] })}
-${caja({ x: 500, y: 345, w: 200, h: 100, t: "gpt-headless", l: ["modelo por defecto", "del panel web"] })}
+${caja({ x: 500, y: 345, w: 200, h: 100, t: "IA del servidor", l: ["modelo por defecto", "del panel web"] })}
 ${caja({ x: 740, y: 345, w: 225, h: 100, t: "conector.mjs", l: ["responde preguntas", "y consultas SQL"] })}
 ${flecha("M335 160V343", id)}${rotulo(347, 236, "cargar_sqlite.py", "start")}
 ${flecha("M862 343V242", id, true, true)}${rotulo(875, 286, "WebSocket saliente", "start")}
@@ -60,7 +60,7 @@ ${flecha("M160 536V568", id, false, true)}
 ${caja({ x, y: 570, w, h: 112, t: "Clientes MCP", l: ["claude.ai · Claude Code", "Claude Desktop · MCP Inspector", "panel web · otros clientes"] })}
 ${caja({ x: 0, y: 730, w: 320, h: 276, t: "Servidor del grupo", tipo: "grupo" })}
 ${caja({ x: 20, y: 770, w: 280, h: 64, t: "conector.mjs", l: ["WebSocket saliente al Worker"] })}
-${caja({ x: 20, y: 848, w: 280, h: 64, t: "gpt-headless", l: ["modelo por defecto del panel"] })}
+${caja({ x: 20, y: 848, w: 280, h: 64, t: "IA del servidor", l: ["modelo por defecto del panel"] })}
 ${caja({ x: 20, y: 926, w: 280, h: 64, t: "SQLite local", l: ["consultas sin gastar D1"] })}
 ${flecha("M335 800H345V460H312", id, true)}${rotulo(352, 640, "WebSocket", "middle").replace("<text", '<text transform="rotate(90 352 640)"')}
 </svg>`;

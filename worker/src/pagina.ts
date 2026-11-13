@@ -7,7 +7,7 @@ import { shell, type Meta } from "./sitio/layout";
 export function asistente(m: Meta): string {
   return shell({
     titulo: "Asistente · ObraClara Perú",
-    descripcion: "Pregunta sobre inversión pública del Perú con y sin MCP, con gpt-headless o con tu propia IA.",
+    descripcion: "Pregunta sobre inversión pública del Perú con y sin MCP, con la IA del servidor o con tu propia IA.",
     ruta: "/asistente",
     cuerpo: demoHtml,
     m,

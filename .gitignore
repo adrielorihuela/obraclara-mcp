@@ -9,5 +9,4 @@ __pycache__/
 *.log
 .DS_Store
 !eval/*.csv
-gpt-bridge/gpt-fast/
-gpt-bridge/gpt-orig/
+conector/*.env

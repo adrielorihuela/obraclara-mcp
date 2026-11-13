@@ -56,7 +56,7 @@ Carga en D1 (desde `worker/`, con credenciales de Cloudflare en el entorno): `np
 4. Un Cloudflare Worker (TypeScript, en `worker/`) expone el servidor MCP en `/mcp`.
 5. Las cuatro tools consultan D1 con SQL parametrizado; hay límite de 60 solicitudes por minuto.
 6. `deploy.yml` prueba y despliega el Worker en cada push a `main` que toque `worker/**`.
-7. IA del panel: dos proyectos. `gpt-headless` es el proveedor de IA (servicio local con respaldo automático a Workers AI y Groq, acepta imágenes); ObraClara lo usa como única IA mediante un conector saliente (`gpt-bridge/`) y muestra quién respondió. Dos servicios systemd de usuario: `gpt-headless` y `obraclara` (el conector).
+7. IA del panel: una API de IA privada del grupo, compatible con OpenAI, que corre en un equipo del grupo. Su dirección no está en el repositorio: el conector saliente (`conector/`) la lee de una variable de entorno (`IA_URL`) y reenvía las preguntas del panel. Ver `conector/LEEME.md`.
 8. Respaldo de emergencia: si el conector no está disponible, el Worker responde con Workers AI y Groq («respaldo de ObraClara · modelo»).
 
 ## Evaluación

@@ -163,7 +163,10 @@ export function validarConexion(c: any): string[] {
 
 /** Convierte la config antigua (modo cf/local/clave) al formato nuevo: { conexiones, activa }. */
 export function migrarConfig(old: any): { conexiones: Conexion[]; activa: string } {
-  const vacio = { conexiones: [] as Conexion[], activa: "gpt-headless" };
+  const vacio = { conexiones: [] as Conexion[], activa: "servidor" };
+  // Formato nuevo con una "activa" que ya no existe (p. ej. un nombre antiguo de la IA del servidor): vuelve a "servidor".
+  if (old && typeof old === "object" && Array.isArray(old.conexiones) && typeof old.activa === "string" &&
+      old.activa !== "servidor" && !old.conexiones.some((c: any) => c && c.id === old.activa)) return { conexiones: old.conexiones, activa: "servidor" };
   if (!old || typeof old !== "object" || old.modo !== "clave") return vacio;
   const ps = presetsIA();
   const p = ps.filter((x) => x.id === old.prov)[0];
