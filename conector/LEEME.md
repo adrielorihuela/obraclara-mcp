@@ -40,7 +40,7 @@ python etl/cargar_sqlite.py --build build --db ~/.local/share/obraclara/inversio
 ## Modo agente
 
 El conector anuncia `agente: true` al conectarse. El Worker expone `POST /api/agente` (`{chat_id?, mensaje, archivos?: [{nombre, datos}]}`,
-con `datos` en base64 o data URL; máx. 30 000 caracteres, 5 archivos y 10 MB en total) y lo reenvía al conector como tarea `agente`.
-El conector llama a `IA_URL/v1/agente`, descarga los `archivos_nuevos` (máx. 8 MB en total; los que no caben se listan en `omitidos`)
+con `datos` en base64 o data URL; máx. 30 000 caracteres, 10 archivos y 17 MB en total; el conector los sube en tandas) y lo reenvía al conector como tarea `agente`.
+El conector llama a `IA_URL/v1/agente`, descarga los `archivos_nuevos` (máx. 16 MB en total; los que no caben se listan en `omitidos`)
 y devuelve `{chat_id, respuesta, pasos, archivos: [{nombre, tipo, datos}]}`. Espera máxima: 300 s. Al visitante no se le muestra qué
 proveedor respondió (solo queda en el registro local). El agente no tiene las herramientas MCP de ObraClara.

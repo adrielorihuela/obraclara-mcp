@@ -515,8 +515,8 @@ async function ocSend(q){q=(q||'').trim();if(ocBusy)return;
 function ocB64Bytes(b64){var bin=atob(b64),u=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return u}
 async function ocAdjuntarAg(files){var msgs=[];
  for(var i=0;i<files.length;i++){var f=files[i],tot=0;ocDocs.forEach(function(x){tot+=x.raw?x.raw.length:0});
-  if(ocDocs.length>=5){msgs.push('Máximo 5 archivos en modo agente.');break}
-  if((tot+f.size*1.4)>10*1024*1024){msgs.push('«'+nombreSeguro(f.name)+'»: se superarían los 10 MB en total.');continue}
+  if(ocDocs.length>=10){msgs.push('Máximo 10 archivos en modo agente.');break}
+  if((tot+f.size*1.37)>24*1024*1024){msgs.push('«'+nombreSeguro(f.name)+'»: se superarían los 17 MB en total.');continue}
   var d={meta:{n:nombreSeguro(f.name),t:tipoAdjunto(f.name,f.type),c:0,b:f.size},leyendo:true,adj:null,raw:''};ocDocs.push(d);ocLeyendo++;ocThumbs();
   try{var u=await ocLeer(f);d.raw=u;d.leyendo=false}
   catch(e){var k=ocDocs.indexOf(d);if(k>=0)ocDocs.splice(k,1);msgs.push('«'+d.meta.n+'»: no se pudo leer.')}
@@ -526,7 +526,7 @@ async function ocSendAg(q){var fs=ocDocs.filter(function(d){return d.raw});if(!q
  if(!q)q='Revisa los archivos adjuntos y resume su contenido.';
  var meta=fs.map(function(d){return d.meta}),adj=fs.map(function(d){return {nombre:d.meta.n,datos:d.raw}});
  ocBusy=true;$('oc-send').disabled=true;$('oc-in').value='';ocAlto();ocImgs=[];ocDocs=[];ocThumbs();ocLog('u',q,null,meta.length?{meta:meta,ctx:''}:null);var w=ocLog('w','El agente está trabajando…');
- var msg=(ocMcp?'(Nota: no tienes las herramientas MCP de ObraClara. Para datos de inversión pública, el usuario puede desactivar el modo agente.)\n\n':'')+q;
+ var msg=q;
  try{var r,d=null;
   try{r=await fetch('/api/agente',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({chat_id:ocAgId||undefined,mensaje:msg,archivos:adj})})}catch(e){throw new Error('No se pudo conectar con el servidor.')}
   try{d=await r.json()}catch(e){}

@@ -63,18 +63,36 @@ async function responder(ws, tarea) {
 }
 
 // Modo agente: POST /v1/agente de la API local; los archivos nuevos se descargan y se devuelven en base64 (máx. 8 MB en total).
-const AGENTE_MAX_BYTES = 8 * 1024 * 1024;
+const AGENTE_MAX_BYTES = 16 * 1024 * 1024;
+const TANDA_MAX = 10_000_000; // caracteres base64 por petición a la API local
+const INSTRUCCION_AGENTE = "(Usa tus herramientas de archivos para leer los adjuntos y crear o exportar los archivos que se pidan; entrega los archivos, no solo una descripción.)\n\n";
 const TIPOS = { txt: "text/plain", md: "text/markdown", csv: "text/csv", json: "application/json", html: "text/html", pdf: "application/pdf", zip: "application/zip", png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" };
 async function agente(ws, tarea) {
   const t0 = Date.now();
   let msg;
   try {
     const cab = IA_KEY ? { authorization: "Bearer " + IA_KEY } : {};
-    const r = await fetch(IA_URL + "/v1/agente", {
-      method: "POST", headers: { "content-type": "application/json", ...cab },
-      body: JSON.stringify({ ...(tarea.chat_id ? { chat_id: tarea.chat_id } : {}), mensaje: tarea.mensaje, archivos: tarea.archivos ?? [] }), signal: AbortSignal.timeout(300000),
-    });
-    const j = await r.json();
+    // La API local acepta cuerpos de ~12 MB: los archivos se suben en tandas al mismo chat (el agente conserva su espacio
+    // de trabajo) y la instrucción real va con la última tanda.
+    const tandas = [[]]; let tam = 0;
+    for (const a of tarea.archivos ?? []) {
+      const n = (a.datos?.length || 0) + 200;
+      if (tam + n > TANDA_MAX && tandas[tandas.length - 1].length) { tandas.push([]); tam = 0; }
+      tandas[tandas.length - 1].push(a); tam += n;
+    }
+    let chatId = tarea.chat_id, r, j;
+    for (let i = 0; i < tandas.length; i++) {
+      const ultima = i === tandas.length - 1;
+      const mensaje = ultima ? INSTRUCCION_AGENTE + tarea.mensaje
+        : `Archivos adjuntos (parte ${i + 1} de ${tandas.length}). Solo guárdalos en el espacio de trabajo; las instrucciones llegan en el siguiente mensaje. Responde solo «recibido».`;
+      r = await fetch(IA_URL + "/v1/agente", {
+        method: "POST", headers: { "content-type": "application/json", ...cab },
+        body: JSON.stringify({ ...(chatId ? { chat_id: chatId } : {}), mensaje, archivos: tandas[i] }), signal: AbortSignal.timeout(300000),
+      });
+      j = await r.json();
+      if (!r.ok) break;
+      chatId = j.chat_id || chatId;
+    }
     if (!r.ok || typeof j?.respuesta !== "string") throw new Error(j?.error?.message || (typeof j?.error === "string" ? j.error : "") || `respuesta vacía (${r.status})`);
     const archivos = []; const omitidos = []; let total = 0;
     for (const a of Array.isArray(j.archivos_nuevos) ? j.archivos_nuevos : []) {

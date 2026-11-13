@@ -66,9 +66,9 @@ export default {
       const origen = req.headers.get("origin");
       if (origen && origen !== SITIO) return json({ error: "Origen no permitido" }, 403);
       if (!(await env.CHAT_LIMITER.limit({ key: clave })).success) return json({ error: "Demasiadas preguntas seguidas. Espera un minuto." }, 429);
-      if (Number(req.headers.get("content-length") ?? 0) > AGENTE_MAX_CUERPO) return json({ error: "Los archivos superan 10 MB en total." }, 413);
+      if (Number(req.headers.get("content-length") ?? 0) > AGENTE_MAX_CUERPO) return json({ error: "Los archivos superan 17 MB en total." }, 413);
       let cuerpo: unknown;
-      try { const t = await req.text(); if (t.length > AGENTE_MAX_CUERPO) return json({ error: "Los archivos superan 10 MB en total." }, 413); cuerpo = JSON.parse(t); } catch { return json({ error: "JSON inválido" }, 400); }
+      try { const t = await req.text(); if (t.length > AGENTE_MAX_CUERPO) return json({ error: "Los archivos superan 17 MB en total." }, 413); cuerpo = JSON.parse(t); } catch { return json({ error: "JSON inválido" }, 400); }
       const v = validarAgente(cuerpo);
       if (!v.ok) return json({ error: v.error }, 400);
       const r = await cola.fetch("https://cola/agente", { method: "POST", body: JSON.stringify(v.valor) });

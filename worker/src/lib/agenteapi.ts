@@ -2,8 +2,8 @@
 import { nombreSeguro } from "./agente";
 
 export const AGENTE_MAX_MENSAJE = 30_000;
-export const AGENTE_MAX_ARCHIVOS = 5;
-export const AGENTE_MAX_BASE64 = 10 * 1024 * 1024; // suma de los datos en base64
+export const AGENTE_MAX_ARCHIVOS = 10;
+export const AGENTE_MAX_BASE64 = 24 * 1024 * 1024; // suma en base64 (≈ 17 MB de archivos; cabe en un mensaje WebSocket de 32 MiB)
 export const AGENTE_MAX_CUERPO = AGENTE_MAX_BASE64 + 256 * 1024;
 
 export type ArchivoAgente = { nombre: string; datos: string };
@@ -32,7 +32,7 @@ export function validarAgente(b: unknown): ValidacionAgente {
     const datos = (a as ArchivoAgente).datos.replace(/^data:[^,]*,/, "").replace(/\s+/g, "");
     if (!datos || !/^[A-Za-z0-9+/]+={0,2}$/.test(datos)) return { ok: false, error: "Los datos del archivo no son base64 válido." };
     total += datos.length;
-    if (total > AGENTE_MAX_BASE64) return { ok: false, error: "Los archivos superan 10 MB en total." };
+    if (total > AGENTE_MAX_BASE64) return { ok: false, error: "Los archivos superan 17 MB en total." };
     archivos.push({ nombre: nombreSeguro((a as ArchivoAgente).nombre), datos });
   }
   return { ok: true, valor: { ...(chat_id ? { chat_id } : {}), mensaje: o.mensaje, archivos } };

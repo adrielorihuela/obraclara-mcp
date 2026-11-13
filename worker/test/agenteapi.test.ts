@@ -18,7 +18,7 @@ describe("validarAgente", () => {
   });
   it("limita cantidad, formato y tamaño", () => {
     const f = { nombre: "a", datos: "aG9sYQ==" };
-    expect(validarAgente({ mensaje: "a", archivos: Array(6).fill(f) }).ok).toBe(false);
+    expect(validarAgente({ mensaje: "a", archivos: Array(11).fill(f) }).ok).toBe(false);
     expect(validarAgente({ mensaje: "a", archivos: [{ nombre: "a", datos: "no es base64!" }] }).ok).toBe(false);
     expect(validarAgente({ mensaje: "a", archivos: [{ nombre: "a", datos: "A".repeat(AGENTE_MAX_BASE64 + 1) }] }).ok).toBe(false);
     expect(validarAgente({ mensaje: "a", archivos: [{ nombre: "a", datos: "A".repeat(AGENTE_MAX_BASE64) }] }).ok).toBe(true);
