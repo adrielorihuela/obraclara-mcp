@@ -28,4 +28,8 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm test
+      - name: Secreto del conector
+        env:
+          CONECTOR_SECRET: ${{ secrets.CONECTOR_SECRET }}
+        run: if [ -n "$CONECTOR_SECRET" ]; then printf '%s' "$CONECTOR_SECRET" | npx wrangler secret put CONECTOR_SECRET; fi
       - run: npx wrangler deploy
