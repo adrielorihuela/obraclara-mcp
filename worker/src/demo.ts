@@ -205,6 +205,7 @@ body.es-app main{flex:1;min-height:0}
 #oc-send svg{width:16px;height:16px}
 .cola{display:flex;flex-direction:column;gap:10px;padding:0 0 28px}
 .cola[hidden]{display:none}
+.msg.u .iny{display:block;margin-top:6px;font:500 11.5px/1.2 var(--mono);color:var(--mut)}
 .msg.u.enc{opacity:.78;border-style:dashed;background:var(--bg);display:grid;gap:8px;white-space:normal}
 .msg.u.enc .enc-e{font:500 11.5px/1 var(--mono);color:var(--mut)}
 .msg.u.enc .enc-t{white-space:pre-wrap}
@@ -451,7 +452,7 @@ async function ocAlmEscribir(txt){var fallo=null;
 `;
 
 const app = String.raw`
-var ocMcp=true,ocHist=[],ocTools=null,ocBusy=false,ocConns=[],ocActiva='servidor',ocEdit='',ocHL='servidor',ocImgs=[],ocDocs=[],ocLeyendo=0,ocAvisoCtx=false,ocMsgs=[],ocChats=[],ocChatId='',ocRest=false,ocRen='',ocAgOk=false,ocAgId='',ocCola=[],ocAbort=null,ocParar=false,ocColaId=0;
+var ocAgTurno=false,ocEntregados=[],ocMcp=true,ocHist=[],ocTools=null,ocBusy=false,ocConns=[],ocActiva='servidor',ocEdit='',ocHL='servidor',ocImgs=[],ocDocs=[],ocLeyendo=0,ocAvisoCtx=false,ocMsgs=[],ocChats=[],ocChatId='',ocRest=false,ocRen='',ocAgOk=false,ocAgId='',ocCola=[],ocAbort=null,ocParar=false,ocColaId=0;
 var OC_ICO_TOOL='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4h12M2 8h8M2 12h5"/><path d="m11 10 2 2-2 2"/></svg>';
 function ocBajar(){var s=$('oc-scroll');if(s)s.scrollTop=s.scrollHeight}
 function ocRec(m){if(ocRest)return null;ocMsgs.push(m);ocShareUi();return m}
@@ -712,8 +713,25 @@ async function ocSend(q){q=(q||'').trim();
  var it={id:++ocColaId,q:q,docs:ocDocs.slice(),imgs:ocImgs.slice(),ed:false};
  if(!q&&!it.imgs.length&&!it.docs.some(function(d){return d.raw||d.adj}))return;
  $('oc-in').value='';ocAlto();ocImgs=[];ocDocs=[];ocThumbs();
+ if(ocBusy&&ocAgActivo()&&ocAgTurno&&ocAgId&&!ocParar){await ocInyectar(it);return}
  if(ocBusy){ocCola.push(it);ocColaUi();return}
  await ocProcesar([it])}
+function ocNuevoId(){return 'oc'+Date.now().toString(36)+Math.random().toString(36).slice(2,10)}
+function ocDevolver(it){if(it.b){it.b.remove();it.b=null}
+ if(it.rec){var k=ocMsgs.indexOf(it.rec);if(k>=0)ocMsgs.splice(k,1);it.rec=null;ocShareUi()}
+ it.mk=null;ocCola.push(it);ocColaUi()}
+async function ocInyectar(it){
+ var fs=it.docs.filter(function(d){return d.raw}),q=it.q||'Revisa los archivos adjuntos y tenlos en cuenta.';
+ if(!it.q&&!fs.length){ocCola.push(it);ocColaUi();return}
+ var meta=fs.map(function(d){return d.meta}),n=ocMsgs.length,id=ocAgId;
+ var b=ocLog('u',q,null,meta.length?{meta:meta,ctx:''}:null);
+ it.rec=ocMsgs.length>n?ocMsgs[ocMsgs.length-1]:null;it.b=b;
+ var mk=document.createElement('span');mk.className='iny';mk.textContent='Enviado mientras trabajaba';b.appendChild(mk);it.mk=mk;
+ var r=null;
+ try{r=await fetch('/api/agente/mensaje',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({chat_id:id,mensaje:q,archivos:fs.map(function(x){return {nombre:x.meta.n,datos:x.raw}})})})}catch(e){r=null}
+ if(r&&r.status===202){mk.textContent='Entregado al agente';if(ocAgTurno&&id===ocAgId)ocEntregados.push(it);return}
+ ocDevolver(it);
+ if(!ocBusy&&ocCola.length){var sig=ocCola.splice(0);ocColaUi();await ocProcesar(sig)}}
 async function ocProcesar(items){
  var q=items.map(function(x){return x.q}).filter(function(x){return x}).join('\n'),docs=[],imgs=[];
  items.forEach(function(x){docs=docs.concat(x.docs);imgs=imgs.concat(x.imgs)});
@@ -770,20 +788,25 @@ async function ocAdjuntarAg(files){var msgs=[];
 async function ocSendAg(q,docs){var fs=docs.filter(function(d){return d.raw});if(!q&&!fs.length)return;
  if(!q)q='Revisa los archivos adjuntos y resume su contenido.';
  var meta=fs.map(function(d){return d.meta}),adj=fs.map(function(d){return {nombre:d.meta.n,datos:d.raw}});
+ if(!ocAgId)ocAgId=ocNuevoId();ocEntregados=[];ocAgTurno=true;
  ocLog('u',q,null,meta.length?{meta:meta,ctx:''}:null);var w=ocLog('w','El asistente está trabajando…');
  try{var r,d=null;
   try{r=await fetch('/api/agente',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({chat_id:ocAgId||undefined,mensaje:q,archivos:adj,mcp:ocMcp?true:undefined}),signal:ocAbort?ocAbort.signal:undefined})}catch(e){if(ocParar)throw e;throw new Error('No se pudo conectar con el servidor.')}
-  if(r.status===503){w.remove();ocAgOk=false;ocAgUi();setTimeout(ocAgEstado,60000);return await ocFallback(q,fs)}
+  if(r.status===503){ocAgTurno=false;w.remove();ocAgOk=false;ocAgUi();setTimeout(ocAgEstado,60000);return await ocFallback(q,fs)}
   try{d=await r.json()}catch(e){if(ocParar)throw e}
+  if(r.status===409&&d&&d.estado==='turno_en_curso')throw new Error('El asistente ya está trabajando en este chat. Espera a que termine.');
   if(!r.ok)throw new Error(d&&typeof d.error==='string'?d.error.slice(0,200):'El servidor respondió con error '+r.status+'.');
   if(!d||typeof d.respuesta!=='string')throw new Error('Respuesta del agente no válida.');
   if(typeof d.chat_id==='string'&&/^[A-Za-z0-9_-]{1,64}$/.test(d.chat_id))ocAgId=d.chat_id;
   var arch=[];(Array.isArray(d.archivos)?d.archivos:[]).slice(0,20).forEach(function(f){if(!f||typeof f.datos!=='string'||typeof f.nombre!=='string')return;var bb;try{bb=ocB64Bytes(f.datos)}catch(e){return}
    arch.push(ocArchNuevo(rutaSegura(f.nombre)||'archivo',typeof f.titulo==='string'?f.titulo.slice(0,100):'',bb))});
+  ocAgTurno=false;
   ocLog('a',d.respuesta.trim()||'(sin respuesta)','Agente del servidor',null,arch);
+  var inc=typeof d.mensajes_incorporados==='number'?d.mensajes_incorporados:ocEntregados.length,ent=ocEntregados;ocEntregados=[];
+  ent.slice(inc).forEach(function(x){ocDevolver(x)});
   if(d.omitidos&&d.omitidos.length)ocLog('n','Algunos archivos no se enviaron por su tamaño: '+d.omitidos.join(', ')+'.');
   w.remove()}
- catch(e){ocFinTurno(w,e)}}
+ catch(e){ocAgTurno=false;ocEntregados=[];ocFinTurno(w,e)}}
 var OC_ADJ_MAX=20*1024*1024,OC_CSP='<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; img-src data: blob: https:; media-src data: blob: https:; style-src \'unsafe-inline\' https:; font-src data: https:; script-src \'unsafe-inline\' https:; connect-src \'none\'; form-action \'none\'">';
 var ocPan={lista:[],i:-1,zip:null,modo:'vista',hoja:0,hojaDe:'',url:'',disp:null,tok:0};
 function ocArchNuevo(ruta,titulo,datos){return {id:'a'+Date.now().toString(36)+Math.random().toString(36).slice(2,8),n:ruta,ti:titulo||'',t:mimeArchivo(ruta),b:datos.length,datos:datos,g:false}}

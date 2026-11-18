@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { AGENTE_MAX_BASE64, validarAgente } from "../src/lib/agenteapi";
+import { AGENTE_MAX_BASE64, validarAgente, validarAgenteMensaje } from "../src/lib/agenteapi";
 
 describe("validarAgente", () => {
   it("acepta mensaje simple y chat_id opcional", () => {
@@ -27,5 +27,18 @@ describe("validarAgente", () => {
     expect(validarAgente({ mensaje: "a", archivos: [{ nombre: "a", datos: "no es base64!" }] }).ok).toBe(false);
     expect(validarAgente({ mensaje: "a", archivos: [{ nombre: "a", datos: "A".repeat(AGENTE_MAX_BASE64 + 1) }] }).ok).toBe(false);
     expect(validarAgente({ mensaje: "a", archivos: [{ nombre: "a", datos: "A".repeat(AGENTE_MAX_BASE64) }] }).ok).toBe(true);
+  });
+});
+
+describe("validarAgenteMensaje", () => {
+  it("exige chat_id y no admite mcp", () => {
+    expect(validarAgenteMensaje({ mensaje: "además añade un LEEME.md" }).ok).toBe(false);
+    expect(validarAgenteMensaje({ mensaje: "hola", chat_id: "../x" }).ok).toBe(false);
+    expect(validarAgenteMensaje({ mensaje: " ", chat_id: "abcd1234" }).ok).toBe(false);
+    expect(validarAgenteMensaje({ mensaje: "hola", chat_id: "abcd1234", mcp: true })).toEqual({ ok: true, valor: { chat_id: "abcd1234", mensaje: "hola", archivos: [] } });
+  });
+  it("valida los archivos igual que /api/agente", () => {
+    expect(validarAgenteMensaje({ mensaje: "x", chat_id: "abcd1234", archivos: [{ nombre: "a.txt", datos: "***" }] }).ok).toBe(false);
+    expect(validarAgenteMensaje({ mensaje: "x", chat_id: "abcd1234", archivos: [{ nombre: "a.txt", datos: "aG9sYQ==" }] })).toMatchObject({ ok: true, valor: { archivos: [{ nombre: "a.txt", datos: "aG9sYQ==" }] } });
   });
 });

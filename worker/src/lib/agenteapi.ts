@@ -38,3 +38,12 @@ export function validarAgente(b: unknown): ValidacionAgente {
   }
   return { ok: true, valor: { ...(chat_id ? { chat_id } : {}), mensaje: o.mensaje, archivos, ...(o.mcp === true ? { mcp: true as const } : {}) } };
 }
+
+// Mensaje enviado mientras el agente trabaja: igual que validarAgente, pero el chat_id es obligatorio y no lleva «mcp».
+export type MensajeAgente = { chat_id: string; mensaje: string; archivos: ArchivoAgente[] };
+export function validarAgenteMensaje(b: unknown): { ok: true; valor: MensajeAgente } | { ok: false; error: string } {
+  const v = validarAgente(b);
+  if (!v.ok) return v;
+  if (!v.valor.chat_id) return { ok: false, error: "Falta el chat_id." };
+  return { ok: true, valor: { chat_id: v.valor.chat_id, mensaje: v.valor.mensaje, archivos: v.valor.archivos } };
+}

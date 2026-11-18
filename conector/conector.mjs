@@ -73,14 +73,11 @@ function limpiarRespuesta(t) {
   if (m) { try { return JSON.parse(m[1]); } catch { /* deja el original */ } }
   return s;
 }
-// Solo lo que la IA adjuntó: `adjuntos` de la API local; si no existe, respaldo con `archivos_nuevos`
-// (si hay .zip/.docx/.pdf/.xlsx, solo esos; si hay uno solo, ese; si no, hasta 5).
-function elegirAdjuntos(j) {
+// Solo se descarga lo que la API local marca en `adjuntos`; si no viene, no se adjunta nada (queda en el registro local).
+function elegirAdjuntos(j, id) {
   if (Array.isArray(j.adjuntos)) return j.adjuntos.slice(0, 10);
-  const n = Array.isArray(j.archivos_nuevos) ? j.archivos_nuevos : [];
-  const finales = n.filter((a) => /\.(zip|docx|pdf|xlsx)$/i.test(String(a?.ruta)));
-  if (finales.length) return finales.slice(0, 10);
-  return n.length === 1 ? n : n.slice(0, 5);
+  if (Array.isArray(j.archivos_nuevos) && j.archivos_nuevos.length) log("agente sin adjuntos declarados", id.slice(0, 8), `archivos_nuevos=${j.archivos_nuevos.length}`);
+  return [];
 }
 async function agente(ws, tarea) {
   const t0 = Date.now();
@@ -111,9 +108,13 @@ async function agente(ws, tarea) {
       if (!r.ok) break;
       chatId = j.chat_id || chatId;
     }
+    if (r.status === 409 && j?.estado === "turno_en_curso") {
+      try { ws.send(JSON.stringify({ type: "resultado", id: tarea.id, codigo: 409, estado: "turno_en_curso" })); } catch { /* conexión caída */ }
+      return;
+    }
     if (!r.ok || typeof j?.respuesta !== "string") throw new Error(j?.error?.message || (typeof j?.error === "string" ? j.error : "") || `respuesta vacía (${r.status})`);
     const archivos = []; const omitidos = []; let total = 0;
-    for (const a of elegirAdjuntos(j)) {
+    for (const a of elegirAdjuntos(j, tarea.id)) {
       try {
         if (typeof a?.url !== "string" || !a.url.startsWith("/") || a.url.startsWith("//")) continue;
         if (total + (Number(a.bytes) || 0) > AGENTE_MAX_BYTES) { omitidos.push(a.ruta); continue; }
@@ -127,10 +128,29 @@ async function agente(ws, tarea) {
       } catch { omitidos.push(a?.ruta); }
     }
     // El proveedor real solo se registra aquí; al visitante no se le muestra.
-    msg = { type: "resultado", id: tarea.id, agente: { chat_id: j.chat_id, respuesta: limpiarRespuesta(j.respuesta), pasos: Array.isArray(j.pasos) ? j.pasos.length : Number(j.pasos) || 0, archivos, ...(omitidos.length ? { omitidos } : {}) } };
+    msg = { type: "resultado", id: tarea.id, agente: { chat_id: j.chat_id, respuesta: limpiarRespuesta(j.respuesta), pasos: Array.isArray(j.pasos) ? j.pasos.length : Number(j.pasos) || 0, mensajes_incorporados: Number(j.mensajes_incorporados) || 0, archivos, ...(omitidos.length ? { omitidos } : {}) } };
     log("agente ok", tarea.id.slice(0, 8), `${Date.now() - t0}ms`, `archivos=${archivos.length}`, typeof j.proveedor === "string" ? j.proveedor : "");
   } catch (e) {
     log("agente error", tarea.id.slice(0, 8), e.message);
+    msg = { type: "resultado", id: tarea.id, error: "Agente del servidor: " + String(e.message).slice(0, 200) };
+  }
+  try { ws.send(JSON.stringify(msg)); } catch { /* conexión caída */ }
+}
+
+// Mensaje para el turno en curso: va directo (sin pasar por la cola de concurrencia, que el turno largo ocupa) y con tiempo corto.
+async function agenteMensaje(ws, tarea) {
+  let msg;
+  try {
+    if (!/^[A-Za-z0-9_-]{1,64}$/.test(String(tarea.chat_id))) throw new Error("chat_id no válido");
+    const r = await fetch(IA_URL + "/v1/agente/chats/" + tarea.chat_id + "/mensajes", {
+      method: "POST", headers: { "content-type": "application/json", ...(IA_KEY ? { authorization: "Bearer " + IA_KEY } : {}) },
+      body: JSON.stringify({ mensaje: tarea.mensaje, archivos: tarea.archivos ?? [] }), signal: AbortSignal.timeout(15000),
+    });
+    const j = await r.json().catch(() => ({}));
+    msg = { type: "resultado", id: tarea.id, codigo: r.status, ...(typeof j?.estado === "string" ? { estado: j.estado } : {}), ...(Number.isFinite(j?.pendientes) ? { pendientes: j.pendientes } : {}) };
+    log("agente mensaje", tarea.id.slice(0, 8), r.status, j?.estado ?? "");
+  } catch (e) {
+    log("agente mensaje error", tarea.id.slice(0, 8), e.message);
     msg = { type: "resultado", id: tarea.id, error: "Agente del servidor: " + String(e.message).slice(0, 200) };
   }
   try { ws.send(JSON.stringify(msg)); } catch { /* conexión caída */ }
@@ -142,7 +162,7 @@ function conectar() {
   let ping;
   ws.addEventListener("open", () => { log("conectado", db ? "(SQL local activo)" : "(sin base local: el Worker usará D1)"); ws.send(JSON.stringify({ type: "hola", sql: !!db, imagenes: true, agente: true })); espera = 1000; ping = setInterval(() => { try { ws.send('{"type":"ping"}'); } catch {} }, 25000); });
   ws.addEventListener("message", (ev) => {
-    try { const m = JSON.parse(String(ev.data)); if (m.type === "job") lanzar(ws, m); else if (m.type === "agente") lanzar(ws, m, agente); else if (m.type === "sql") consultar(ws, m); } catch { /* ignorar */ }
+    try { const m = JSON.parse(String(ev.data)); if (m.type === "job") lanzar(ws, m); else if (m.type === "agente") lanzar(ws, m, agente); else if (m.type === "agente_mensaje") agenteMensaje(ws, m); else if (m.type === "sql") consultar(ws, m); } catch { /* ignorar */ }
   });
   ws.addEventListener("close", (ev) => { clearInterval(ping); log("desconectado", ev.code); setTimeout(conectar, espera); espera = Math.min(espera * 2, 30000); });
   ws.addEventListener("error", () => { /* 'close' se dispara después y reconecta */ });
