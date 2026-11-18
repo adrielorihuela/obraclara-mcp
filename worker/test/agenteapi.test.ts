@@ -16,6 +16,11 @@ describe("validarAgente", () => {
     const r = validarAgente({ mensaje: "a", archivos: [{ nombre: "../a<b>.txt", datos: "data:text/plain;base64,aG9sYQ==" }] });
     expect(r).toEqual({ ok: true, valor: { mensaje: "a", archivos: [{ nombre: "ab.txt", datos: "aG9sYQ==" }] } });
   });
+  it("acepta mcp booleano y lo conserva solo si es true", () => {
+    expect(validarAgente({ mensaje: "a", mcp: true })).toEqual({ ok: true, valor: { mensaje: "a", archivos: [], mcp: true } });
+    expect(validarAgente({ mensaje: "a", mcp: false })).toEqual({ ok: true, valor: { mensaje: "a", archivos: [] } });
+    expect(validarAgente({ mensaje: "a", mcp: "si" }).ok).toBe(false);
+  });
   it("limita cantidad, formato y tamaño", () => {
     const f = { nombre: "a", datos: "aG9sYQ==" };
     expect(validarAgente({ mensaje: "a", archivos: Array(11).fill(f) }).ok).toBe(false);

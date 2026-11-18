@@ -289,6 +289,7 @@ export type MensajeGuardado = {
   /** Adjuntos del mensaje de usuario (solo datos para mostrar chips) y su texto completo enviado al modelo. */
   adj?: { n: string; t: string; c: number }[];
   ctx?: string;
+  arch?: { id: string; n: string; ti?: string; b: number; g?: boolean }[];
 };
 export type ChatGuardado = { id: string; titulo: string; creado: number; actualizado: number; mensajes: MensajeGuardado[]; agenteId?: string };
 
@@ -312,6 +313,17 @@ export function normalizarMensaje(m: any): MensajeGuardado | null {
   if (m.rol === "u") {
     if (Array.isArray(m.adj) && m.adj.length) o.adj = m.adj.slice(0, 10).map((x: any) => ({ n: String((x && x.n) || "").slice(0, 100), t: String((x && x.t) || "").slice(0, 10), c: Number(x && x.c) || 0 }));
     if (typeof m.ctx === "string" && m.ctx) o.ctx = sinImagenes(m.ctx).slice(0, 70000);
+  }
+  if (m.rol === "a" && Array.isArray(m.arch) && m.arch.length) {
+    const ar: { id: string; n: string; ti?: string; b: number; g?: boolean }[] = [];
+    m.arch.slice(0, 20).forEach((x: any) => {
+      if (!x || typeof x.id !== "string" || !/^[A-Za-z0-9_-]{1,40}$/.test(x.id)) return;
+      const it: { id: string; n: string; ti?: string; b: number; g?: boolean } = { id: x.id, n: String(x.n || "archivo").slice(0, 200), b: Math.max(0, Number(x.b) || 0) };
+      if (typeof x.ti === "string" && x.ti) it.ti = x.ti.slice(0, 100);
+      if (x.g === true) it.g = true;
+      ar.push(it);
+    });
+    if (ar.length) o.arch = ar;
   }
   if (m.rol === "t") {
     const h = m.herramienta && typeof m.herramienta === "object" ? m.herramienta : {};
@@ -870,6 +882,9 @@ export function prepararCompartir(ms: any[], imgs: string[][] | null, incluirImg
     const marcas = String(typeof m.texto === "string" ? m.texto : "").split("[imagen adjunta]").length - 1;
     const o: any = { rol: m.rol, texto: sinImagenes(m.texto).split("[imagen adjunta]").join("").trim().slice(0, 20000) };
     if (m.rol === "a" && typeof m.modelo === "string" && m.modelo) o.modelo = m.modelo.slice(0, 120);
+    if (m.rol === "a" && Array.isArray(m.arch) && m.arch.length) {
+      o.adjuntos = m.arch.slice(0, 10).map((x: any) => ({ nombre: String((x && (x.ti || x.n)) || "archivo").slice(0, 100), tipo: "archivo", tamano: Number(x && x.b) || 0 }));
+    }
     if (m.rol === "u") {
       ui++;
       const adj: any[] = [];
@@ -886,4 +901,98 @@ export function prepararCompartir(ms: any[], imgs: string[][] | null, incluirImg
     out.push(o);
   }
   return out.slice(-60);
+}
+
+// ---- Archivos adjuntos de la respuesta (tarjetas + panel): funciones puras para el navegador ----
+
+/** Clase de archivo según su extensión: imagen, pdf, html, md, docx, zip, texto u otro (sin vista previa). */
+export function claseArchivo(nombre: unknown): "imagen" | "pdf" | "html" | "md" | "docx" | "zip" | "texto" | "otro" {
+  const m = /\.([A-Za-z0-9]+)$/.exec(String(nombre == null ? "" : nombre));
+  const e = m ? m[1].toLowerCase() : "";
+  if (["png", "jpg", "jpeg", "gif", "webp", "svg", "bmp", "ico"].indexOf(e) >= 0) return "imagen";
+  if (e === "pdf") return "pdf";
+  if (e === "html" || e === "htm") return "html";
+  if (e === "md" || e === "markdown") return "md";
+  if (e === "docx") return "docx";
+  if (e === "zip") return "zip";
+  const t = ["txt", "csv", "tsv", "json", "js", "mjs", "cjs", "ts", "tsx", "jsx", "py", "css", "scss", "xml", "yml", "yaml", "toml", "ini", "sh", "bash", "sql", "java", "c", "cpp", "h", "cs", "go", "rs", "rb", "php", "kt", "swift", "r", "log", "env", "bat", "gitignore", "lock"];
+  return t.indexOf(e) >= 0 ? "texto" : "otro";
+}
+
+/** Tipo MIME según la extensión. */
+export function mimeArchivo(nombre: unknown): string {
+  const m = /\.([A-Za-z0-9]+)$/.exec(String(nombre == null ? "" : nombre));
+  const e = m ? m[1].toLowerCase() : "";
+  const t: Record<string, string> = {
+    txt: "text/plain", md: "text/markdown", csv: "text/csv", json: "application/json", html: "text/html", htm: "text/html", css: "text/css",
+    js: "text/javascript", pdf: "application/pdf", zip: "application/zip", png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif",
+    webp: "image/webp", svg: "image/svg+xml", xml: "application/xml",
+    docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  };
+  return t[e] || "application/octet-stream";
+}
+
+/** "820 B", "1,4 KB", "2,3 MB". */
+export function tamanoLegible(b: unknown): string {
+  const n = Number(b) || 0;
+  if (n < 1024) return n + " B";
+  if (n < 1024 * 1024) return (Math.round(n / 102.4) / 10).toString().replace(".", ",") + " KB";
+  return (Math.round(n / 104857.6) / 10).toString().replace(".", ",") + " MB";
+}
+
+/** Divide una línea de código en trozos [clase, texto]: "c" comentario, "s" cadena, "n" número, "k" palabra clave, "" normal. */
+export function resaltarLinea(linea: string, ext: string): string[][] {
+  const l = String(linea == null ? "" : linea);
+  const e = String(ext == null ? "" : ext).toLowerCase();
+  if (l.length > 600 || ["txt", "csv", "tsv", "log", "md", "env", "lock", ""].indexOf(e) >= 0) return [["", l]];
+  const alt: string[] = [];
+  if (["py", "sh", "bash", "yml", "yaml", "rb", "toml", "ini", "r"].indexOf(e) >= 0) alt.push("#.*");
+  if (["js", "mjs", "cjs", "ts", "tsx", "jsx", "java", "c", "cpp", "h", "cs", "go", "rs", "php", "css", "scss", "kt", "swift", "sql"].indexOf(e) >= 0) alt.push("\\/\\/.*", "\\/\\*.*?\\*\\/");
+  if (e === "css" || e === "scss") alt.push("\\/\\*.*$");
+  if (e === "sql") alt.push("--.*");
+  if (["html", "htm", "xml"].indexOf(e) >= 0) alt.push("<!--.*?-->");
+  const kw = "function|return|const|let|var|if|else|for|while|class|import|from|export|def|async|await|new|try|catch|finally|throw|switch|case|break|continue|true|false|null|undefined|None|True|False|self|this|public|private|static|void|int|string|bool|in|of|is|not|and|or|lambda|yield|with|as|pass|raise|except|elif|do|default|extends|interface|type|enum|package|struct|fn|pub|use|mod|impl|match|select|where|insert|update|delete|create|table";
+  const re = new RegExp("(" + (alt.length ? alt.join("|") : "(?!)") + ")|(\"(?:[^\"\\\\]|\\\\.)*\"|'(?:[^'\\\\]|\\\\.)*'|`(?:[^`\\\\]|\\\\.)*`)|\\b(\\d+(?:\\.\\d+)?)\\b|\\b(" + kw + ")\\b", "g");
+  const out: string[][] = [];
+  let ult = 0;
+  let r: RegExpExecArray | null;
+  while ((r = re.exec(l)) !== null) {
+    if (r[0] === "") { re.lastIndex++; continue; }
+    if (r.index > ult) out.push(["", l.slice(ult, r.index)]);
+    out.push([r[1] ? "c" : r[2] ? "s" : r[3] ? "n" : "k", r[0]]);
+    ult = r.index + r[0].length;
+  }
+  if (ult < l.length) out.push(["", l.slice(ult)]);
+  return out.length ? out : [["", l]];
+}
+
+/** Ruta dentro del .zip a la que apunta `href` desde la carpeta `base`; "" si es externa (http, //, data:). */
+export function rutaRelativaZip(base: string, href: string): string {
+  const h = String(href).split("#")[0].split("?")[0];
+  if (!h || /^([a-z][a-z0-9+.-]*:|\/\/)/i.test(h)) return "";
+  const partes = (h.charAt(0) === "/" ? h.slice(1) : (base ? base + "/" : "") + h).split("/");
+  const out: string[] = [];
+  partes.forEach((p) => { if (p === "..") out.pop(); else if (p && p !== ".") out.push(p); });
+  return out.join("/");
+}
+
+/** Valor de un atributo dentro de una etiqueta HTML ("" si no está). */
+export function atributoHtml(tag: string, nombre: string): string {
+  const m = new RegExp("\\b" + nombre + "\\s*=\\s*(?:\"([^\"]*)\"|'([^']*)'|([^\\s>]+))", "i").exec(tag);
+  return m ? (m[1] !== undefined ? m[1] : m[2] !== undefined ? m[2] : m[3]) : "";
+}
+
+/** Un HTML de un .zip con su CSS y JS locales incrustados (`mapa`: ruta del archivo en el zip -> texto). `base`: carpeta del HTML ("" si está en la raíz). */
+export function htmlConRecursos(html: string, base: string, mapa: Record<string, string>): string {
+  let s = String(html).replace(/<link\b[^>]*>/gi, (tag) => {
+    if (!/rel\s*=\s*["']?stylesheet/i.test(tag)) return tag;
+    const r = rutaRelativaZip(base, atributoHtml(tag, "href"));
+    return r && typeof mapa[r] === "string" ? "<style>" + mapa[r].replace(/<\/style/gi, "<\\/style") + "</style>" : tag;
+  });
+  s = s.replace(/<script\b[^>]*\bsrc\s*=[^>]*>\s*<\/script>/gi, (tag) => {
+    const r = rutaRelativaZip(base, atributoHtml(tag, "src"));
+    return r && typeof mapa[r] === "string" ? "<script>" + mapa[r].replace(/<\/script/gi, "<\\/script") + "</script>" : tag;
+  });
+  return s;
 }

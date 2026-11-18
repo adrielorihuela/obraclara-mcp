@@ -33,7 +33,8 @@ function cmpPintar(){if(!cmpD)return;var log=$('oc-log');
    if(Array.isArray(m.adjuntos)&&m.adjuntos.length){var g2=document.createElement('div');g2.className='ims';m.adjuntos.forEach(function(x){g2.appendChild(ocChip({n:String(x.nombre),t:String(x.tipo),c:Number(x.tamano)||0},false,null))});d.appendChild(g2)}}
   else{var t=document.createElement('div');t.className='t';ocMd(t,m.texto);
    if(m.modelo){var p=document.createElement('p');p.className='mod';p.textContent='Respondió: '+m.modelo;t.appendChild(p)}
-   ocAcciones(t,m.texto);d.appendChild(t)}
+   if(Array.isArray(m.adjuntos)&&m.adjuntos.length){var bx=document.createElement('div');bx.className='adjs';m.adjuntos.forEach(function(x){bx.appendChild(ocTarjeta({n:String(x.nombre),b:Number(x.tamano)||0},null))});t.appendChild(bx)}
+   d.appendChild(t)}
   log.appendChild(d)})}
 function cmpContinuar(){if(!cmpD)return;var b=$('cmp-cont'),ahora=Date.now(),ms=[];
  cmpD.m.forEach(function(m){
@@ -88,7 +89,7 @@ export function paginaCompartida(c: CompartidoLeido, m: Meta, origen: string): s
 <div class="acc-p"><button type="button" id="cmp-cont" class="btn btn-p">Continuar este chat</button><a class="btn btn-s" href="/asistente">Abrir el asistente</a></div>
 <p id="cmp-est" role="status" hidden></p>
 <div id="oc-log"><noscript>${sinJs(c.mensajes)}</noscript></div>
-<p class="pie-c">Quien creó este enlace puede eliminarlo en cualquier momento. «Continuar este chat» copia la conversación a este navegador; no cambia el original.</p>
+<p class="pie-c">Quien creó este enlace puede eliminarlo en cualquier momento. Los archivos que generó el asistente no se comparten: solo se ven su nombre y su tamaño. «Continuar este chat» copia la conversación a este navegador; no cambia el original.</p>
 </div>
 <script type="application/json" id="cmp-datos">${jsonSeguro({ titulo: c.titulo, mcp: c.mcp, m: c.mensajes })}</script>`,
   });

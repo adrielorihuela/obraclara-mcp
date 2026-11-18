@@ -73,6 +73,15 @@ function limpiarRespuesta(t) {
   if (m) { try { return JSON.parse(m[1]); } catch { /* deja el original */ } }
   return s;
 }
+// Solo lo que la IA adjuntó: `adjuntos` de la API local; si no existe, respaldo con `archivos_nuevos`
+// (si hay .zip/.docx/.pdf/.xlsx, solo esos; si hay uno solo, ese; si no, hasta 5).
+function elegirAdjuntos(j) {
+  if (Array.isArray(j.adjuntos)) return j.adjuntos.slice(0, 10);
+  const n = Array.isArray(j.archivos_nuevos) ? j.archivos_nuevos : [];
+  const finales = n.filter((a) => /\.(zip|docx|pdf|xlsx)$/i.test(String(a?.ruta)));
+  if (finales.length) return finales.slice(0, 10);
+  return n.length === 1 ? n : n.slice(0, 5);
+}
 async function agente(ws, tarea) {
   const t0 = Date.now();
   let msg;
@@ -96,7 +105,7 @@ async function agente(ws, tarea) {
         : `Archivos adjuntos (parte ${i + 1} de ${tandas.length - 1}). Solo guárdalos en el espacio de trabajo; las instrucciones llegan en el siguiente mensaje. Responde solo «recibido».`;
       r = await fetch(IA_URL + "/v1/agente", {
         method: "POST", headers: { "content-type": "application/json", ...cab },
-        body: JSON.stringify({ ...(chatId ? { chat_id: chatId } : {}), mensaje, archivos: tandas[i] }), signal: AbortSignal.timeout(300000),
+        body: JSON.stringify({ ...(chatId ? { chat_id: chatId } : {}), mensaje, archivos: tandas[i], ...(tarea.mcp === true ? { mcp: [{ url: SITIO + "/mcp", nombre: "obraclara" }] } : {}) }), signal: AbortSignal.timeout(300000),
       });
       j = await r.json();
       if (!r.ok) break;
@@ -104,7 +113,7 @@ async function agente(ws, tarea) {
     }
     if (!r.ok || typeof j?.respuesta !== "string") throw new Error(j?.error?.message || (typeof j?.error === "string" ? j.error : "") || `respuesta vacía (${r.status})`);
     const archivos = []; const omitidos = []; let total = 0;
-    for (const a of Array.isArray(j.archivos_nuevos) ? j.archivos_nuevos : []) {
+    for (const a of elegirAdjuntos(j)) {
       try {
         if (typeof a?.url !== "string" || !a.url.startsWith("/") || a.url.startsWith("//")) continue;
         if (total + (Number(a.bytes) || 0) > AGENTE_MAX_BYTES) { omitidos.push(a.ruta); continue; }
@@ -114,7 +123,7 @@ async function agente(ws, tarea) {
         if (total + b.length > AGENTE_MAX_BYTES) { omitidos.push(a.ruta); continue; }
         total += b.length;
         const ext = String(a.ruta).split(".").pop().toLowerCase();
-        archivos.push({ nombre: String(a.ruta), tipo: TIPOS[ext] || "application/octet-stream", datos: b.toString("base64") });
+        archivos.push({ nombre: String(a.ruta), ...(typeof a.titulo === "string" && a.titulo ? { titulo: a.titulo.slice(0, 100) } : {}), tipo: TIPOS[ext] || "application/octet-stream", datos: b.toString("base64") });
       } catch { omitidos.push(a?.ruta); }
     }
     // El proveedor real solo se registra aquí; al visitante no se le muestra.

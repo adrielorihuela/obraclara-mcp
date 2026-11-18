@@ -8,7 +8,7 @@ export const COMP_MAX_IMAGENES = 3;
 export const COMP_MAX_IMAGEN = 300 * 1024; // caracteres del data URL de cada imagen
 export const COMP_MAX_CUERPO = 1_200_000; // cuerpo completo de la petición
 
-const TIPOS_ADJ = ["zip", "pdf", "docx", "texto", "imagen"];
+const TIPOS_ADJ = ["zip", "pdf", "docx", "texto", "imagen", "archivo"];
 const RE_IMG = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/;
 const RE_ID = /^[0-9A-Za-z]{10,32}$/;
 const BASE62 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";

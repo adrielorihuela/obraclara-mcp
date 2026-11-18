@@ -77,13 +77,13 @@ export class ColaIA extends DurableObject {
     if (url.pathname === "/agente" && req.method === "POST") {
       if (!this.conn || !this.agente) return Response.json({ error: "El modo agente del servidor no está disponible en este momento." }, { status: 503 });
       if (this.pendientes.size >= MAX_PENDIENTES) return Response.json({ error: "El servidor está ocupado con otras preguntas. Inténtalo en unos segundos." }, { status: 503 });
-      const { chat_id, mensaje, archivos } = (await req.json()) as { chat_id?: string; mensaje: string; archivos: unknown[] };
+      const { chat_id, mensaje, archivos, mcp } = (await req.json()) as { chat_id?: string; mensaje: string; archivos: unknown[]; mcp?: boolean };
       const id = crypto.randomUUID();
       const respuesta = new Promise<Resp>((resolve) => {
         this.pendientes.set(id, resolve);
         setTimeout(() => { if (this.pendientes.delete(id)) resolve({ error: "El agente tardó demasiado en responder. Inténtalo de nuevo." }); }, TIEMPO_AGENTE_MS);
       });
-      try { this.conn.send(JSON.stringify({ type: "agente", id, chat_id, mensaje, archivos })); }
+      try { this.conn.send(JSON.stringify({ type: "agente", id, chat_id, mensaje, archivos, ...(mcp === true ? { mcp: true } : {}) })); }
       catch { this.pendientes.delete(id); return Response.json({ error: "No se pudo enviar la tarea al conector." }, { status: 502 }); }
       const r = await respuesta;
       return r.agente ? Response.json(r.agente) : Response.json({ error: r.error ?? "Error del agente" }, { status: 502 });

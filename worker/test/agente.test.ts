@@ -4,6 +4,7 @@ import {
   presetsIA, truncate, validarConexion, limitesImagen, validarImagen, escalarImagen, construirContenido, aBloquesAnthropic,
   tituloChat, grupoFecha, recortarChats, serializarChats, deserializarChats, sinImagenes,
   limitesAdjuntos, rutaSegura, extraerArchivos, crearZip, crearDocx, mdALineasPdf, recortarMensajes, componerAdjuntos,
+  claseArchivo, mimeArchivo, tamanoLegible, resaltarLinea, htmlConRecursos, prepararCompartir,
 } from "../src/lib/agente";
 import { demoScript } from "../src/demo";
 
@@ -81,7 +82,7 @@ describe("script incrustado en el navegador", () => {
     expect(demoScript).not.toContain("__name");
     const fn = new Function(
       "document", "window", "navigator", "sessionStorage", "localStorage", "fetch",
-      demoScript + "\nreturn {parseToolCall,parseSse,buildSystemPrompt,truncate,presetsIA,normalizarConexion,validarConexion,migrarConfig,construirPeticion,extraerRespuesta,limitesImagen,validarImagen,escalarImagen,construirContenido,aBloquesAnthropic,tituloChat,grupoFecha,recortarChats,serializarChats,deserializarChats,sinImagenes,limitesAdjuntos,recortarTexto,nombreSeguro,rutaSegura,extensionArchivo,tipoAdjunto,validarDocumento,esTextoBytes,clasificarRuta,zipEntradas,zipExtraer,leerProyectoZip,docxATexto,leerDocx,textoPdfPagina,textoPdf,textoAdjunto,componerAdjuntos,metaAdjuntos,sinContexto,largoContenido,acortarContenido,recortarMensajes,extraerArchivos,crc32,crearZip,xmlEscape,docxRuns,docxCuerpo,crearDocx,textoLatin1,mdALineasPdf};",
+      demoScript + "\nreturn {parseToolCall,parseSse,buildSystemPrompt,truncate,presetsIA,normalizarConexion,validarConexion,migrarConfig,construirPeticion,extraerRespuesta,limitesImagen,validarImagen,escalarImagen,construirContenido,aBloquesAnthropic,tituloChat,grupoFecha,recortarChats,serializarChats,deserializarChats,sinImagenes,limitesAdjuntos,recortarTexto,nombreSeguro,rutaSegura,extensionArchivo,tipoAdjunto,validarDocumento,esTextoBytes,clasificarRuta,zipEntradas,zipExtraer,leerProyectoZip,docxATexto,leerDocx,textoPdfPagina,textoPdf,textoAdjunto,componerAdjuntos,metaAdjuntos,sinContexto,largoContenido,acortarContenido,recortarMensajes,extraerArchivos,crc32,crearZip,xmlEscape,docxRuns,docxCuerpo,crearDocx,textoLatin1,mdALineasPdf,claseArchivo,mimeArchivo,tamanoLegible,resaltarLinea,htmlConRecursos,rutaRelativaZip,atributoHtml};",
     );
     const el: any = new Proxy(function () {}, { get: () => el, apply: () => el, set: () => true });
     const api = fn(el, {}, {}, { getItem: () => null, setItem() {} }, { getItem: () => null, setItem() {} }, async () => ({}));
@@ -252,5 +253,39 @@ describe("chats guardados", () => {
     expect(deserializarChats("no json")).toEqual([]);
     expect(deserializarChats('[{"x":1},null,{"id":"z","mensajes":[{"rol":"q"}]}]')).toEqual([{ id: "z", titulo: "Conversación", creado: 0, actualizado: 0, mensajes: [] }]);
     expect(sinImagenes("a")).toBe("a");
+  });
+});
+
+describe("adjuntos de la respuesta (tarjetas y panel)", () => {
+  it("claseArchivo, mimeArchivo y tamanoLegible", () => {
+    expect(claseArchivo("a/index.HTML")).toBe("html");
+    expect(claseArchivo("x.zip")).toBe("zip");
+    expect(claseArchivo("x.py")).toBe("texto");
+    expect(claseArchivo("x.xlsx")).toBe("otro");
+    expect(mimeArchivo("x.xlsx")).toContain("spreadsheetml");
+    expect(tamanoLegible(820)).toBe("820 B");
+    expect(tamanoLegible(1433)).toBe("1,4 KB");
+    expect(tamanoLegible(3 * 1024 * 1024)).toBe("3 MB");
+  });
+  it("resaltarLinea separa comentarios, cadenas, números y palabras clave", () => {
+    expect(resaltarLinea('const x = "a"; // nota 3', "js")).toEqual([["k", "const"], ["", " x = "], ["s", '"a"'], ["", "; "], ["c", "// nota 3"]]);
+    expect(resaltarLinea("def f(): return 42  # ok", "py").map((t) => t[0])).toEqual(["k", "", "k", "", "n", "", "c"]);
+    expect(resaltarLinea("hola 3 si", "txt")).toEqual([["", "hola 3 si"]]);
+    expect(resaltarLinea("", "js")).toEqual([["", ""]]);
+  });
+  it("htmlConRecursos incrusta css y js locales y respeta los externos", () => {
+    const h = '<link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="https://x.y/a.css"><script src="./js/app.js"></script>';
+    const r = htmlConRecursos(h, "", { "styles.css": "b{color:red}", "js/app.js": "var a=1;</script>" });
+    expect(r).toContain("<style>b{color:red}</style>");
+    expect(r).toContain('href="https://x.y/a.css"');
+    expect(r).toContain("<script>var a=1;<\\/script></script>");
+    expect(htmlConRecursos('<link rel="stylesheet" href="../c.css">', "sub", { "c.css": "x{}" })).toBe("<style>x{}</style>");
+  });
+  it("los metadatos de adjuntos de una respuesta se conservan y validan", () => {
+    const [c] = deserializarChats(JSON.stringify([{ id: "c", mensajes: [{ rol: "a", texto: "x", arch: [{ id: "a1", n: "s.zip", b: 10, g: true }, { id: "../mal", n: "x", b: 1 }] }, { rol: "u", texto: "y", arch: [{ id: "a2", n: "q", b: 1 }] }] }]));
+    expect(c.mensajes[0].arch).toEqual([{ id: "a1", n: "s.zip", b: 10, g: true }]);
+    expect(c.mensajes[1].arch).toBeUndefined();
+    const out = prepararCompartir(c.mensajes, null, false);
+    expect(out[0].adjuntos).toEqual([{ nombre: "s.zip", tipo: "archivo", tamano: 10 }]);
   });
 });

@@ -7,7 +7,7 @@ export const AGENTE_MAX_BASE64 = 24 * 1024 * 1024; // suma en base64 (≈ 17 MB 
 export const AGENTE_MAX_CUERPO = AGENTE_MAX_BASE64 + 256 * 1024;
 
 export type ArchivoAgente = { nombre: string; datos: string };
-export type PeticionAgente = { chat_id?: string; mensaje: string; archivos: ArchivoAgente[] };
+export type PeticionAgente = { chat_id?: string; mensaje: string; archivos: ArchivoAgente[]; mcp?: true };
 export type ValidacionAgente = { ok: true; valor: PeticionAgente } | { ok: false; error: string };
 
 export const chatIdSeguro = (s: unknown): s is string => typeof s === "string" && /^[A-Za-z0-9_-]{1,64}$/.test(s);
@@ -23,6 +23,7 @@ export function validarAgente(b: unknown): ValidacionAgente {
     chat_id = o.chat_id;
   }
   const lista = o.archivos === undefined || o.archivos === null ? [] : o.archivos;
+  if (o.mcp !== undefined && typeof o.mcp !== "boolean") return { ok: false, error: "mcp debe ser verdadero o falso." };
   if (!Array.isArray(lista)) return { ok: false, error: "archivos debe ser una lista." };
   if (lista.length > AGENTE_MAX_ARCHIVOS) return { ok: false, error: `Máximo ${AGENTE_MAX_ARCHIVOS} archivos.` };
   const archivos: ArchivoAgente[] = [];
@@ -35,5 +36,5 @@ export function validarAgente(b: unknown): ValidacionAgente {
     if (total > AGENTE_MAX_BASE64) return { ok: false, error: "Los archivos superan 17 MB en total." };
     archivos.push({ nombre: nombreSeguro((a as ArchivoAgente).nombre), datos });
   }
-  return { ok: true, valor: { ...(chat_id ? { chat_id } : {}), mensaje: o.mensaje, archivos } };
+  return { ok: true, valor: { ...(chat_id ? { chat_id } : {}), mensaje: o.mensaje, archivos, ...(o.mcp === true ? { mcp: true as const } : {}) } };
 }

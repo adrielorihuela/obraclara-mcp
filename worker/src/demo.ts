@@ -5,6 +5,7 @@ import {
   limitesAdjuntos, recortarTexto, nombreSeguro, rutaSegura, extensionArchivo, tipoAdjunto, validarDocumento, esTextoBytes, clasificarRuta,
   zipEntradas, zipExtraer, leerProyectoZip, docxATexto, leerDocx, textoPdfPagina, textoPdf, textoAdjunto, componerAdjuntos, metaAdjuntos, sinContexto,
   largoContenido, acortarContenido, recortarMensajes, extraerArchivos, crc32, crearZip, xmlEscape, docxRuns, docxCuerpo, crearDocx, textoLatin1, mdALineasPdf, prepararCompartir,
+  claseArchivo, mimeArchivo, tamanoLegible, resaltarLinea, htmlConRecursos, rutaRelativaZip, atributoHtml,
 } from "./lib/agente";
 
 // Panel "Prueba el asistente" (página /asistente): HTML, CSS y script del navegador.
@@ -133,11 +134,58 @@ body.es-app main{flex:1;min-height:0}
 .msg.a .cb-n{margin:0;padding:6px 12px;font:500 12px/1.3 var(--mono);background:var(--surface-2);border:1px solid var(--line);border-bottom:0;border-radius:10px 10px 0 0}
 .msg.a .t pre{margin:0;padding:10px 14px;background:var(--code-bg);color:var(--code-ink);border-radius:10px;font:400 12.5px/1.55 var(--mono);white-space:pre-wrap;overflow-wrap:anywhere;max-height:360px;overflow:auto}
 .msg.a .cb-n+pre{border-radius:0 0 10px 10px}
-.msg.a .acc{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-.msg.a .acc button{font:500 12px/1 var(--sans);padding:6px 10px;border-radius:999px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink);cursor:pointer}
-.msg.a .acc button:hover{background:var(--surface-2)}
-.msg.a .acc button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.msg.a .acc button:disabled{opacity:.6;cursor:wait}
+.adjs{display:grid;gap:8px;margin-top:4px}
+.adjs:empty{display:none}
+.adj-c{display:flex;align-items:center;gap:12px;max-width:420px;padding:10px 12px;border:1px solid var(--line-2);border-radius:12px;background:var(--surface);transition:border-color .15s,background .15s}
+.adj-c.act{border-color:var(--accent);background:var(--accent-soft)}
+.adj-ic{flex:none;width:40px;height:40px;border-radius:10px;background:var(--ink);color:var(--bg);display:grid;place-items:center;font:700 10.5px/1 var(--mono);letter-spacing:.02em}
+.adj-ic[data-k=html],.adj-ic[data-k=htm]{background:#b4552d;color:#fff}
+.adj-ic[data-k=zip]{background:#6b5bb5;color:#fff}
+.adj-ic[data-k=pdf]{background:#b3392f;color:#fff}
+.adj-ic[data-k=docx]{background:#2f63b3;color:#fff}
+.adj-ic[data-k=xlsx],.adj-ic[data-k=csv]{background:#2b7a4b;color:#fff}
+.adj-i{flex:1;min-width:0;display:grid;gap:2px}
+.adj-n{font:600 14px/1.3 var(--sans);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.adj-s{font:400 12px/1.3 var(--mono);color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.adj-b{flex:none;min-height:34px;padding:0 14px;border-radius:8px;border:1px solid var(--line-2);background:var(--bg);color:var(--ink);font:500 13px/1 var(--sans);cursor:pointer}
+.adj-b:hover{border-color:var(--ink)}
+.adj-b:focus-visible,.pan button:focus-visible,.pan-b:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.chat.con-pan{grid-template-columns:300px minmax(0,1fr) clamp(380px,42vw,640px)}
+.pan{display:flex;flex-direction:column;min-width:0;min-height:0;border-left:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.pan[hidden]{display:none}
+.pan-h{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.pan-h h2{flex:1;min-width:0;margin:0;font:600 15px/1.3 var(--sans);letter-spacing:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pan .b,.pan [role=tab]{min-height:34px;padding:0 12px;border-radius:8px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink);font:500 13px/1 var(--sans);cursor:pointer}
+.pan .b:hover,.pan [role=tab]:hover{border-color:var(--ink)}
+.pan .b:disabled{opacity:.5;cursor:default}
+.pan .b-p,.pan [role=tab][aria-selected=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.pan .pan-x{width:34px;padding:0;font-size:18px;line-height:1}
+.pan-tabs,.pan-sub{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 14px;border-bottom:1px solid var(--line);background:var(--bg-2)}
+.pan-tabs[hidden],.pan-sub[hidden]{display:none}
+.pan-sub .pan-ruta{flex:1;min-width:0;font:500 12.5px/1.3 var(--mono);color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pan-b{flex:1;min-height:0;overflow:auto;background:var(--bg)}
+.pan-b iframe{display:block;width:100%;height:100%;border:0;background:#fff}
+.pv-img{display:block;max-width:100%;margin:0 auto;padding:16px;box-sizing:border-box}
+.pv-msg{margin:0;padding:24px 20px;color:var(--ink-2);font-size:14px;line-height:1.55}
+.pv-md{padding:18px 22px;display:grid;gap:10px;line-height:1.6;overflow-wrap:anywhere;font-size:14.5px}
+.pv-md p{margin:0}.pv-md p.h{font-weight:700}
+.pv-md ul,.pv-md ol{margin:0;padding-left:1.3em;display:grid;gap:4px}
+.pv-md code{background:var(--surface-2);padding:1px 5px;border-radius:4px}
+.pv-md .cb-n{margin:0;padding:6px 12px;font:500 12px/1.3 var(--mono);background:var(--surface-2);border:1px solid var(--line);border-bottom:0;border-radius:10px 10px 0 0}
+.pv-md pre{margin:0;padding:10px 14px;background:var(--code-bg);color:var(--code-ink);border-radius:10px;font:400 12.5px/1.55 var(--mono);white-space:pre-wrap;overflow-wrap:anywhere}
+.pv-md .cb-n+pre{border-radius:0 0 10px 10px}
+.pv-md .tb{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+.pv-md table{border-collapse:collapse;width:100%;font-size:13.5px}
+.pv-md th,.pv-md td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--line)}
+.pv-code{width:max-content;min-width:100%;box-sizing:border-box;margin:0;padding:12px 0;background:var(--code-bg);color:var(--code-ink);font:400 12.5px/1.55 var(--mono);counter-reset:ln;tab-size:2;min-height:100%}
+.pv-code .l{display:block;white-space:pre;padding-right:16px;min-height:1.55em}
+.pv-code .l::before{counter-increment:ln;content:counter(ln);display:inline-block;width:3.6em;padding-right:1em;text-align:right;color:var(--code-mut);user-select:none}
+.tk-c{color:var(--code-mut);font-style:italic}.tk-s{color:#8fd3b6}.tk-n{color:#e8b86d}.tk-k{color:#9fb7ff}
+.pv-zip{list-style:none;margin:0;padding:8px;display:grid;gap:2px}
+.pv-zip button{display:flex;gap:12px;width:100%;align-items:center;text-align:left;padding:9px 10px;border:0;border-radius:8px;background:transparent;color:var(--ink);font:400 13.5px/1.3 var(--mono);cursor:pointer}
+.pv-zip button:hover{background:var(--surface-2)}
+.pv-zip .z-n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pv-zip .z-t{flex:none;color:var(--mut);font-size:12px}
 .caja.arrastre{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}
 #oc-adj{width:36px;height:36px;border-radius:50%;border:0;background:transparent;color:var(--ink-2);display:grid;place-items:center;cursor:pointer;flex:none}
 #oc-adj:hover{background:var(--surface-2)}#oc-adj svg{width:18px;height:18px}
@@ -215,6 +263,9 @@ body.es-app main{flex:1;min-height:0}
  .col{padding:0 16px}.composer{padding:6px 12px 10px}
  .vacio{padding:28px 0 16px}
  .chips{grid-template-columns:minmax(0,1fr);margin-top:20px}
+ .chat.con-pan{grid-template-columns:minmax(0,1fr)}
+ .pan{position:fixed;inset:0;z-index:50;border-left:0}
+ .adj-c{max-width:none}
  .tc{margin-left:0}.msg.a{grid-template-columns:minmax(0,1fr)}.msg.a::before{display:none}.msg.w{padding-left:0}
 }
 `;
@@ -234,7 +285,7 @@ export const demoHtml = String.raw`
 <button type="button" id="oc-sw" class="sw" role="switch" aria-checked="true" aria-describedby="oc-swd"><span class="sw-t"><span class="sw-n" id="oc-swt">MCP: ACTIVADO</span><small id="oc-sws">obraclara · 4 herramientas</small></span><span class="pista" aria-hidden="true"></span></button>
 <p class="ayuda" id="oc-swd"></p>
 <button type="button" id="oc-ag" class="sw" role="switch" aria-checked="false" aria-describedby="oc-agd" hidden><span class="sw-t"><span class="sw-n" id="oc-agt">AGENTE: DESACTIVADO</span><small>archivos y tareas</small></span><span class="pista" aria-hidden="true"></span></button>
-<p class="ayuda" id="oc-agd" hidden>El agente del servidor puede leer tus archivos adjuntos y crear archivos para descargar. No tiene las herramientas MCP de datos de inversión pública.</p></div>
+<p class="ayuda" id="oc-agd" hidden>El agente del servidor puede leer tus archivos adjuntos y crear archivos para descargar (una página web, un Word, un Excel…). Puedes usarlo junto con el MCP.</p></div>
 <div class="b-mod"><p class="ayuda" id="oc-info" style="margin:0 0 8px"></p>
 <button type="button" id="oc-gear" class="cfg-b" aria-haspopup="dialog" aria-label="Configuración de IA">${icoEngranaje}<span>Configuración</span></button></div>
 <div class="pie-l"><p>Los chats se guardan solo en este navegador y dispositivo (no en nuestro servidor). Si borras los datos del sitio, se pierden.</p><p>Las alertas son indicios para revisar, no prueba de irregularidades.</p><p>Universidad de Lima · I.A. Aplicada · Grupo 1. Código hecho con ayuda de IA generativa y revisado por el grupo.</p></div>
@@ -259,6 +310,12 @@ export const demoHtml = String.raw`
 <p class="nota-c">El modelo puede equivocarse. Verifica las cifras en la fuente oficial del MEF.</p>
 </form>
 </section>
+<aside class="pan" id="oc-pan" role="dialog" aria-modal="false" aria-labelledby="oc-pan-t" hidden>
+<div class="pan-h"><h2 id="oc-pan-t"></h2><button type="button" id="oc-pan-d" class="b b-p">Descargar</button><button type="button" id="oc-pan-x" class="b pan-x" aria-label="Cerrar el panel">&times;</button></div>
+<div class="pan-tabs" id="oc-pan-tabs" role="tablist" aria-label="Archivos de la respuesta" hidden></div>
+<div class="pan-sub" id="oc-pan-sub" hidden></div>
+<div class="pan-b" id="oc-pan-b" tabindex="0"></div>
+</aside>
 </div>
 
 <dialog id="oc-sh" aria-labelledby="oc-sh-t">
@@ -307,6 +364,7 @@ const nombres = [
   limitesAdjuntos, recortarTexto, nombreSeguro, rutaSegura, extensionArchivo, tipoAdjunto, validarDocumento, esTextoBytes, clasificarRuta,
   zipEntradas, zipExtraer, leerProyectoZip, docxATexto, leerDocx, textoPdfPagina, textoPdf, textoAdjunto, componerAdjuntos, metaAdjuntos, sinContexto,
   largoContenido, acortarContenido, recortarMensajes, extraerArchivos, crc32, crearZip, xmlEscape, docxRuns, docxCuerpo, crearDocx, textoLatin1, mdALineasPdf, prepararCompartir,
+  claseArchivo, mimeArchivo, tamanoLegible, resaltarLinea, htmlConRecursos, rutaRelativaZip, atributoHtml,
 ].map((f) => f.toString()).join("\n");
 
 // Piezas compartidas con la página pública /c/:id (renderizador de Markdown seguro, chips, Word/PDF).
@@ -352,18 +410,18 @@ async function ocPdfBytes(md){await ocScript(OC_JSPDF);var J=window.jspdf&&windo
  return new Uint8Array(doc.output('arraybuffer'))}
 async function ocBytesArchivo(ruta,contenido){var e=extensionArchivo(ruta);
  if(e==='docx')return crearDocx(contenido);if(e==='pdf')return await ocPdfBytes(contenido);return new TextEncoder().encode(contenido)}
-async function ocBajarArchivo(ruta,contenido){ocDescargar(ruta.split('/').pop(),await ocBytesArchivo(ruta,contenido),OC_MIME[extensionArchivo(ruta)]||'text/plain;charset=utf-8')}
-async function ocBajarZip(fs){var l=[];for(var i=0;i<fs.length;i++)l.push({ruta:fs[i].ruta,datos:await ocBytesArchivo(fs[i].ruta,fs[i].contenido)});ocDescargar('archivos-obraclara.zip',crearZip(l),'application/zip')}
-function ocAcciones(t,txt){var s=String(txt||'').trim();if(!s||s==='(sin respuesta)')return;
- var fs=extraerArchivos(s),row=document.createElement('div');row.className='acc';row.setAttribute('role','group');row.setAttribute('aria-label','Descargar');
- function bt(et,tit,fn){var b=document.createElement('button'),ant=et;b.type='button';b.textContent=et;b.title=tit;
-  b.addEventListener('click',async function(){b.disabled=true;b.textContent='…';try{await fn()}catch(e){ocLog('n','No se pudo generar la descarga: '+(e&&e.message?e.message:'error desconocido')+'.')}b.disabled=false;b.textContent=ant});row.appendChild(b)}
- bt('Word','Descargar la respuesta como documento Word (.docx)',function(){return ocBajarArchivo('respuesta-obraclara.docx',s)});
- bt('PDF','Descargar la respuesta como PDF',function(){return ocBajarArchivo('respuesta-obraclara.pdf',s)});
- fs.forEach(function(f){bt(f.ruta.split('/').pop(),'Descargar '+f.ruta,function(){return ocBajarArchivo(f.ruta,f.contenido)})});
- if(fs.length>=2)bt('Todo (.zip)','Descargar los '+fs.length+' archivos en un .zip',function(){return ocBajarZip(fs)});
- t.appendChild(row)}
-function ocIdb(){return new Promise(function(ok,no){try{var r=indexedDB.open('obraclara',1);r.onupgradeneeded=function(){r.result.createObjectStore('kv')};r.onsuccess=function(){ok(r.result)};r.onerror=function(){no(r.error)}}catch(e){no(e)}})}
+function ocTarjeta(m,abrir){var c=document.createElement('div'),ex=extensionArchivo(m.n),ic=document.createElement('span'),i=document.createElement('div'),n=document.createElement('span'),s=document.createElement('span'),base=String(m.n).split('/').pop(),nom=m.ti||base;
+ c.className='adj-c';ic.className='adj-ic';ic.setAttribute('aria-hidden','true');ic.setAttribute('data-k',ex);ic.textContent=(ex||'arch').slice(0,4).toUpperCase();
+ i.className='adj-i';n.className='adj-n';n.textContent=nom;n.title=m.n;s.className='adj-s';s.textContent=[m.ti?base:'',m.b?tamanoLegible(m.b):''].filter(function(x){return x}).join(' · ');
+ i.appendChild(n);i.appendChild(s);c.appendChild(ic);c.appendChild(i);
+ if(abrir){var b=document.createElement('button');b.type='button';b.className='adj-b';b.textContent='Abrir';b.setAttribute('aria-label','Abrir '+nom);b.addEventListener('click',function(){abrir(b)});c.appendChild(b)}
+ else c.title='Los archivos no se comparten: solo se muestran el nombre y el tamaño.';
+ return c}
+function ocIdb(){return new Promise(function(ok,no){try{var r=indexedDB.open('obraclara',2);r.onupgradeneeded=function(){var d=r.result;if(!d.objectStoreNames.contains('kv'))d.createObjectStore('kv');if(!d.objectStoreNames.contains('adj'))d.createObjectStore('adj')};r.onsuccess=function(){ok(r.result)};r.onerror=function(){no(r.error)}}catch(e){no(e)}})}
+function ocAdjTx(modo,fn){return ocIdb().then(function(db){return new Promise(function(ok,no){var t=db.transaction('adj',modo),r=fn(t.objectStore('adj'));t.oncomplete=function(){db.close();ok(r&&r.result)};t.onerror=function(){db.close();no(t.error)};t.onabort=function(){db.close();no(t.error)}})})}
+function ocAdjGet(id){return ocAdjTx('readonly',function(s){return s.get(id)})}
+function ocAdjPut(id,rec){return ocAdjTx('readwrite',function(s){return s.put(rec,id)})}
+function ocAdjDel(ids){if(!ids.length)return Promise.resolve();return ocAdjTx('readwrite',function(s){ids.forEach(function(i){s.delete(i)})}).catch(function(){})}
 async function ocAlmLeer(){var v=null;
  try{if(typeof indexedDB!=='undefined'){var db=await ocIdb();v=await new Promise(function(ok,no){var q=db.transaction('kv','readonly').objectStore('kv').get('chats');q.onsuccess=function(){ok(q.result)};q.onerror=function(){no(q.error)}});db.close()}}catch(e){v=null}
  if(typeof v==='string'&&v)return v;
@@ -377,13 +435,14 @@ const app = String.raw`
 var ocMcp=true,ocHist=[],ocTools=null,ocBusy=false,ocConns=[],ocActiva='servidor',ocEdit='',ocHL='servidor',ocImgs=[],ocDocs=[],ocLeyendo=0,ocAvisoCtx=false,ocMsgs=[],ocChats=[],ocChatId='',ocRest=false,ocRen='',ocAg=false,ocAgOk=false,ocAgId='';
 var OC_ICO_TOOL='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4h12M2 8h8M2 12h5"/><path d="m11 10 2 2-2 2"/></svg>';
 function ocBajar(){var s=$('oc-scroll');if(s)s.scrollTop=s.scrollHeight}
-function ocRec(m){if(!ocRest){ocMsgs.push(m);ocShareUi()}}
-function ocLog(cls,txt,extra,adj){if(cls==='u')ocRec({rol:'u',texto:txt+(extra&&extra.length?'\n'+extra.map(function(){return '[imagen adjunta]'}).join(' '):''),mcp:ocMcp&&!ocAgActivo(),adj:adj?adj.meta:undefined,ctx:adj?adj.ctx:undefined});
- if(cls==='a')ocRec({rol:'a',texto:txt,modelo:typeof extra==='string'?extra:'',mcp:ocMcp&&!ocAgActivo()});
+function ocRec(m){if(ocRest)return null;ocMsgs.push(m);ocShareUi();return m}
+function ocLog(cls,txt,extra,adj,arch){var rec=null;if(cls==='u')ocRec({rol:'u',texto:txt+(extra&&extra.length?'\n'+extra.map(function(){return '[imagen adjunta]'}).join(' '):''),mcp:ocMcp,adj:adj?adj.meta:undefined,ctx:adj?adj.ctx:undefined});
+ if(cls==='a')rec=ocRec({rol:'a',texto:txt,modelo:typeof extra==='string'?extra:'',mcp:ocMcp});
 var d=document.createElement('div');d.className='msg '+cls;$('oc-vacio').hidden=true;
  if(cls==='a'){var t=document.createElement('div');t.className='t';ocMd(t,txt);
   if(typeof extra==='string'&&extra){var m=document.createElement('p');m.className='mod';m.textContent='Respondió: '+extra;t.appendChild(m)}
-  ocAcciones(t,txt);d.appendChild(t)}
+  var bx=document.createElement('div'),sx=String(txt||'').trim();bx.className='adjs';t.appendChild(bx);d.appendChild(t);
+  if(Array.isArray(arch)||(sx&&sx!=='(sin respuesta)'))ocArchMsg(rec,bx,txt,arch)}
  else{d.textContent=txt;
   if(cls==='u'&&extra&&extra.length){var g=document.createElement('div');g.className='ims';extra.forEach(function(u){var im=document.createElement('img');im.alt='Imagen adjunta';im.src=u;g.appendChild(im)});d.appendChild(g)}
   if(cls==='u'&&adj&&adj.meta&&adj.meta.length){var g2=document.createElement('div');g2.className='ims';adj.meta.forEach(function(x){g2.appendChild(ocChip(x,false,null))});d.appendChild(g2)}}
@@ -402,12 +461,12 @@ function ocTool(name,args,res){ocRec({rol:'t',texto:'',herramienta:{nombre:name,
  d.appendChild(s);d.appendChild(b);$('oc-vacio').hidden=true;$('oc-log').appendChild(d);ocBajar()}
 function ocRead(st,k){try{return JSON.parse(st.getItem(k)||'null')}catch(e){return null}}
 function ocWrite(st,k,v){try{if(v===null)st.removeItem(k);else st.setItem(k,JSON.stringify(v))}catch(e){}}
-function ocSwitchText(){var sw=$('oc-sw'),ag=ocAgActivo();sw.setAttribute('aria-checked',String(ocMcp&&!ag));sw.setAttribute('aria-disabled',String(ag));
- $('oc-swt').textContent=ag?'MCP: NO APLICA':(ocMcp?'MCP: ACTIVADO':'MCP: DESACTIVADO');$('oc-sws').textContent=ag?'el agente no usa estas herramientas':'obraclara · 4 herramientas';
- $('oc-swd').textContent=ag?'El modo agente no consulta los datos del MEF mediante MCP. Desactiva el agente para volver a usar el MCP.':(ocMcp?'Con MCP: el modelo puede consultar los datos oficiales del MEF mediante las herramientas de este servidor.':'Sin MCP: chat normal con el mismo modelo, sin acceso a los datos; puede equivocarse o inventar.');
- var ind=$('oc-ind');ind.className='ind'+(ag||ocMcp?' on':'');ind.lastChild.textContent=ag?'Agente activado · sin MCP':(ocMcp?'MCP activado':'MCP desactivado · sin datos');
- $('oc-in').placeholder=ag?'Dile al agente qué hacer (puedes adjuntar archivos)':'Escribe tu pregunta';$('oc-chips').hidden=ag;
- $('oc-vp').textContent=ag?'Modo agente: el agente del servidor lee tus archivos adjuntos y puede crear archivos para descargar. No consulta los datos del MEF.':'Pregunta por una obra, una entidad o una región. Con el MCP activado, el modelo consulta los datos del MEF y te muestra qué herramienta usó.'}
+function ocSwitchText(){var sw=$('oc-sw'),ag=ocAgActivo();sw.setAttribute('aria-checked',String(ocMcp));sw.removeAttribute('aria-disabled');
+ $('oc-swt').textContent=ocMcp?'MCP: ACTIVADO':'MCP: DESACTIVADO';$('oc-sws').textContent='obraclara · 4 herramientas';
+ $('oc-swd').textContent=ocMcp?(ag?'MCP + agente: el agente consulta los datos oficiales del MEF y te entrega archivos, como un Excel o un Word.':'Con MCP: el modelo puede consultar los datos oficiales del MEF mediante las herramientas de este servidor.'):(ag?'Sin MCP el agente trabaja solo con tus archivos y no consulta los datos oficiales.':'Sin MCP: chat normal con el mismo modelo, sin acceso a los datos; puede equivocarse o inventar.');
+ var ind=$('oc-ind');ind.className='ind'+(ag||ocMcp?' on':'');ind.lastChild.textContent=ag?(ocMcp?'Agente + MCP':'Agente activado · sin MCP'):(ocMcp?'MCP activado':'MCP desactivado · sin datos');
+ $('oc-in').placeholder=ag?(ocMcp?'Pídele datos y archivos al agente':'Dile al agente qué hacer (puedes adjuntar archivos)'):'Escribe tu pregunta';$('oc-chips').hidden=ag&&!ocMcp;
+ $('oc-vp').textContent=ag?(ocMcp?'Modo agente con MCP: el agente consulta los datos oficiales del MEF y te entrega archivos para descargar, como un Excel o un Word.':'Modo agente: el agente del servidor lee tus archivos adjuntos y puede crear archivos para descargar. Activa el MCP para que también consulte los datos del MEF.'):'Pregunta por una obra, una entidad o una región. Con el MCP activado, el modelo consulta los datos del MEF y te muestra qué herramienta usó.'}
 function ocPrefs(){ocWrite(localStorage,'oc_prefs',{mcp:ocMcp,ag:ocAg})}
 function ocConnById(id){for(var i=0;i<ocConns.length;i++)if(ocConns[i].id===id)return ocConns[i];return null}
 function ocPersist(){var s=[],l=[];ocConns.forEach(function(c){(c.recordar?l:s).push(c)});
@@ -422,7 +481,7 @@ function ocLoad(){var a=ocRead(sessionStorage,'oc_conns')||[],b=ocRead(localStor
 function ocUi(){if(ocActiva!==ocHL&&!ocConnById(ocActiva))ocActiva=ocHL;
  $('oc-info').textContent=ocActiva===ocHL?'Por defecto la respuesta viene del servidor de ObraClara, que prueba primero la IA del grupo, luego Workers AI y luego Groq. En «Configuración» puedes usar tu propia IA con tu clave: nunca llega a nuestro servidor.':'Usando tu conexión «'+ocConnById(ocActiva).nombre+'»: las solicitudes van directo desde tu navegador al proveedor; la clave nunca llega a nuestro servidor.'}
 function ocAgActivo(){return ocAg&&ocAgOk&&ocActiva===ocHL}
-function ocAgUi(){var v=ocAgOk&&ocActiva===ocHL;$('oc-ag').hidden=!v;$('oc-agd').hidden=!v;$('oc-ag').setAttribute('aria-checked',String(ocAgActivo()));$('oc-agt').textContent=ocAgActivo()?'AGENTE: ACTIVADO':'AGENTE: DESACTIVADO';ocSwitchText()}
+function ocAgUi(){var v=ocAgOk&&ocActiva===ocHL;$('oc-ag').hidden=!v;$('oc-agd').hidden=!v;$('oc-ag').setAttribute('aria-checked',String(ocAgActivo()));$('oc-agt').textContent=ocAgActivo()?'AGENTE: ACTIVADO':'AGENTE: DESACTIVADO';$('oc-agd').textContent=ocAgActivo()&&ocMcp?'Agente + MCP: el agente consulta los datos oficiales del MEF, lee tus archivos y te entrega otros, como un Excel, un Word o una página web.':'El agente del servidor puede leer tus archivos adjuntos y crear archivos para descargar (una página web, un Word, un Excel…). Puedes usarlo junto con el MCP.';ocSwitchText()}
 function ocElegir(id){ocActiva=id;ocPersist();ocUi();ocAgUi();ocRenderLista()}
 function ocRenderLista(){var u=$('oc-lista');u.textContent='';
  function fila(id,txt,extras){var li=document.createElement('li'),sp=document.createElement('span'),lb=document.createElement('label'),r=document.createElement('input');
@@ -514,20 +573,21 @@ function ocGuardar(){var hay=false;ocMsgs.forEach(function(m){if(m.rol==='a')hay
   ocChatId='c'+ahora.toString(36)+Math.random().toString(36).slice(2,6);c={id:ocChatId,titulo:tituloChat(pu),creado:ahora,actualizado:ahora,mensajes:[]};ocChats.push(c)}
  c.mensajes=ocMsgs.slice();c.actualizado=ahora;if(ocAgId)c.agenteId=ocAgId;ocPersistChats()}
 async function ocCargarChats(){var t=await ocAlmLeer();ocChats=deserializarChats(t);ocRenderChats()}
-function ocLimpiar(){ocAgId='';ocHist=[];ocMsgs=[];ocChatId='';ocImgs=[];ocDocs=[];ocThumbs();$('oc-log').textContent='';$('oc-vacio').hidden=false;ocShareUi()}
+function ocLimpiar(){ocPanCerrar();ocAgId='';ocHist=[];ocMsgs=[];ocChatId='';ocImgs=[];ocDocs=[];ocThumbs();$('oc-log').textContent='';$('oc-vacio').hidden=false;ocShareUi()}
 function ocAbrir(id){if(ocBusy)return;var c=null;ocChats.forEach(function(x){if(x.id===id)c=x});if(!c)return;
  ocLimpiar();ocChatId=c.id;ocAgId=c.agenteId||'';ocRest=true;
  if(ocAgOk&&ocActiva===ocHL){ocAg=!!c.agenteId;ocPrefs();ocAgUi()}
  c.mensajes.forEach(function(m){
   if(m.rol==='u'){var ad=m.adj&&m.adj.length?{meta:m.adj,ctx:m.ctx||''}:null;ocLog('u',m.texto,null,ad);ocHist.push({role:'user',content:m.ctx?m.texto+'\n\n'+m.ctx:ad?m.texto+'\n\n[Adjuntos de este mensaje no disponibles: '+m.adj.map(function(x){return x.n}).join(', ')+']':m.texto})}
-  else if(m.rol==='a'){ocLog('a',m.texto,m.modelo||'');ocHist.push({role:'assistant',content:m.texto})}
+  else if(m.rol==='a'){ocLog('a',m.texto,m.modelo||'',null,m.arch&&m.arch.length?{meta:m.arch}:undefined);ocHist.push({role:'assistant',content:m.texto})}
   else if(m.rol==='t'&&m.herramienta)ocTool(m.herramienta.nombre,m.herramienta.args,m.herramienta.resultado)});
  ocRest=false;ocMsgs=c.mensajes.slice();ocShareUi();ocRenderChats();ocBajar()}
 function ocRenombrar(id,v){ocChats.forEach(function(x){if(x.id===id)x.titulo=tituloChat(v)});ocRen='';ocPersistChats()}
 function ocBorrar(id){var c=null;ocChats.forEach(function(x){if(x.id===id)c=x});if(!c||!confirm('¿Borrar el chat «'+c.titulo+'»?'))return;
- ocChats=ocChats.filter(function(x){return x.id!==id});if(ocChatId===id)ocLimpiar();ocPersistChats()}
+ ocAdjDel(ocIdsArch(c));ocChats=ocChats.filter(function(x){return x.id!==id});if(ocChatId===id)ocLimpiar();ocPersistChats()}
+function ocIdsArch(c){var r=[];c.mensajes.forEach(function(m){(m.arch||[]).forEach(function(x){r.push(x.id)})});return r}
 function ocBorrarTodos(){if(!ocChats.length||!confirm('¿Borrar todos los chats guardados en este navegador? No se puede deshacer.'))return;
- ocChats=[];ocLimpiar();ocPersistChats()}
+ var ids=[];ocChats.forEach(function(c){ids=ids.concat(ocIdsArch(c))});ocAdjDel(ids);ocChats=[];ocLimpiar();ocPersistChats()}
 function ocRenderChats(){var r=$('oc-chats');r.textContent='';if(!ocChats.length)return;
  var ahora=Date.now(),ult='',ul=null;
  ocChats.slice().sort(function(a,b){return b.actualizado-a.actualizado}).forEach(function(c){var g=grupoFecha(c.actualizado,ahora);
@@ -652,23 +712,97 @@ async function ocSendAg(q){var fs=ocDocs.filter(function(d){return d.raw});if(!q
  ocBusy=true;$('oc-send').disabled=true;$('oc-in').value='';ocAlto();ocImgs=[];ocDocs=[];ocThumbs();ocLog('u',q,null,meta.length?{meta:meta,ctx:''}:null);var w=ocLog('w','El agente está trabajando…');
  var msg=q;
  try{var r,d=null;
-  try{r=await fetch('/api/agente',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({chat_id:ocAgId||undefined,mensaje:msg,archivos:adj})})}catch(e){throw new Error('No se pudo conectar con el servidor.')}
+  try{r=await fetch('/api/agente',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({chat_id:ocAgId||undefined,mensaje:msg,archivos:adj,mcp:ocMcp?true:undefined})})}catch(e){throw new Error('No se pudo conectar con el servidor.')}
   try{d=await r.json()}catch(e){}
   if(!r.ok)throw new Error(d&&typeof d.error==='string'?d.error.slice(0,200):'El servidor respondió con error '+r.status+'.');
   if(!d||typeof d.respuesta!=='string')throw new Error('Respuesta del agente no válida.');
   if(typeof d.chat_id==='string'&&/^[A-Za-z0-9_-]{1,64}$/.test(d.chat_id))ocAgId=d.chat_id;
-  var el=ocLog('a',d.respuesta.trim()||'(sin respuesta)','Agente del servidor'),row=el.querySelector('.acc');
-  if(row&&Array.isArray(d.archivos))ocAgBotones(row,d.archivos.slice(0,20));
+  var arch=[];(Array.isArray(d.archivos)?d.archivos:[]).slice(0,20).forEach(function(f){if(!f||typeof f.datos!=='string'||typeof f.nombre!=='string')return;var bb;try{bb=ocB64Bytes(f.datos)}catch(e){return}
+   arch.push(ocArchNuevo(rutaSegura(f.nombre)||'archivo',typeof f.titulo==='string'?f.titulo.slice(0,100):'',bb))});
+  ocLog('a',d.respuesta.trim()||'(sin respuesta)','Agente del servidor',null,arch);
   if(d.omitidos&&d.omitidos.length)ocLog('n','Algunos archivos no se enviaron por su tamaño: '+d.omitidos.join(', ')+'.')}
  catch(e){ocLog('e',(e&&e.message?e.message:'Error inesperado.')+' Prueba a desactivar el modo agente.')}
  w.remove();ocBusy=false;$('oc-send').disabled=false;ocBajar();ocGuardar()}
-function ocAgBotones(row,fs){var lista=[];
- fs.forEach(function(f){if(!f||typeof f.datos!=='string'||typeof f.nombre!=='string')return;var ruta=rutaSegura(f.nombre)||'archivo',b;try{b=ocB64Bytes(f.datos)}catch(e){return}
-  lista.push({ruta:ruta,datos:b});
-  var bt=document.createElement('button');bt.type='button';bt.textContent=ruta.split('/').pop();bt.title='Descargar '+ruta;
-  bt.addEventListener('click',function(){ocDescargar(ruta.split('/').pop(),b,typeof f.tipo==='string'?f.tipo:'application/octet-stream')});row.appendChild(bt)});
- if(lista.length>=2){var z=document.createElement('button');z.type='button';z.textContent='Todo (.zip)';z.title='Descargar los '+lista.length+' archivos en un .zip';
-  z.addEventListener('click',function(){ocDescargar('archivos-agente.zip',crearZip(lista),'application/zip')});row.appendChild(z)}}
+var OC_ADJ_MAX=20*1024*1024,OC_CSP='<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; img-src data: blob: https:; media-src data: blob: https:; style-src \'unsafe-inline\' https:; font-src data: https:; script-src \'unsafe-inline\' https:; connect-src \'none\'; form-action \'none\'">';
+var ocPan={lista:[],i:-1,zip:null,modo:'vista',url:'',disp:null,tok:0};
+function ocArchNuevo(ruta,titulo,datos){return {id:'a'+Date.now().toString(36)+Math.random().toString(36).slice(2,8),n:ruta,ti:titulo||'',t:mimeArchivo(ruta),b:datos.length,datos:datos,g:false}}
+function ocArchMeta(lista){return lista.map(function(a){var o={id:a.id,n:a.n,b:a.b};if(a.ti)o.ti=a.ti;if(a.g)o.g=true;return o})}
+async function ocArchDeTexto(txt){var fs=extraerArchivos(String(txt||'')),lst=[];
+ for(var i=0;i<fs.length;i++){try{lst.push({ruta:fs[i].ruta,datos:await ocBytesArchivo(fs[i].ruta,fs[i].contenido)})}catch(e){}}
+ if(lst.length>3)return [ocArchNuevo('archivos-obraclara.zip','Archivos de la respuesta',crearZip(lst))];
+ return lst.map(function(x){return ocArchNuevo(x.ruta,'',x.datos)})}
+async function ocArchPersistir(lista){var tot=0;ocMsgs.forEach(function(m){(m.arch||[]).forEach(function(x){if(x.g)tot+=x.b})});
+ for(var i=0;i<lista.length;i++){var a=lista[i];if(!a.datos||tot+a.b>OC_ADJ_MAX)continue;try{await ocAdjPut(a.id,{n:a.n,d:a.datos});a.g=true;tot+=a.b}catch(e){}}}
+function ocArchPintar(box,lista){box.textContent='';
+ lista.forEach(function(a,i){a.card=ocTarjeta({n:a.n,ti:a.ti,b:a.b},function(btn){ocPanAbrir(lista,i,btn)});box.appendChild(a.card)});ocBajar()}
+async function ocArchMsg(rec,box,txt,arch){
+ try{var lista;
+  if(Array.isArray(arch))lista=arch;
+  else if(arch&&arch.meta)lista=arch.meta.map(function(x){return {id:x.id,n:x.n,ti:x.ti||'',t:mimeArchivo(x.n),b:x.b,datos:null,g:!!x.g}});
+  else lista=await ocArchDeTexto(txt);
+  if(!lista.length)return;
+  ocArchPintar(box,lista);
+  if(rec&&ocMsgs.indexOf(rec)>=0){await ocArchPersistir(lista);rec.arch=ocArchMeta(lista);ocGuardar()}
+ }catch(e){}}
+async function ocArchDatos(a){if(a.datos)return a.datos;
+ try{var r=await ocAdjGet(a.id);if(r&&r.d){a.datos=r.d instanceof Uint8Array?r.d:new Uint8Array(r.d);return a.datos}}catch(e){}
+ return null}
+function ocPanSoltar(){if(ocPan.url){URL.revokeObjectURL(ocPan.url);ocPan.url=''}}
+function ocPanAct(){ocPan.lista.forEach(function(a,i){if(a.card)a.card.classList.toggle('act',i===ocPan.i&&!$('oc-pan').hidden)})}
+function ocPanAbrir(lista,i,disp){ocPan.lista=lista;ocPan.disp=disp||null;var p=$('oc-pan');p.hidden=false;
+ p.setAttribute('aria-modal',window.matchMedia&&window.matchMedia('(max-width:860px)').matches?'true':'false');
+ document.querySelector('.chat').classList.add('con-pan');ocPanVer(i);$('oc-pan-x').focus()}
+function ocPanCerrar(){var p=$('oc-pan');if(p.hidden)return;p.hidden=true;ocPan.tok++;ocPan.i=-1;document.querySelector('.chat').classList.remove('con-pan');ocPanSoltar();$('oc-pan-b').textContent='';
+ ocPan.lista.forEach(function(a){if(a.card)a.card.classList.remove('act')});
+ var d=ocPan.disp;ocPan.disp=null;if(d&&document.body.contains(d))d.focus()}
+function ocPanMsg(txt){var b=$('oc-pan-b'),p=document.createElement('p');p.className='pv-msg';p.textContent=txt;b.textContent='';b.appendChild(p)}
+async function ocPanVer(i){var a=ocPan.lista[i];if(!a)return;ocPan.i=i;ocPan.zip=null;ocPan.modo='vista';var tok=++ocPan.tok,tb=$('oc-pan-tabs');
+ $('oc-pan-t').textContent=a.ti||a.n.split('/').pop();ocPanAct();$('oc-pan-sub').hidden=true;
+ tb.textContent='';tb.hidden=ocPan.lista.length<2;
+ ocPan.lista.forEach(function(x,k){var b=document.createElement('button');b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',String(k===i));b.textContent=x.ti||x.n.split('/').pop();b.addEventListener('click',function(){ocPanVer(k)});tb.appendChild(b)});
+ ocPanMsg('Cargando…');var d=await ocArchDatos(a);if(tok!==ocPan.tok)return;
+ if(!d){$('oc-pan-d').disabled=true;ocPanMsg('Este archivo ya no está guardado en este navegador (se superó el límite de 20 MB por chat o se borraron los datos del sitio). Vuelve a pedírselo al asistente.');return}
+ $('oc-pan-d').disabled=false;
+ if(claseArchivo(a.n)==='zip')return ocPanZip(a,d,tok);
+ await ocPanContenido(a.n,d,tok,null)}
+function ocHtmlDoc(h){var m=OC_CSP;if(/<head[^>]*>/i.test(h))return h.replace(/<head[^>]*>/i,function(x){return x+m});var d=/^\s*<!doctype[^>]*>/i.exec(h);if(d)return d[0]+m+h.slice(d[0].length);return '<!doctype html>'+m+h}
+function ocPvCodigo(b,texto,ext){var lines=String(texto).replace(/\r/g,'').split('\n'),pre=document.createElement('div'),tope=3000;pre.className='pv-code';
+ lines.slice(0,tope).forEach(function(l){var d=document.createElement('div');d.className='l';
+  resaltarLinea(l,ext).forEach(function(t){if(t[0]){var s=document.createElement('span');s.className='tk-'+t[0];s.textContent=t[1];d.appendChild(s)}else d.appendChild(document.createTextNode(t[1]))});pre.appendChild(d)});
+ b.appendChild(pre);if(lines.length>tope){var n=document.createElement('p');n.className='pv-msg';n.textContent='Se muestran las primeras '+tope+' líneas de '+lines.length+'. Descarga el archivo para verlo completo.';b.appendChild(n)}}
+async function ocZipMapa(z){if(z.mapa)return z.mapa;var m={},n=0;
+ for(var i=0;i<z.ents.length&&n<40;i++){var e=z.ents[i];if(!/\.(css|js|mjs)$/i.test(e.nombre)||e.tam>1500000)continue;var d=await zipExtraer(z.datos,e,1500000);if(d){m[rutaSegura(e.nombre)]=new TextDecoder('utf-8').decode(d);n++}}
+ z.mapa=m;return m}
+async function ocPanContenido(nombre,datos,tok,z){var b=$('oc-pan-b'),sub=$('oc-pan-sub'),k=claseArchivo(nombre),ext=extensionArchivo(nombre);
+ b.textContent='';sub.textContent='';ocPanSoltar();var hay=false;
+ function bt(txt,fn,cl,tab,sel){var x=document.createElement('button');x.type='button';x.textContent=txt;if(cl)x.className=cl;if(tab){x.setAttribute('role','tab');x.setAttribute('aria-selected',String(!!sel))}x.addEventListener('click',fn);sub.appendChild(x);hay=true;return x}
+ if(z){bt('← Archivos',function(){ocPanZipLista(z)},'b');var r=document.createElement('span');r.className='pan-ruta';r.textContent=nombre;r.title=nombre;sub.appendChild(r)}
+ if(k==='html'){bt('Vista',function(){ocPan.modo='vista';ocPanContenido(nombre,datos,++ocPan.tok,z)},'',true,ocPan.modo==='vista');bt('Código',function(){ocPan.modo='codigo';ocPanContenido(nombre,datos,++ocPan.tok,z)},'',true,ocPan.modo==='codigo')}
+ if(z)bt('Descargar este archivo',function(){ocDescargar(nombre.split('/').pop(),datos,mimeArchivo(nombre))},'b');
+ sub.hidden=!hay;
+ if(k==='imagen'){var im=document.createElement('img');im.className='pv-img';im.alt=nombre.split('/').pop();ocPan.url=URL.createObjectURL(new Blob([datos],{type:mimeArchivo(nombre)}));im.src=ocPan.url;b.appendChild(im);return}
+ if(k==='pdf'){var f=document.createElement('iframe');f.title='Vista previa de '+nombre;ocPan.url=URL.createObjectURL(new Blob([datos],{type:'application/pdf'}));f.src=ocPan.url;b.appendChild(f);return}
+ if(k==='docx'){try{var a=await leerDocx(nombre,datos);if(tok!==ocPan.tok)return;var dv=document.createElement('div');dv.className='pv-md';ocMd(dv,a.texto);b.appendChild(dv)}catch(e){ocPanMsg('No se pudo mostrar el texto del documento: '+(e&&e.message?e.message:'error')+' Usa Descargar.')}return}
+ if(k==='zip'||k==='otro'&&!esTextoBytes(datos)){ocPanMsg('Este tipo de archivo no tiene vista previa. Usa Descargar para abrirlo en tu equipo.');return}
+ var txt=new TextDecoder('utf-8').decode(datos.subarray(0,600000));
+ if(k==='html'){
+  if(ocPan.modo==='codigo'){ocPvCodigo(b,txt,'html');return}
+  var base=z?nombre.split('/').slice(0,-1).join('/'):'',mapa=z?await ocZipMapa(z):{};if(tok!==ocPan.tok)return;
+  var fr=document.createElement('iframe');fr.setAttribute('sandbox','allow-scripts');fr.setAttribute('referrerpolicy','no-referrer');fr.title='Vista previa de '+nombre;fr.srcdoc=ocHtmlDoc(htmlConRecursos(txt,base,mapa));b.appendChild(fr);return}
+ if(k==='md'){var dm=document.createElement('div');dm.className='pv-md';ocMd(dm,txt);b.appendChild(dm);return}
+ ocPvCodigo(b,txt,ext)}
+function ocPanZipLista(z){var b=$('oc-pan-b'),sub=$('oc-pan-sub');ocPan.tok++;b.textContent='';sub.textContent='';sub.hidden=true;ocPanSoltar();
+ var ul=document.createElement('ul');ul.className='pv-zip';
+ z.ents.forEach(function(e){var li=document.createElement('li'),bt=document.createElement('button'),n=document.createElement('span'),t=document.createElement('span');bt.type='button';
+  n.className='z-n';n.textContent=e.nombre;t.className='z-t';t.textContent=tamanoLegible(e.tam);bt.appendChild(n);bt.appendChild(t);
+  bt.addEventListener('click',async function(){var tok=++ocPan.tok,d=await zipExtraer(z.datos,e,8*1024*1024);if(tok!==ocPan.tok)return;if(!d){ocPanMsg('No se pudo leer este archivo del .zip.');return}ocPan.modo='vista';ocPanContenido(e.nombre,d,tok,z)});
+  li.appendChild(bt);ul.appendChild(li)});
+ if(!z.ents.length){ocPanMsg('El .zip no tiene archivos que se puedan mostrar.');return}
+ b.appendChild(ul)}
+async function ocPanZip(a,d,tok){var zz=zipEntradas(d),ents=[];
+ zz.entradas.forEach(function(e){if(e.dir)return;var r=rutaSegura(e.nombre);if(!r||clasificarRuta(r)==='ignorar')return;ents.push({nombre:r,metodo:e.metodo,comp:e.comp,tam:e.tam,offset:e.offset,cifrado:e.cifrado,dir:false})});
+ if(tok!==ocPan.tok)return;ocPanZipLista({datos:d,ents:ents,mapa:null})}
+async function ocPanDescargar(){var a=ocPan.lista[ocPan.i];if(!a)return;var d=await ocArchDatos(a);if(d)ocDescargar(a.n.split('/').pop(),d,a.t||mimeArchivo(a.n))}
 async function ocAgEstado(){try{var r=await fetch('/api/ia-estado');var j=await r.json();ocAgOk=!!(j&&j.agente)}catch(e){ocAgOk=false}ocAgUi()}
 $('oc-adj').addEventListener('click',function(){$('oc-file').click()});
 $('oc-file').addEventListener('change',function(){var fs=Array.prototype.slice.call($('oc-file').files||[]);$('oc-file').value='';ocAdjuntar(fs)});
@@ -678,8 +812,11 @@ function ocHayArchivos(e){var d=e.dataTransfer;return !!d&&Array.prototype.index
 ocZona.addEventListener('dragover',function(e){if(!ocHayArchivos(e))return;e.preventDefault();$('oc-form').firstElementChild.classList.add('arrastre')});
 ocZona.addEventListener('dragleave',function(e){if(!e.relatedTarget||!ocZona.contains(e.relatedTarget))$('oc-form').firstElementChild.classList.remove('arrastre')});
 ocZona.addEventListener('drop',function(e){if(!ocHayArchivos(e))return;e.preventDefault();$('oc-form').firstElementChild.classList.remove('arrastre');var d=e.dataTransfer;if(d&&d.files&&d.files.length)ocAdjuntar(Array.prototype.slice.call(d.files))});
-$('oc-sw').addEventListener('click',function(){if(ocBusy||ocAgActivo())return;ocMcp=!ocMcp;ocPrefs();ocSwitchText()});
+$('oc-sw').addEventListener('click',function(){if(ocBusy)return;ocMcp=!ocMcp;ocPrefs();ocAgUi()});
 $('oc-ag').addEventListener('click',function(){if(ocBusy)return;ocAg=!ocAg;ocDocs=[];ocImgs=[];ocThumbs();ocPrefs();ocAgUi()});
+$('oc-pan-x').addEventListener('click',ocPanCerrar);
+$('oc-pan-d').addEventListener('click',ocPanDescargar);
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!$('oc-pan').hidden&&!document.querySelector('dialog[open]')){e.preventDefault();ocPanCerrar()}});
 $('oc-gear').addEventListener('click',ocOpen);
 $('oc-cfg-x').addEventListener('click',ocClose);
 $('oc-cfg').addEventListener('click',function(e){if(e.target===$('oc-cfg'))ocClose()});
