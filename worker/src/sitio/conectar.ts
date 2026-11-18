@@ -178,10 +178,14 @@ export function acerca(m: Meta): string {
 <table class="ref"><thead><tr><th>Métrica</th><th>Sin MCP</th><th>Con MCP</th></tr></thead><tbody>
 <tr><td>Respuesta correcta (a ±1 % del valor oficial)</td><td>8 % (3 de 40)</td><td>100 % (40 de 40)</td></tr>
 <tr><td>Dice la fuente y la fecha</td><td>10 % (4 de 40)</td><td>100 % (40 de 40)</td></tr>
+<tr><td>Correcta y sin cifras dudosas (exacta estricta)</td><td>5 % (2 de 40)</td><td>98 % (39 de 40)</td></tr>
 <tr><td>Cifras que no coinciden (máximo de «inventada»)</td><td>53 % (21 de 40)</td><td>0 % (0 de 40)</td></tr>
+<tr><td>Al menos una cifra sin respaldo en la fuente</td><td>55 % (22 de 40)</td><td>3 % (1 de 40)</td></tr>
 <tr><td>Preguntas respondidas</td><td>40 / 40</td><td>40 / 40</td></tr>
 <tr><td>Tiempo medio por pregunta (sin reintentos)</td><td>11,1 s</td><td>20,2 s</td></tr>
+<tr><td>Tiempo mediano / p90 (con reintentos)</td><td>12,9 s / 17,9 s</td><td>21,0 s / 214,2 s</td></tr>
 </tbody></table>
+<p><b>Qué significa:</b> la regla original da por correcta una respuesta si una de sus cifras coincide con la oficial; la «exacta estricta» además exige que ninguna otra cifra de la respuesta contradiga los datos (así, un caso de «40,279,184.89» frente al correcto «40,682,184.89» deja de contar). Es un puntuador automático con reglas simples: no entiende el contexto de cada cifra, y sin la conexión compara contra la referencia y la fila de la base, así que cifras reales de otras páginas cuentan como sin respaldo. Los tiempos máximos (más de 300 s) se deben a reintentos del proveedor de IA; por eso se muestran mediana y p90.</p>
 <p>Sin MCP, el modelo respondió de memoria o con búsquedas web, con cifras de otras fuentes o fechas. «Inventada» es una cota superior: incluye cifras reales de otras fuentes que no coinciden con el MEF. Detalle por pregunta y método en <a href="${REPO}/blob/main/eval/resultados/resumen.md">eval/resultados/resumen.md</a>.</p></div>
 <h2>Datos</h2><div><p>Ministerio de Economía y Finanzas, <a href="${esc(m.url ?? "https://www.datosabiertos.gob.pe")}">Información de inversiones públicas 2001-2026</a>. Licencia Open Data Commons Attribution (ODC-BY). Descarga del ${esc(fechaLarga(m.fecha_descarga))}.</p></div>
 <h2>Limitaciones</h2><div><ul>

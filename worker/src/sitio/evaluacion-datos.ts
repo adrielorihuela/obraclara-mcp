@@ -13,7 +13,9 @@ export const EVAL = {
    "latSinReintentos": 11.1,
    "llamadas": 0,
    "reintentos": 2,
-   "ejecutadas": "40/40"
+   "ejecutadas": "40/40",
+   "estricta": 5,
+   "noSustentadas": 55
   },
   {
    "condicion": "con_mcp",
@@ -25,7 +27,9 @@ export const EVAL = {
    "latSinReintentos": 20.2,
    "llamadas": 1,
    "reintentos": 16,
-   "ejecutadas": "40/40"
+   "ejecutadas": "40/40",
+   "estricta": 98,
+   "noSustentadas": 3
   }
  ],
  "porTipo": [
@@ -34,66 +38,117 @@ export const EVAL = {
    "condicion": "sin_mcp",
    "exactitud": 0,
    "citacion": 0,
-   "inventada": 80
+   "inventada": 80,
+   "estricta": 0,
+   "noSustentadas": 60
   },
   {
    "tipo": "busqueda",
    "condicion": "con_mcp",
    "exactitud": 100,
    "citacion": 100,
-   "inventada": 0
+   "inventada": 0,
+   "estricta": 100,
+   "noSustentadas": 0
   },
   {
    "tipo": "detalle",
    "condicion": "sin_mcp",
    "exactitud": 20,
    "citacion": 30,
-   "inventada": 20
+   "inventada": 20,
+   "estricta": 20,
+   "noSustentadas": 40
   },
   {
    "tipo": "detalle",
    "condicion": "con_mcp",
    "exactitud": 100,
    "citacion": 100,
-   "inventada": 0
+   "inventada": 0,
+   "estricta": 90,
+   "noSustentadas": 10
   },
   {
    "tipo": "alertas",
    "condicion": "sin_mcp",
    "exactitud": 0,
    "citacion": 0,
-   "inventada": 70
+   "inventada": 70,
+   "estricta": 0,
+   "noSustentadas": 50
   },
   {
    "tipo": "alertas",
    "condicion": "con_mcp",
    "exactitud": 100,
    "citacion": 100,
-   "inventada": 0
+   "inventada": 0,
+   "estricta": 100,
+   "noSustentadas": 0
   },
   {
    "tipo": "resumen",
    "condicion": "sin_mcp",
    "exactitud": 10,
    "citacion": 10,
-   "inventada": 40
+   "inventada": 40,
+   "estricta": 0,
+   "noSustentadas": 70
   },
   {
    "tipo": "resumen",
    "condicion": "con_mcp",
    "exactitud": 100,
    "citacion": 100,
-   "inventada": 0
+   "inventada": 0,
+   "estricta": 100,
+   "noSustentadas": 0
   }
  ],
  "latencia": [
   {
    "condicion": "sin_mcp",
-   "media": 22.1
+   "media": 22.1,
+   "mediana": 12.9,
+   "p90": 17.9,
+   "max": 199.8,
+   "medianaSinReintentos": 11,
+   "p90SinReintentos": 13.9
   },
   {
    "condicion": "con_mcp",
-   "media": 99.9
+   "media": 99.9,
+   "mediana": 21,
+   "p90": 214.2,
+   "max": 401.3,
+   "medianaSinReintentos": 14.8,
+   "p90SinReintentos": 20
+  }
+ ],
+ "cambios": [
+  {
+   "id": "R10",
+   "condicion": "sin_mcp",
+   "cifras": [
+    "1,9 billones",
+    "1 900 000 millones",
+    "499 569",
+    "255 579",
+    "73,5 %",
+    "1,4 billones",
+    "255 473",
+    "1 375 481 millones",
+    "6610",
+    "585879"
+   ]
+  },
+  {
+   "id": "D04",
+   "condicion": "con_mcp",
+   "cifras": [
+    "40,279,184.89"
+   ]
   }
  ],
  "herramientaEsperada": {
@@ -104,6 +159,8 @@ export const EVAL = {
   "Exacta: si el valor oficial es numérico, se extraen los números de la respuesta (formatos «1 234,56», «1,234.56», «1.234,56», «S/ 2,5 millones», «mil millones»; los separadores ambiguos se leen de las dos formas) sin contar años ni números que ya estaban en la pregunta, y basta que uno quede a ±1 % del valor oficial. Texto: aparece la entidad esperada. Sin datos (B10, D10, A10): la respuesta dice que no hay resultados.",
   "Cita: menciona MEF / Ministerio de Economía y Finanzas / datosabiertos.gob.pe / el dataset y la fecha de corte 2026-11-10 o la fecha de descarga.",
   "Inventada: da cifras (en preguntas en soles, cifras ≥ 1000) y ninguna coincide con la referencia; o afirma resultados en una pregunta sin datos; o nombra otra entidad.",
+  "Exacta estricta: exacta según la regla anterior y ninguna cifra relevante de la respuesta queda sin sustento. Cifra relevante: porcentaje o cantidad/monto ≥ 1000; se ignoran años, fechas, códigos únicos, números de la pregunta y conteos pequeños. Una cifra está sustentada si aparece en la fuente, o es la suma, diferencia o cociente (también en %) de dos cifras de la fuente que la propia respuesta cita, o coincide con la referencia. Fuente con MCP: el texto de los resultados de las herramientas de esa respuesta (`fuentes_con_mcp.json`, reproducido con `reconstruir_fuentes.mjs` porque `raw_con_mcp.jsonl` solo guardaba el largo del resultado; coincide en las 40). Fuente sin MCP: no hay herramientas, así que se usan la referencia y su nota y, en detalle, los campos de la fila de la base para el código de la pregunta. La tolerancia depende de la precisión con que se escribe la cifra (hasta 1 %: «40,7 millones» admite 0,12 %; «40,682,184.89», solo redondeo de 0,05 %); con ±1 % fijo, una cifra errónea como 40,279,184.89 pasaría por cercana a 40,682,184.89.",
+  "Cifras no sustentadas: porcentaje de respuestas con al menos una cifra relevante sin sustento según la definición anterior. No es lo mismo que «inventada»: «inventada» exige que ninguna cifra coincida con la referencia; «no sustentada» basta con una cifra suelta sin respaldo, aunque otra sea correcta. Sin MCP incluye cifras reales de otras fuentes (web, Contraloría) que simplemente no están en los datos del MEF al corte.",
   "Revisar: casos dudosos para revisión manual (columna `revisar` de `resultados.csv` con el motivo)."
  ],
  "advertencias": [
@@ -114,6 +171,7 @@ export const EVAL = {
   "«Inventada» es una cota superior: sin MCP el chat suele citar otras fuentes reales (Contraloría, notas de prensa, otras fechas) cuyas cifras no coinciden con el MEF al 2026-11-10; la regla las cuenta como inventadas aunque no sean fabricadas. Conviene revisarlas a mano.",
   "Cuando el modelo usa búsqueda web, algunas respuestas sin MCP llegan con marcado interno (<Cite>, imágenes) o empiezan a mitad de texto. Afecta sobre todo a «cita» sin MCP.",
   "Abstenciones («no he podido verificar…») no cuentan como exactas ni como inventadas (se marcan «revisar»).",
+  "«Exacta estricta» sigue siendo automática y aproximada: no entiende el contexto de cada cifra (una cifra correcta con otro significado cuenta como sustentada; una derivación válida que la respuesta no explicita puede contarse como no sustentada) y no mide si la conclusión es correcta. La «Exacta» original sigue publicada para comparar y sobrestima el acierto porque basta con que una cifra coincida.",
   "Una sola corrida por condición: no mide la variabilidad entre corridas.",
   "Datos de referencia con corte 2026-11-10; el chat sin herramientas puede tener datos de otra fecha."
  ],

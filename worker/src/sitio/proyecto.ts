@@ -177,6 +177,7 @@ const css = String.raw`
 .enl a:hover{border-color:var(--ink)}.enl b{display:block;color:var(--ink)}.enl span{font-size:var(--s-1);color:var(--mut);overflow-wrap:anywhere}
 `;
 
+type K = "exactitud" | "citacion" | "inventada" | "estricta" | "noSustentadas";
 export function proyecto(m: Meta): string {
   const g = (c: string) => EVAL.global.find((x) => x.condicion === c)!;
   const sin = g("sin_mcp"), con = g("con_mcp");
@@ -297,7 +298,7 @@ ${tabla(["Parámetro", "Tipo", "¿Obligatorio?", "Descripción"], h.p.map((p) =>
     return `<article class="ej rv"><h4>${esc(e.id)} · ${esc(e.pregunta)}</h4><p class="ref">Referencia verificada en el CSV del MEF: ${esc(e.referencia)}</p><div class="par">${lado(e.sin, "Sin MCP", "sin")}${lado(e.con, "Con MCP", "con")}</div></article>`;
   }).join("");
 
-  const ok = (c: { exactitud: number; citacion: number; inventada: number }, k: "exactitud" | "citacion" | "inventada") => Math.round((c[k] * EVAL.preguntas) / 100);
+  const ok = (c: Record<K, number>, k: K) => Math.round((c[k] * EVAL.preguntas) / 100);
   const evaluacion = sec("evaluacion", `
 <p><b>En sencillo:</b> le hicimos al mismo asistente de IA las mismas ${EVAL.preguntas} preguntas sobre obras públicas, cuya respuesta correcta verificamos antes en el archivo del MEF. Primero <b>sin</b> la conexión (respondiendo de memoria) y luego <b>con</b> la conexión a ObraClara (consultando el registro oficial).</p>
 <div class="kpis rv">${kpi(`${ok(sin, "exactitud")} de ${EVAL.preguntas}`, "respuestas correctas sin la conexión (" + sin.exactitud + " %)")}${kpi(`${ok(con, "exactitud")} de ${EVAL.preguntas}`, "respuestas correctas con la conexión (" + con.exactitud + " %)")}${kpi(`${ok(sin, "inventada")} de ${EVAL.preguntas}`, "respuestas con cifras que no coinciden, sin la conexión (" + sin.inventada + " %)")}${kpi(`${ok(con, "inventada")} de ${EVAL.preguntas}`, "con cifras que no coinciden, con la conexión")}</div>
@@ -312,15 +313,27 @@ ${tabla(["Métrica", "Fórmula", "Regla"], [
     ["Exactitud", "preguntas exactas / 40 × 100", "valor numérico a ±1 % del oficial (basta que un número de la respuesta coincida); en texto, aparece la entidad esperada; sin datos, la respuesta dice que no hay resultados"],
     ["Citación", "respuestas que citan / 40 × 100", "menciona el MEF o el dataset y la fecha de corte (10/11/2026) o de descarga"],
     ["Inventada", "respuestas inventadas / 40 × 100", "da cifras que no coinciden con la referencia, afirma resultados donde no hay datos o nombra otra entidad"],
+    ["Exacta estricta", "exactas sin cifras dudosas / 40 × 100", "es exacta y, además, ninguna cifra de la respuesta (porcentaje o monto desde 1 000) contradice los datos: cada una debe estar en los resultados de las herramientas, ser una resta, suma o división simple de dos de ellas, o coincidir con la referencia"],
+    ["Cifras no sustentadas", "respuestas con alguna cifra sin respaldo / 40 × 100", "al menos una cifra de la respuesta no está en la fuente ni se deriva de ella (no es lo mismo que «inventada», que exige que ninguna cifra coincida)"],
   ])}
 <h3>Resultados en gráficos</h3>
 <div class="figs"><figure class="rv">${graficoGlobal()}${leyenda(["--mut", "Sin la conexión (MCP)"], ["--accent", "Con la conexión (MCP)"])}<figcaption>Porcentaje de las ${EVAL.preguntas} preguntas: respuestas correctas, respuestas que citan fuente y fecha, y respuestas con cifras inventadas.</figcaption>${que("sin la conexión casi no acierta ni cita; con la conexión acierta y cita siempre, y no inventa.")}</figure>
 <figure class="rv">${graficoLatencia()}${leyenda(["--mut", "Sin la conexión (MCP)"], ["--accent", "Con la conexión (MCP)"])}<figcaption>Tiempo medio por pregunta. «Con reintentos» incluye las veces en que el proveedor de IA tardó hasta 3 minutos y se repitió la consulta una vez.</figcaption>${que("consultar el registro toma más tiempo que responder de memoria: es el precio de tener datos correctos.")}</figure></div>
-${tabla(["Condición", "Exacta", "Cita", "Inventada", "Revisar", "Latencia total", "Sin reintentos", "Llamadas", "Ejecutadas"], [
-    ["Sin MCP", `${sin.exactitud} %`, `${sin.citacion} %`, `${sin.inventada} %`, String(sin.revisar), `${nf(sin.latTotal, 1)} s`, `${nf(sin.latSinReintentos, 1)} s`, nf(sin.llamadas, 1), sin.ejecutadas],
-    ["Con MCP", `${con.exactitud} %`, `${con.citacion} %`, `${con.inventada} %`, String(con.revisar), `${nf(con.latTotal, 1)} s`, `${nf(con.latSinReintentos, 1)} s`, nf(con.llamadas, 1), con.ejecutadas],
+${tabla(["Condición", "Exacta", "Exacta estricta", "No sustentadas", "Cita", "Inventada", "Revisar", "Latencia total", "Sin reintentos", "Llamadas", "Ejecutadas"], [
+    ["Sin MCP", `${sin.exactitud} %`, `${sin.estricta} %`, `${sin.noSustentadas} %`, `${sin.citacion} %`, `${sin.inventada} %`, String(sin.revisar), `${nf(sin.latTotal, 1)} s`, `${nf(sin.latSinReintentos, 1)} s`, nf(sin.llamadas, 1), sin.ejecutadas],
+    ["Con MCP", `${con.exactitud} %`, `${con.estricta} %`, `${con.noSustentadas} %`, `${con.citacion} %`, `${con.inventada} %`, String(con.revisar), `${nf(con.latTotal, 1)} s`, `${nf(con.latSinReintentos, 1)} s`, nf(con.llamadas, 1), con.ejecutadas],
   ], "nw")}
 <p>Con la conexión, la herramienta esperada se usó en ${EVAL.herramientaEsperada.usada} de ${EVAL.herramientaEsperada.total} preguntas. Con MCP el modelo tardó más (${nf(con.latSinReintentos, 1)} s frente a ${nf(sin.latSinReintentos, 1)} s sin reintentos), porque consulta al servidor antes de responder.</p>
+<h3>Una medida más exigente: exacta estricta</h3>
+<p><b>En sencillo:</b> la regla original da por buena una respuesta si <i>una</i> de sus cifras coincide con la oficial, aunque otra cifra esté mal. Una revisión externa lo señaló con un caso real (pregunta D04): el asistente con la conexión escribió que el costo subió «S/ 40 279 184,89» y, más abajo, «S/ 40 682 184,89»; solo la segunda es correcta, pero la respuesta contó como exacta por el 578,39 % que sí coincidía. Por eso añadimos dos medidas, sin quitar las anteriores para poder compararlas.</p>
+<p>Con la regla estricta, sin la conexión el asistente acertó ${ok(sin, "estricta")} de ${EVAL.preguntas} (${sin.estricta} %) y con la conexión ${ok(con, "estricta")} de ${EVAL.preguntas} (${con.estricta} %). ${sin.noSustentadas} % de las respuestas sin la conexión (${ok(sin, "noSustentadas")} de ${EVAL.preguntas}) traían al menos una cifra sin respaldo en la fuente; con la conexión, ${con.noSustentadas} % (${ok(con, "noSustentadas")} de ${EVAL.preguntas}).</p>
+${que("la regla estricta no cambia el resultado de fondo (con la conexión casi todo se sustenta en los datos), pero muestra que la exactitud original estaba algo inflada y que sin la conexión más de la mitad de las respuestas traen alguna cifra que no se puede comprobar en el registro oficial.")}
+<p>Casos que pasaron de exacta a no estricta: ${EVAL.cambios.map((c) => `<b>${c.id}</b> (${c.condicion === "sin_mcp" ? "sin" : "con"} la conexión; cifra sin respaldo: ${esc(c.cifras.slice(0, 3).join(", "))}${c.cifras.length > 3 ? " y otras" : ""})`).join("; ")}.</p>
+<p><b>Limitación del puntuador:</b> es un programa con reglas simples, no una persona. No entiende el contexto de cada cifra: una cifra correcta pero con otro significado se da por respaldada, y una cuenta válida que la respuesta no muestra puede marcarse como sin respaldo. Con la conexión comparamos contra los resultados que devolvieron las herramientas (reproducidos con las mismas llamadas, porque la evaluación original solo guardó su tamaño); sin la conexión no hay herramientas, así que se compara contra la referencia y la fila de la base de la obra preguntada, y cifras reales de otras páginas (prensa, Contraloría) cuentan como sin respaldo. Es una sola corrida y sigue siendo una guía, no una medición definitiva.</p>
+<h3>Cuánto tardó: mediana y p90</h3>
+<p><b>En sencillo:</b> la media se estira con unos pocos casos muy lentos; la <b>mediana</b> es el tiempo de la pregunta del medio (la mitad tardó menos) y el <b>p90</b> es el tiempo que 9 de cada 10 preguntas no superaron.</p>
+${tabla(["Condición", "Media", "Mediana", "p90", "Máximo", "Mediana sin reintentos", "p90 sin reintentos"], EVAL.latencia.map((l) => [l.condicion === "sin_mcp" ? "Sin MCP" : "Con MCP", `${nf(l.media, 1)} s`, `${nf(l.mediana, 1)} s`, `${nf(l.p90, 1)} s`, `${nf(l.max, 1)} s`, `${nf(l.medianaSinReintentos, 1)} s`, `${nf(l.p90SinReintentos, 1)} s`]), "nw")}
+<p>Los máximos (más de 300 s) se deben a reintentos: cuando el proveedor de IA no responde a tiempo, el programa de prueba espera y repite la consulta una vez, y el tiempo total suma ambos intentos. Por eso la mediana, ${nf(EVAL.latencia[1].mediana, 1)} s con la conexión, describe mejor lo que vería una persona.</p>
 <h3>Por tipo de pregunta</h3>
 <p>Hicimos 10 preguntas de cada tipo: buscar obras, ver el detalle de una, pedir alertas y pedir un resumen.</p>
 <div class="figs">${graficosPorTipo()}</div>

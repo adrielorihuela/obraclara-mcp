@@ -162,6 +162,7 @@ async function runB(q, tools, toolNames) {
           } catch (e) { res = 'Error al llamar a la herramienta: ' + e.message; call.error = e.message; }
         }
         call.result_chars = res.length;
+        call.result = res; // se guarda el texto completo para puntuar la sustentación de cifras
         calls.push(call);
         if (res.length > MAX_TOOL_CHARS) res = res.slice(0, MAX_TOOL_CHARS) + '\n[... resultado recortado por longitud]';
         const left = MAX_STEPS - steps;

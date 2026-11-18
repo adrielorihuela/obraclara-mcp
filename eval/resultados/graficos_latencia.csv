@@ -1,3 +1,3 @@
-condicion,latencia_media_s
-sin_mcp,22.1
-con_mcp,99.9
+condicion,latencia_media_s,latencia_mediana_s,latencia_p90_s,latencia_max_s,mediana_sin_reintentos_s,p90_sin_reintentos_s
+sin_mcp,22.1,12.9,17.9,199.8,11.0,13.9
+con_mcp,99.9,21.0,214.2,401.3,14.8,20.0

@@ -6,6 +6,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { percentil } from './cifras.mjs';
 
 const OUT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'resultados');
 
@@ -31,15 +32,18 @@ const pct = (xs, k) => (xs.length ? (100 * xs.filter((x) => x[k] === '1').length
 // ejecutada = hay respuesta y no terminó con error (igual que la tabla de preguntas válidas de resumen.md)
 const ejec = (xs) => xs.filter((x) => (x.respuesta_resumida || '') !== '' && !/\berror\b/.test(x.revisar || '')).length;
 const lat = (xs) => { const v = xs.map((x) => x.latencia_s).filter((x) => x !== '' && x != null).map(Number); return v.length ? (v.reduce((a, b) => a + b, 0) / v.length).toFixed(1) : ''; };
+const p1 = (v) => (v == null ? '' : v.toFixed(1));
+const lats = (xs, k) => xs.map((x) => x[k]).filter((x) => x !== '' && x != null).map(Number);
 const w = (name, head, lines) => fs.writeFileSync(path.join(OUT, name), [head, ...lines].join('\n') + '\n');
 
-w('graficos_global.csv', 'condicion,exactitud_pct,citacion_pct,inventada_pct,ejecutadas,preguntas',
-  conds.map((c) => { const xs = rows.filter((r) => r.condicion === c); return [c, pct(xs, 'exacta'), pct(xs, 'cita'), pct(xs, 'inventada'), ejec(xs), xs.length].join(','); }));
+w('graficos_global.csv', 'condicion,exactitud_pct,citacion_pct,inventada_pct,ejecutadas,preguntas,exacta_estricta_pct,no_sustentadas_pct',
+  conds.map((c) => { const xs = rows.filter((r) => r.condicion === c); return [c, pct(xs, 'exacta'), pct(xs, 'cita'), pct(xs, 'inventada'), ejec(xs), xs.length, pct(xs, 'estricta'), pct(xs, 'no_sustentada')].join(','); }));
 
-w('graficos_por_tipo.csv', 'tipo,condicion,exactitud_pct,citacion_pct,inventada_pct,ejecutadas,preguntas',
-  tipos.flatMap((t) => conds.map((c) => { const xs = rows.filter((r) => r.tipo === t && r.condicion === c); return [t, c, pct(xs, 'exacta'), pct(xs, 'cita'), pct(xs, 'inventada'), ejec(xs), xs.length].join(','); })));
+w('graficos_por_tipo.csv', 'tipo,condicion,exactitud_pct,citacion_pct,inventada_pct,ejecutadas,preguntas,exacta_estricta_pct,no_sustentadas_pct',
+  tipos.flatMap((t) => conds.map((c) => { const xs = rows.filter((r) => r.tipo === t && r.condicion === c); return [t, c, pct(xs, 'exacta'), pct(xs, 'cita'), pct(xs, 'inventada'), ejec(xs), xs.length, pct(xs, 'estricta'), pct(xs, 'no_sustentada')].join(','); })));
 
-w('graficos_latencia.csv', 'condicion,latencia_media_s',
-  conds.map((c) => [c, lat(rows.filter((r) => r.condicion === c))].join(',')));
+w('graficos_latencia.csv', 'condicion,latencia_media_s,latencia_mediana_s,latencia_p90_s,latencia_max_s,mediana_sin_reintentos_s,p90_sin_reintentos_s',
+  conds.map((c) => { const xs = rows.filter((r) => r.condicion === c), t = lats(xs, 'latencia_s'), o = lats(xs, 'latencia_ok_s');
+    return [c, lat(xs), p1(percentil(t, 0.5)), p1(percentil(t, 0.9)), p1(Math.max(...t)), p1(percentil(o, 0.5)), p1(percentil(o, 0.9))].join(','); }));
 
 console.log('Escrito en', OUT, ': graficos_global.csv, graficos_por_tipo.csv, graficos_latencia.csv');

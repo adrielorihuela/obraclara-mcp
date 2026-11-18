@@ -143,9 +143,9 @@ const G = (c: string) => EVAL.global.find((x) => x.condicion === c)!;
 export function graficoGlobal(): string {
   const a = G("sin_mcp"), b = G("con_mcp");
   return barrasAgrupadas("gG", "De 40 preguntas: respuestas correctas, con fuente e inventadas, sin y con la conexión (MCP)",
-    `Barras agrupadas sobre ${EVAL.preguntas} preguntas. Respuestas correctas: ${a.exactitud} % sin la conexión y ${b.exactitud} % con ella. Respuestas que citan fuente y fecha: ${a.citacion} % y ${b.citacion} %. Respuestas con datos inventados: ${a.inventada} % y ${b.inventada} %.`,
-    [{ etiqueta: "Correctas", sin: a.exactitud, con: b.exactitud }, { etiqueta: "Citan fuente", sin: a.citacion, con: b.citacion }, { etiqueta: "Inventadas", sin: a.inventada, con: b.inventada }],
-    [400, 290], 44);
+    `Barras agrupadas sobre ${EVAL.preguntas} preguntas. Respuestas correctas: ${a.exactitud} % sin la conexión y ${b.exactitud} % con ella. Respuestas que citan fuente y fecha: ${a.citacion} % y ${b.citacion} %. Respuestas con datos inventados: ${a.inventada} % y ${b.inventada} %. Respuestas correctas con el criterio estricto: ${a.estricta} % y ${b.estricta} %. Respuestas con alguna cifra sin sustento: ${a.noSustentadas} % y ${b.noSustentadas} %.`,
+    [{ etiqueta: "Correctas", sin: a.exactitud, con: b.exactitud }, { etiqueta: "Estrictas", sin: a.estricta, con: b.estricta }, { etiqueta: "Citan fuente", sin: a.citacion, con: b.citacion }, { etiqueta: "Inventadas", sin: a.inventada, con: b.inventada }, { etiqueta: "Sin sustento", sin: a.noSustentadas, con: b.noSustentadas }],
+    [540, 290], 36);
 }
 
 const TIPOS: [string, string][] = [["busqueda", "Búsqueda"], ["detalle", "Detalle"], ["alertas", "Alertas"], ["resumen", "Resumen"]];
@@ -155,7 +155,9 @@ export function graficosPorTipo(): string {
   const defs = [
     ["exactitud", "Respuestas correctas", "Sin la conexión, el asistente acertó 0 a 2 de cada 10 preguntas según el tipo; con la conexión acertó 10 de 10 en los cuatro tipos."],
     ["citacion", "Respuestas que citan la fuente y la fecha", "Sin la conexión casi nunca dijo de dónde sacó el dato (0 a 3 de cada 10); con la conexión lo dijo siempre."],
+    ["estricta", "Respuestas correctas con criterio estricto", "Quitando las respuestas que mezclan una cifra buena con otra errónea: sin la conexión, 0 a 2 de cada 10; con la conexión, 9 de 10 en detalle y 10 de 10 en los demás tipos."],
     ["inventada", "Respuestas con datos inventados", "Sin la conexión inventó cifras en 8 de 10 búsquedas y en 7 de 10 alertas; con la conexión, en ninguna."],
+    ["noSustentadas", "Respuestas con alguna cifra sin sustento", "Sin la conexión, entre 4 y 7 de cada 10 respuestas traían alguna cifra que no se puede comprobar en el registro; con la conexión, solo 1 de 10 en detalle y ninguna en los otros tipos."],
   ] as const;
   return defs.map(([k, nom, que]) => {
     const g = TIPOS.map(([t, e]) => ({ etiqueta: e, sin: f(t, "sin_mcp")[k], con: f(t, "con_mcp")[k] }));

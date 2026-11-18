@@ -1,8 +1,11 @@
 // Puntuación automática de resultados/raw_{sin,con}_mcp.jsonl -> resultados.csv y resumen.md
 // Uso: node score_eval.mjs
 import fs from 'node:fs';
+import { DatabaseSync } from 'node:sqlite';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { norm, extractNumbers, limpiarRespuesta, valoresDeTexto, cifrasNoSustentadas, percentil } from './cifras.mjs';
 
 const DIR = path.dirname(fileURLToPath(import.meta.url));
 const OUT = path.join(DIR, 'resultados');
@@ -23,49 +26,6 @@ function parseCSV(text) {
   return rest.filter((r) => r.length > 1).map((r) => Object.fromEntries(h.map((k, i) => [k, r[i] ?? ''])));
 }
 
-const norm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
-
-// Interpretaciones posibles de un token numérico (formatos es/en). Devuelve varias si es ambiguo.
-function readings(tok) {
-  const t = tok.replace(/[\s  ]/g, ' ').trim();
-  const out = new Set();
-  const plain = (s) => { const v = Number(s); if (Number.isFinite(v)) out.add(v); };
-  if (/^\d{1,3}( \d{3})+([.,]\d+)?$/.test(t)) { plain(t.replace(/ /g, '').replace(',', '.')); return [...out]; }
-  const s = t.replace(/ /g, '');
-  const hasC = s.includes(','), hasD = s.includes('.');
-  if (hasC && hasD) {
-    if (s.lastIndexOf(',') > s.lastIndexOf('.')) plain(s.replace(/\./g, '').replace(',', '.')); // 1.234,56
-    else plain(s.replace(/,/g, '')); // 1,234.56
-  } else if (hasC || hasD) {
-    const sep = hasC ? ',' : '.';
-    const parts = s.split(sep);
-    if (parts.length > 2) plain(parts.join('')); // 1,234,567 o 1.234.567
-    else {
-      plain(parts.join('.')); // decimal
-      if (parts[1].length === 3) plain(parts.join('')); // o miles
-    }
-  } else plain(s);
-  return [...out];
-}
-
-// Extrae números del texto con multiplicadores (millones, mil millones, billones...).
-export function extractNumbers(text) {
-  const res = [];
-  const re = /(\d{1,3}(?:[   ]\d{3})+(?:[.,]\d+)?|\d+(?:[.,]\d+)*)(\s*(?:%|mil\s+millones|miles\s+de\s+millones|millones|mill\.?|mm\b|millon|billones|billon|billion|million|mil\b|k\b|m\b))?/gi;
-  for (const m of String(text || '').matchAll(re)) {
-    const base = readings(m[1]);
-    const suf = norm(m[2] || '').trim().replace(/\s+/g, ' ');
-    let mult = [1];
-    if (/^(mil millones|miles de millones|billion)$/.test(suf)) mult = [1e9];
-    else if (/^(millones|mill\.?|millon|million)$/.test(suf)) mult = [1e6];
-    else if (/^(mm|m)$/.test(suf)) mult = [1e6, 1];
-    else if (/^(billones|billon)$/.test(suf)) mult = [1e12, 1e9]; // billón es 1e12; se acepta el uso inglés
-    else if (/^(mil|k)$/.test(suf)) mult = [1e3];
-    for (const b of base) for (const k of mult) res.push({ v: b * k, raw: m[0].trim(), pct: suf === '%' });
-  }
-  return res;
-}
-
 const MEF = /\bmef\b|ministerio de economia y finanzas|datosabiertos\.gob\.pe|detalle_inversiones|consulta amigable|invierte\.pe|banco de inversiones/;
 const FECHA = /2026-11-10|10\/11\/2026|10-11-2026|10 de noviembre(?: del?)? 2026|fecha[_ ]de[_ ]descarga|fecha_descarga|descargad[oa]s? el|corte (?:al|del?) 10/;
 const ABST = /no (?:he podido|pude|puedo|es posible) (?:verificar|confirmar|determinar|identificar|precisar|encontrar|ubicar)|no (?:tengo|dispongo de) (?:acceso|datos|informacion)|no seria correcto|prefiero no/;
@@ -81,9 +41,7 @@ function score(q, r) {
 
   const isNoData = /no existen resultados/i.test(q.respuesta_referencia) || (q.valor_oficial !== '' && Number(q.valor_oficial) === 0);
   const qNums = new Set(extractNumbers(q.pregunta).map((x) => x.v));
-  const clean = a.replace(/https?:\/\/\S+|www\.\S+/g, ' ').replace(/\b\d{4}-\d{2}-\d{2}\b|\b\d{1,2}\/\d{1,2}\/\d{4}\b/g, ' ')
-    .replace(/\b\d{1,2}(?:°|º)? de (?:enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre)\b/gi, ' ')
-    .replace(/^\s*(?:#+\s*)?\d{1,2}[.)]\s/gm, ' ');
+  const clean = limpiarRespuesta(a);
   const nums = extractNumbers(clean).filter((x) => !qNums.has(x.v) && !(Number.isInteger(x.v) && x.v >= 1990 && x.v <= 2035 && !x.pct));
   const codes = (a.match(/\b2\d{6}\b/g) || []).filter((c) => !q.pregunta.includes(c));
 
@@ -137,11 +95,37 @@ function lastById(file) {
 const qs = parseCSV(fs.readFileSync(path.join(DIR, 'preguntas.csv'), 'utf8'));
 const conds = ['sin_mcp', 'con_mcp'];
 const rows = [];
+
+// Fuente de cada respuesta para comprobar sus cifras (ver «Exacta estricta» en resumen.md).
+// Con MCP: el texto de los resultados de las herramientas de esa respuesta (fuentes_con_mcp.json, de reconstruir_fuentes.mjs).
+// Sin MCP: no hay herramientas; se usa la fila de la base para el código de la pregunta (detalle) y la referencia.
+// En ambos casos se suman los números de la referencia y de su nota.
+const fuentesFile = path.join(OUT, 'fuentes_con_mcp.json');
+if (!fs.existsSync(fuentesFile)) { console.error('Falta resultados/fuentes_con_mcp.json: ejecuta antes node reconstruir_fuentes.mjs'); process.exit(1); }
+const fuentesMcp = JSON.parse(fs.readFileSync(fuentesFile, 'utf8'));
+const dbFile = path.join(os.homedir(), '.local/share/obraclara/inversiones.db');
+const db = fs.existsSync(dbFile) ? new DatabaseSync(dbFile, { readOnly: true }) : null;
+function fuenteDe(q, cond) {
+  const v = [...valoresDeTexto(q.respuesta_referencia, 'es'), ...valoresDeTexto(q.nota, 'es')];
+  if (q.valor_oficial !== '') v.push(Number(q.valor_oficial));
+  if (cond === 'con_mcp') {
+    v.push(...valoresDeTexto(fuentesMcp._herramientas, 'es'));
+    for (const c of fuentesMcp[q.id] || []) v.push(...valoresDeTexto(c.result, 'json'));
+  }
+  else {
+    const cui = /\b2\d{6}\b/.exec(q.pregunta)?.[0];
+    if (cui && db) { const fila = db.prepare('SELECT * FROM inversiones WHERE codigo_unico = ?').get(cui); if (fila) for (const x of Object.values(fila)) if (typeof x === 'number') v.push(Math.abs(x)); }
+  }
+  return v;
+}
 for (const c of conds) {
   const raw = lastById(path.join(OUT, `raw_${c}.jsonl`));
   for (const q of qs) {
     const r = raw.get(q.id) || { answer: null, tool_calls: [], steps: 0, latency_s: null, errors: ['no ejecutada'] };
     const s = score(q, r);
+    const noSust = r.answer ? cifrasNoSustentadas(r.answer, q.pregunta, fuenteDe(q, c)) : [];
+    s.no_sustentada = noSust.length > 0; s.cifras_no_sustentadas = noSust.join('; ');
+    s.estricta = s.exacta && !s.no_sustentada;
     rows.push({ id: q.id, tipo: q.tipo, condicion: c, ...s, llamadas: r.tool_calls.length, pasos: r.steps, latencia_s: r.latency_s, latencia_ok_s: r.ask_ok_s ?? null, reintentos: (r.errors || []).filter((e) => e.startsWith('ask')).length,
       herramientas: r.tool_calls.map((t) => t.name).join('+'), esperada: q.herramienta_esperada,
       respuesta_resumida: (r.answer || '').replace(/\s+/g, ' ').slice(0, 300), ejecutada: r.answer != null });
@@ -149,7 +133,7 @@ for (const c of conds) {
 }
 
 const esc = (v) => { const s = String(v ?? ''); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
-const head = ['id', 'tipo', 'condicion', 'exacta', 'cita', 'inventada', 'revisar', 'llamadas', 'pasos', 'latencia_s', 'respuesta_resumida'];
+const head = ['id', 'tipo', 'condicion', 'exacta', 'cita', 'inventada', 'revisar', 'estricta', 'no_sustentada', 'cifras_no_sustentadas', 'llamadas', 'pasos', 'latencia_s', 'latencia_ok_s', 'respuesta_resumida'];
 fs.writeFileSync(path.join(OUT, 'resultados.csv'),
   [head.join(','), ...rows.map((r) => head.map((k) => esc(k === 'revisar' && r.notes.length ? (r.revisar ? 'sí: ' + r.notes.join('; ') : '') : typeof r[k] === 'boolean' ? (r[k] ? 1 : 0) : r[k])).join(','))].join('\n') + '\n');
 
@@ -161,6 +145,22 @@ for (const c of conds) {
   const xs = rows.filter((r) => r.condicion === c);
   md += `| ${c} | ${pct(xs, 'exacta')} | ${pct(xs, 'cita')} | ${pct(xs, 'inventada')} | ${xs.filter((x) => x.revisar).length} | ${mean(xs, 'latencia_s')} | ${mean(xs, 'latencia_ok_s')} | ${mean(xs, 'llamadas')} | ${xs.reduce((a, x) => a + x.reintentos, 0)} | ${xs.filter((x) => x.ejecutada).length}/40 |\n`;
 }
+md += '\n## Exacta estricta y cifras no sustentadas (métricas añadidas; «Exacta» e «Inventada» no cambian)\n\n| Condición | Exacta | Exacta estricta | Cifras no sustentadas |\n|---|---|---|---|\n';
+for (const c of conds) {
+  const xs = rows.filter((r) => r.condicion === c);
+  md += `| ${c} | ${pct(xs, 'exacta')} | ${pct(xs, 'estricta')} | ${pct(xs, 'no_sustentada')} |\n`;
+}
+const cambian = rows.filter((r) => r.exacta && !r.estricta);
+md += '\nRespuestas que pasan de exacta a **no estricta** (la cifra de la referencia aparece, pero otra cifra no se sustenta en la fuente):\n\n';
+md += cambian.length ? '| Pregunta | Condición | Cifras no sustentadas |\n|---|---|---|\n' + cambian.map((r) => `| ${r.id} | ${r.condicion} | ${r.cifras_no_sustentadas} |`).join('\n') + '\n' : '(ninguna)\n';
+const lt = (c, k) => rows.filter((r) => r.condicion === c).map((r) => r[k]);
+const f1 = (v) => (v == null ? '-' : v.toFixed(1));
+md += '\n## Latencia: mediana y p90 por condición (segundos)\n\n| Condición | Mediana total | p90 total | Máximo total | Respuestas > 300 s | Mediana sin reintentos | p90 sin reintentos |\n|---|---|---|---|---|---|---|\n';
+for (const c of conds) {
+  const t = lt(c, 'latencia_s'), o = lt(c, 'latencia_ok_s');
+  md += `| ${c} | ${f1(percentil(t, 0.5))} | ${f1(percentil(t, 0.9))} | ${f1(Math.max(...t.filter((x) => x != null)))} | ${t.filter((x) => x > 300).length} | ${f1(percentil(o, 0.5))} | ${f1(percentil(o, 0.9))} |\n`;
+}
+md += '\nLos máximos (más de 300 s) se deben a reintentos: el proveedor de IA a veces tarda varios minutos en responder, el ejecutor espera y repite la consulta una vez, y la latencia total suma ambos intentos. La mediana y el p90 describen mejor el tiempo típico que la media. Percentil por rango más cercano; «sin reintentos» solo existe desde B08.\n';
 const okIds = qs.map((q) => q.id).filter((id) => rows.filter((r) => r.id === id && r.ejecutada && !r.notes.includes('error')).length === 2);
 if (okIds.length < 40) {
   md += `\n### Solo las ${okIds.length} preguntas con respuesta válida en ambas condiciones\n\n| Condición | Exacta | Cita | Inventada |\n|---|---|---|---|\n`;
@@ -179,6 +179,8 @@ md += `\n## Cómo se puntuó (automático)\n
 - **Exacta**: si el valor oficial es numérico, se extraen los números de la respuesta (formatos «1 234,56», «1,234.56», «1.234,56», «S/ 2,5 millones», «mil millones»; los separadores ambiguos se leen de las dos formas) sin contar años ni números que ya estaban en la pregunta, y basta que uno quede a ±1 % del valor oficial. Texto: aparece la entidad esperada. Sin datos (B10, D10, A10): la respuesta dice que no hay resultados.
 - **Cita**: menciona MEF / Ministerio de Economía y Finanzas / datosabiertos.gob.pe / el dataset **y** la fecha de corte 2026-11-10 o la fecha de descarga.
 - **Inventada**: da cifras (en preguntas en soles, cifras ≥ 1000) y ninguna coincide con la referencia; o afirma resultados en una pregunta sin datos; o nombra otra entidad.
+- **Exacta estricta**: exacta según la regla anterior **y** ninguna cifra relevante de la respuesta queda sin sustento. Cifra relevante: porcentaje o cantidad/monto ≥ 1000; se ignoran años, fechas, códigos únicos, números de la pregunta y conteos pequeños. Una cifra está sustentada si aparece en la fuente, o es la suma, diferencia o cociente (también en %) de dos cifras de la fuente que la propia respuesta cita, o coincide con la referencia. Fuente con MCP: el texto de los resultados de las herramientas de esa respuesta (\`fuentes_con_mcp.json\`, reproducido con \`reconstruir_fuentes.mjs\` porque \`raw_con_mcp.jsonl\` solo guardaba el largo del resultado; coincide en las 40). Fuente sin MCP: no hay herramientas, así que se usan la referencia y su nota y, en detalle, los campos de la fila de la base para el código de la pregunta. La tolerancia depende de la precisión con que se escribe la cifra (hasta 1 %: «40,7 millones» admite 0,12 %; «40,682,184.89», solo redondeo de 0,05 %); con ±1 % fijo, una cifra errónea como 40,279,184.89 pasaría por cercana a 40,682,184.89.
+- **Cifras no sustentadas**: porcentaje de respuestas con al menos una cifra relevante sin sustento según la definición anterior. No es lo mismo que «inventada»: «inventada» exige que ninguna cifra coincida con la referencia; «no sustentada» basta con una cifra suelta sin respaldo, aunque otra sea correcta. Sin MCP incluye cifras reales de otras fuentes (web, Contraloría) que simplemente no están en los datos del MEF al corte.
 - **Revisar**: casos dudosos para revisión manual (columna \`revisar\` de \`resultados.csv\` con el motivo).
 
 ## Advertencias
@@ -189,6 +191,7 @@ md += `\n## Cómo se puntuó (automático)\n
 - «Inventada» es una cota superior: sin MCP el chat suele citar otras fuentes reales (Contraloría, notas de prensa, otras fechas) cuyas cifras no coinciden con el MEF al 2026-11-10; la regla las cuenta como inventadas aunque no sean fabricadas. Conviene revisarlas a mano.
 - Cuando el modelo usa búsqueda web, algunas respuestas sin MCP llegan con marcado interno (<Cite>, imágenes) o empiezan a mitad de texto. Afecta sobre todo a «cita» sin MCP.
 - Abstenciones («no he podido verificar…») no cuentan como exactas ni como inventadas (se marcan «revisar»).
+- «Exacta estricta» sigue siendo automática y aproximada: no entiende el contexto de cada cifra (una cifra correcta con otro significado cuenta como sustentada; una derivación válida que la respuesta no explicita puede contarse como no sustentada) y no mide si la conclusión es correcta. La «Exacta» original sigue publicada para comparar y sobrestima el acierto porque basta con que una cifra coincida.
 - **Una sola corrida** por condición: no mide la variabilidad entre corridas.
 - Datos de referencia con corte 2026-11-10; el chat sin herramientas puede tener datos de otra fecha.
 `;

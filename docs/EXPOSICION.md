@@ -71,7 +71,7 @@ Con 40 preguntas (10 de búsqueda, 10 de detalle, 10 de alertas y 10 de resumen)
 Es razonable: con la conexión el asistente no adivina, copia datos de la base. Además comprobamos las herramientas contra la base directamente: 30 de 30 fichas idénticas (810 de 810 campos), 10 de 10 resúmenes y 14 de 14 listas de alertas. Aun así, fue una sola corrida y la puntuación es automática; lo decimos como limitación.
 
 **6. ¿Qué significa «inventada» y por qué 53 %?**
-Que la respuesta trae cifras que no coinciden con el registro del MEF. Es un máximo: sin conexión el asistente a veces cita otras fuentes reales (Contraloría, prensa) con cifras distintas; la regla las cuenta como inventadas aunque no sean falsas.
+Que la respuesta trae cifras que no coinciden con el registro del MEF. Es un máximo: sin conexión el asistente a veces cita otras fuentes reales (Contraloría, prensa) con cifras distintas; la regla las cuenta como inventadas aunque no sean falsas. Además medimos «exacta estricta» (todas las cifras relevantes se pueden comprobar): sin conexión 2 de 40, con conexión 39 de 40; la regla original era algo generosa porque bastaba que una cifra coincidiera.
 
 **7. ¿Por qué con la conexión tarda más?**
 Porque primero consulta el registro (en la evaluación, 20,2 s frente a 11,1 s por pregunta, sin reintentos). Preferimos esperar unos segundos más a recibir un dato equivocado.

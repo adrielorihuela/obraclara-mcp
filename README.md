@@ -181,17 +181,18 @@ El mensaje de usuario es la pregunta de `eval/preguntas.csv`, sin añadidos.
 
 Carpeta `eval/`. Método: 40 preguntas (`preguntas.csv`, 10 de cada tipo: búsqueda, detalle, alertas, resumen) con valor oficial verificado contra el CSV del MEF (`verificar_referencias.py`, `verificar_csv_pandas.py`). Cada pregunta se hace en dos condiciones, **sin MCP** (el modelo responde solo) y **con MCP** (el modelo llama a las herramientas del servidor público, hasta 5 pasos). Una sola corrida por condición.
 
-Métricas (porcentaje sobre las 40 preguntas): **exactitud** (el valor numérico o la entidad coincide con la referencia, ±1 %), **citación** (menciona la fuente MEF y la fecha de corte o de descarga), **inventada** (da cifras que no coinciden con la referencia), además de latencia, llamadas por pregunta y casos «revisar» para verificación manual. Las reglas exactas están en `eval/resultados/resumen.md` y en `eval/score_eval.mjs`.
+Métricas (porcentaje sobre las 40 preguntas): **exactitud** (el valor numérico o la entidad coincide con la referencia, ±1 %), **citación** (menciona la fuente MEF y la fecha de corte o de descarga), **inventada** (da cifras que no coinciden con la referencia), y dos medidas más exigentes añadidas tras una revisión externa: **exacta estricta** (es exacta y ninguna cifra relevante de la respuesta, porcentaje o monto desde 1 000, queda sin sustento en los resultados de las herramientas o en la referencia) y **cifras no sustentadas** (respuestas con al menos una cifra así). Con la regla estricta: sin MCP 5 % (2 de 40) y con MCP 98 % (39 de 40); cifras no sustentadas: 55 % y 3 %. La exacta original basta con que *una* cifra coincida, por eso sobrestima (caso D04 con MCP). El puntuador es automático y de reglas simples; no entiende el contexto de cada cifra. Se informan además mediana y p90 de latencia (los máximos de más de 300 s se deben a reintentos). Además: latencia, llamadas por pregunta y casos «revisar» para verificación manual. Las reglas exactas están en `eval/resultados/resumen.md` y en `eval/score_eval.mjs`.
 
 ```bash
 cd eval
 export IA_URL=http://<host>:<puerto>      # API de IA privada del grupo, compatible con OpenAI (obligatoria)
 # opcionales: IA_KEY, IA_MODELO
 node run_eval.mjs                          # ejecuta ambas condiciones; reanudable; opciones --solo sin_mcp|con_mcp, --ids B01,B02, --max N
+node reconstruir_fuentes.mjs               # (solo si faltan) reproduce los resultados de las herramientas ya registradas; no consulta a la IA
 node score_eval.mjs                        # puntúa y escribe resultados/resultados.csv y resultados/resumen.md
 ```
 
-Resultados: [`eval/resultados/resumen.md`](eval/resultados/resumen.md). Las respuestas crudas están en `eval/resultados/raw_*.jsonl`.
+Resultados: [`eval/resultados/resumen.md`](eval/resultados/resumen.md). Las respuestas crudas están en `eval/resultados/raw_*.jsonl`; los resultados de las herramientas, en `fuentes_con_mcp.json`. Pruebas del puntuador: `node --test eval/cifras.test.mjs`.
 
 ### Tablas para gráficos en Excel
 
@@ -201,7 +202,7 @@ node exportar_graficos.mjs
 node exportar_sitio.mjs      # actualiza worker/src/sitio/evaluacion-datos.ts (gráficos de /proyecto)
 ```
 
-Lee `eval/resultados/resultados.csv` (generado por `score_eval.mjs`) y escribe en `eval/resultados/`: `graficos_global.csv` (exactitud, citación, inventada y ejecutadas por condición), `graficos_por_tipo.csv` (lo mismo por tipo y condición) y `graficos_latencia.csv` (latencia media por condición). Los porcentajes usan el mismo criterio que `resumen.md` (sobre 40 preguntas por condición, 10 por tipo).
+Lee `eval/resultados/resultados.csv` (generado por `score_eval.mjs`) y escribe en `eval/resultados/`: `graficos_global.csv` (exactitud, citación, inventada, ejecutadas, exacta estricta y no sustentadas por condición), `graficos_por_tipo.csv` (lo mismo por tipo y condición) y `graficos_latencia.csv` (latencia media, mediana, p90 y máximo por condición). Los porcentajes usan el mismo criterio que `resumen.md` (sobre 40 preguntas por condición, 10 por tipo).
 
 ## Pruebas
 

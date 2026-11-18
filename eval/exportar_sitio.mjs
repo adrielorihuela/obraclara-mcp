@@ -47,16 +47,24 @@ const comoSePuntuo = resumen.split('## Cómo se puntuó (automático)')[1]?.spli
 
 const porTipo = csv('graficos_por_tipo.csv').map((r) => ({
   tipo: r.tipo, condicion: r.condicion, exactitud: n(r.exactitud_pct), citacion: n(r.citacion_pct), inventada: n(r.inventada_pct),
+  estricta: n(r.exacta_estricta_pct), noSustentadas: n(r.no_sustentadas_pct),
 }));
-const latencia = csv('graficos_latencia.csv').map((r) => ({ condicion: r.condicion, media: n(r.latencia_media_s) }));
+const latencia = csv('graficos_latencia.csv').map((r) => ({
+  condicion: r.condicion, media: n(r.latencia_media_s), mediana: n(r.latencia_mediana_s), p90: n(r.latencia_p90_s), max: n(r.latencia_max_s),
+  medianaSinReintentos: n(r.mediana_sin_reintentos_s), p90SinReintentos: n(r.p90_sin_reintentos_s),
+}));
 const globalCsv = csv('graficos_global.csv').map((r) => ({
   condicion: r.condicion, exactitud: n(r.exactitud_pct), citacion: n(r.citacion_pct), inventada: n(r.inventada_pct), ejecutadas: n(r.ejecutadas), preguntas: n(r.preguntas),
+  estricta: n(r.exacta_estricta_pct), noSustentadas: n(r.no_sustentadas_pct),
 }));
 // Control cruzado: la tabla de resumen.md y los CSV de gráficos deben coincidir.
 for (const g of globalCsv) {
   const m = global.find((x) => x.condicion === g.condicion);
   if (!m || m.exactitud !== g.exactitud || m.citacion !== g.citacion || m.inventada !== g.inventada) throw new Error(`resumen.md y graficos_global.csv no coinciden (${g.condicion}); ejecuta score_eval.mjs y exportar_graficos.mjs`);
 }
+for (const g of global) { const c = globalCsv.find((x) => x.condicion === g.condicion); g.estricta = c.estricta; g.noSustentadas = c.noSustentadas; }
+// Casos que pasan de exacta a no estricta (resultados.csv)
+const cambios = csv('resultados.csv').filter((r) => r.exacta === '1' && r.estricta !== '1').map((r) => ({ id: r.id, condicion: r.condicion, cifras: r.cifras_no_sustentadas.split('; ') }));
 
 const limpiar = (t) => String(t ?? '')
   .replace(/<[^>]*>/g, ' ').replace(/\\n/g, ' ').replace(/\*\*/g, '').replace(/\s+/g, ' ').replace(/https?:\/\/\S+/g, '').trim();
@@ -82,6 +90,6 @@ const ejemplos = IDS_EJEMPLOS.map((id) => {
   return { id, tipo: q.tipo, pregunta: q.pregunta, referencia: q.respuesta_referencia, sin: lado(sin, 'sin_mcp'), con: lado(con, 'con_mcp') };
 });
 
-const datos = { fecha, preguntas: globalCsv[0].preguntas, global, porTipo, latencia, herramientaEsperada: { usada: Number(herr?.[1]), total: Number(herr?.[2]) }, comoSePuntuo, advertencias, ejemplos };
+const datos = { fecha, preguntas: globalCsv[0].preguntas, global, porTipo, latencia, cambios, herramientaEsperada: { usada: Number(herr?.[1]), total: Number(herr?.[2]) }, comoSePuntuo, advertencias, ejemplos };
 fs.writeFileSync(SALIDA, `// GENERADO por eval/exportar_sitio.mjs a partir de eval/resultados/. No editar a mano: vuelve a ejecutar \`node eval/exportar_sitio.mjs\`.\nexport const EVAL = ${JSON.stringify(datos, null, 1)} as const;\n`);
 console.log(`escrito ${path.relative(process.cwd(), SALIDA)} (${global.length} condiciones, ${porTipo.length} filas por tipo, ${ejemplos.length} ejemplos)`);

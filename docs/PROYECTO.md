@@ -178,13 +178,16 @@ TypeScript y Zod; Cloudflare Workers, D1 y Durable Objects; MCP SDK y Agents SDK
 
 ## 10. Evaluación
 
-**En sencillo:** le hicimos al mismo asistente las mismas 40 preguntas, sin la conexión (respondiendo de memoria) y con ella (consultando el registro oficial). Sin la conexión acertó 3 de 40 (8 %), citó la fuente en 4 (10 %) y 21 respuestas (53 %) traían cifras que no coinciden con el registro; con la conexión acertó y citó las 40 (100 %) y ninguna fue inventada. Con la conexión tarda más (20,2 s frente a 11,1 s por pregunta, sin reintentos). «Inventada» es un máximo: incluye cifras reales de otras fuentes. Los detalles técnicos siguen.
+**En sencillo:** le hicimos al mismo asistente las mismas 40 preguntas, sin la conexión (respondiendo de memoria) y con ella (consultando el registro oficial). Sin la conexión acertó 3 de 40 (8 %), citó la fuente en 4 (10 %) y 21 respuestas (53 %) traían cifras que no coinciden con el registro; con la conexión acertó y citó las 40 (100 %) y ninguna fue inventada. Con la conexión tarda más (20,2 s frente a 11,1 s por pregunta, sin reintentos). «Inventada» es un máximo: incluye cifras reales de otras fuentes. Una revisión externa mostró que «acertó» era generoso (basta que una cifra coincida), así que añadimos una medida más exigente: con ella, sin la conexión acertó 2 de 40 (5 %) y con la conexión 39 de 40 (98 %). Los detalles técnicos siguen.
 
 **Método.** 40 preguntas (10 de búsqueda, 10 de detalle, 10 de alertas y 10 de resumen) con referencia verificada contra el CSV antes de correr; las mismas preguntas sin y con MCP (hasta 5 pasos); una corrida (R02, R03 y R07–R10 el 18/11/2026; el resto el 10/11/2026).
 
 - **Exactitud** = exactas / 40 × 100 (número a ±1 % del oficial, o entidad esperada).
 - **Citación** = respuestas que mencionan MEF o el dataset y la fecha / 40 × 100.
 - **Inventada** = respuestas con cifras que no coinciden, resultados donde no hay datos u otra entidad / 40 × 100.
+- **Exacta estricta** = respuestas exactas en las que además ninguna cifra relevante contradice los datos / 40 × 100. Cifra relevante: porcentaje o monto/cantidad desde 1 000 (se ignoran años, fechas, códigos únicos, números de la pregunta y conteos pequeños). Está sustentada si aparece en los resultados de las herramientas de esa respuesta, si es una suma, resta o cociente simple de dos cifras de la fuente que la respuesta cita, o si coincide con la referencia. Tolerancia según la precisión escrita (hasta 1 %; con ±1 % fijo, 40,279,184.89 pasaría por cercana a 40,682,184.89).
+- **Cifras no sustentadas** = respuestas con al menos una cifra relevante sin sustento / 40 × 100. No es «inventada»: «inventada» exige que *ninguna* cifra coincida; aquí basta una suelta sin respaldo.
+- **Qué significa:** la exacta original premia acertar *una* cifra aunque otra esté mal; la estricta exige que todas las cifras relevantes se puedan comprobar.
 
 **Resultado global** (`eval/resultados/graficos_global.csv` y `resumen.md`)
 
@@ -194,6 +197,17 @@ TypeScript y Zod; Cloudflare Workers, D1 y Durable Objects; MCP SDK y Agents SDK
 | Con MCP | 100 % | 100 % | 0 % | 0 | 99,9 s | 20,2 s | 1,0 | 40/40 |
 
 La herramienta esperada se usó en 37 de 40 preguntas con MCP.
+
+**Exacta estricta y cifras no sustentadas** (métricas añadidas; las anteriores no cambian; `graficos_global.csv`)
+
+| Condición | Exacta | Exacta estricta | Cifras no sustentadas |
+|---|---|---|---|
+| Sin MCP | 8 % (3 de 40) | 5 % (2 de 40) | 55 % (22 de 40) |
+| Con MCP | 100 % (40 de 40) | 98 % (39 de 40) | 3 % (1 de 40) |
+
+Casos que pasan de exacta a no estricta: **D04 con MCP** (escribió «S/ 40,279,184.89» como incremento y más abajo el correcto «S/ 40,682,184.89»; contó como exacta por el 578,39 %) y **R10 sin MCP** (cifras como «1,9 billones» o «499 569» que no salen de los datos). Por tipo, la estricta con MCP solo baja en detalle (9 de 10); sin MCP las respuestas con cifras sin sustento van de 4 a 7 de cada 10 según el tipo.
+
+**Limitación del puntuador.** Es automático y de reglas simples: no entiende el contexto de cada cifra (una cifra correcta con otro significado cuenta como sustentada; una cuenta válida que la respuesta no muestra puede marcarse como sin sustento). Con MCP, la fuente son los resultados de las herramientas, **reproducidos** con las mismas llamadas (`eval/reconstruir_fuentes.mjs`, sin consultar a la IA) porque `raw_con_mcp.jsonl` solo guardaba su tamaño; coincide en las 40 llamadas. Sin MCP no hay herramientas: se usan la referencia y, en detalle, la fila de la base del código preguntado; cifras reales de otras páginas cuentan como sin sustento. Una sola corrida.
 
 **Por tipo** (`graficos_por_tipo.csv`)
 
@@ -213,6 +227,13 @@ xychart-beta
 ```
 
 **Latencia media** (`graficos_latencia.csv`): 22,1 s sin MCP y 99,9 s con MCP (con reintentos; el proveedor a veces tardó hasta 3 minutos).
+
+| Latencia (s) | Media | Mediana | p90 | Máximo | Mediana sin reintentos | p90 sin reintentos |
+|---|---|---|---|---|---|---|
+| Sin MCP | 22,1 | 12,9 | 17,9 | 199,8 | 11,0 | 13,9 |
+| Con MCP | 99,9 | 21,0 | 214,2 | 401,3 | 14,8 | 20,0 |
+
+**En sencillo:** la mediana es el tiempo de la pregunta del medio y el p90 el que 9 de cada 10 no superaron. Los máximos (más de 300 s; 3 respuestas con MCP) se deben a reintentos: cuando el proveedor no responde a tiempo, el ejecutor espera y repite la consulta una vez, y el total suma ambos intentos.
 
 **Ejemplos reales** (recortados, de `raw_*.jsonl`)
 
