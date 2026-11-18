@@ -3,7 +3,7 @@ import {
   presetsIA, textoLimpio, truncate, validarConexion, limitesImagen, validarImagen, escalarImagen, construirContenido, aBloquesAnthropic,
   tituloChat, grupoFecha, recortarChats, serializarChats, deserializarChats, sinImagenes, normalizarMensaje, normalizarChat,
   limitesAdjuntos, recortarTexto, nombreSeguro, rutaSegura, extensionArchivo, tipoAdjunto, validarDocumento, esTextoBytes, clasificarRuta,
-  zipEntradas, zipExtraer, leerProyectoZip, docxATexto, leerDocx, textoPdfPagina, textoPdf, textoAdjunto, componerAdjuntos, metaAdjuntos, sinContexto,
+  zipEntradas, zipExtraer, leerProyectoZip, docxATexto, leerDocx, xmlTexto, xmlAtributo, columnaDeRef, xlsxTextoT, xlsxFilasHoja, xlsxLeer, leerXlsx, csvAFilas, textoPdfPagina, textoPdf, textoAdjunto, componerAdjuntos, metaAdjuntos, sinContexto,
   largoContenido, acortarContenido, recortarMensajes, extraerArchivos, crc32, crearZip, xmlEscape, docxRuns, docxCuerpo, crearDocx, textoLatin1, mdALineasPdf, prepararCompartir,
   claseArchivo, mimeArchivo, tamanoLegible, resaltarLinea, htmlConRecursos, rutaRelativaZip, atributoHtml,
 } from "./lib/agente";
@@ -181,6 +181,11 @@ body.es-app main{flex:1;min-height:0}
 .pv-code .l{display:block;white-space:pre;padding-right:16px;min-height:1.55em}
 .pv-code .l::before{counter-increment:ln;content:counter(ln);display:inline-block;width:3.6em;padding-right:1em;text-align:right;color:var(--code-mut);user-select:none}
 .tk-c{color:var(--code-mut);font-style:italic}.tk-s{color:#8fd3b6}.tk-n{color:#e8b86d}.tk-k{color:#9fb7ff}
+.pv-tab{border-collapse:separate;border-spacing:0;font-size:13px;min-width:100%;width:max-content}
+.pv-tab th,.pv-tab td{text-align:left;padding:6px 12px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);white-space:nowrap;max-width:360px;overflow:hidden;text-overflow:ellipsis}
+.pv-tab thead th{position:sticky;top:0;background:var(--surface-2);color:var(--ink);font-weight:600;z-index:1}
+.pv-tab th.n{position:sticky;left:0;color:var(--mut);font-weight:400;text-align:right;background:var(--surface-2)}
+.pv-nota{margin:0;padding:10px 14px;color:var(--mut);font-size:12.5px}
 .pv-zip{list-style:none;margin:0;padding:8px;display:grid;gap:2px}
 .pv-zip button{display:flex;gap:12px;width:100%;align-items:center;text-align:left;padding:9px 10px;border:0;border-radius:8px;background:transparent;color:var(--ink);font:400 13.5px/1.3 var(--mono);cursor:pointer}
 .pv-zip button:hover{background:var(--surface-2)}
@@ -362,7 +367,7 @@ const nombres = [
   migrarConfig, construirPeticion, extraerRespuesta, limitesImagen, validarImagen, escalarImagen, construirContenido, aBloquesAnthropic,
   tituloChat, grupoFecha, recortarChats, serializarChats, deserializarChats, sinImagenes, normalizarMensaje, normalizarChat,
   limitesAdjuntos, recortarTexto, nombreSeguro, rutaSegura, extensionArchivo, tipoAdjunto, validarDocumento, esTextoBytes, clasificarRuta,
-  zipEntradas, zipExtraer, leerProyectoZip, docxATexto, leerDocx, textoPdfPagina, textoPdf, textoAdjunto, componerAdjuntos, metaAdjuntos, sinContexto,
+  zipEntradas, zipExtraer, leerProyectoZip, docxATexto, leerDocx, xmlTexto, xmlAtributo, columnaDeRef, xlsxTextoT, xlsxFilasHoja, xlsxLeer, leerXlsx, csvAFilas, textoPdfPagina, textoPdf, textoAdjunto, componerAdjuntos, metaAdjuntos, sinContexto,
   largoContenido, acortarContenido, recortarMensajes, extraerArchivos, crc32, crearZip, xmlEscape, docxRuns, docxCuerpo, crearDocx, textoLatin1, mdALineasPdf, prepararCompartir,
   claseArchivo, mimeArchivo, tamanoLegible, resaltarLinea, htmlConRecursos, rutaRelativaZip, atributoHtml,
 ].map((f) => f.toString()).join("\n");
@@ -724,7 +729,7 @@ async function ocSendAg(q){var fs=ocDocs.filter(function(d){return d.raw});if(!q
  catch(e){ocLog('e',(e&&e.message?e.message:'Error inesperado.')+' Prueba a desactivar el modo agente.')}
  w.remove();ocBusy=false;$('oc-send').disabled=false;ocBajar();ocGuardar()}
 var OC_ADJ_MAX=20*1024*1024,OC_CSP='<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; img-src data: blob: https:; media-src data: blob: https:; style-src \'unsafe-inline\' https:; font-src data: https:; script-src \'unsafe-inline\' https:; connect-src \'none\'; form-action \'none\'">';
-var ocPan={lista:[],i:-1,zip:null,modo:'vista',url:'',disp:null,tok:0};
+var ocPan={lista:[],i:-1,zip:null,modo:'vista',hoja:0,hojaDe:'',url:'',disp:null,tok:0};
 function ocArchNuevo(ruta,titulo,datos){return {id:'a'+Date.now().toString(36)+Math.random().toString(36).slice(2,8),n:ruta,ti:titulo||'',t:mimeArchivo(ruta),b:datos.length,datos:datos,g:false}}
 function ocArchMeta(lista){return lista.map(function(a){var o={id:a.id,n:a.n,b:a.b};if(a.ti)o.ti=a.ti;if(a.g)o.g=true;return o})}
 async function ocArchDeTexto(txt){var fs=extraerArchivos(String(txt||'')),lst=[];
@@ -773,16 +778,31 @@ function ocPvCodigo(b,texto,ext){var lines=String(texto).replace(/\r/g,'').split
 async function ocZipMapa(z){if(z.mapa)return z.mapa;var m={},n=0;
  for(var i=0;i<z.ents.length&&n<40;i++){var e=z.ents[i];if(!/\.(css|js|mjs)$/i.test(e.nombre)||e.tam>1500000)continue;var d=await zipExtraer(z.datos,e,1500000);if(d){m[rutaSegura(e.nombre)]=new TextDecoder('utf-8').decode(d);n++}}
  z.mapa=m;return m}
+function ocPanTabla(b,filas,trunc){var d=document.createElement('div'),t=document.createElement('table'),th=document.createElement('thead'),tb=document.createElement('tbody'),nc=0;t.className='pv-tab';
+ filas.forEach(function(f){if(f.length>nc)nc=f.length});
+ if(!filas.length||!nc){ocPanMsg('Esta hoja no tiene datos.');return}
+ var hr=document.createElement('tr'),c0=document.createElement('th');c0.className='n';hr.appendChild(c0);
+ for(var j=0;j<nc;j++){var h=document.createElement('th');h.textContent=filas[0][j]==null?'':filas[0][j];h.title=h.textContent;hr.appendChild(h)}
+ th.appendChild(hr);
+ for(var i=1;i<filas.length;i++){var tr=document.createElement('tr'),n=document.createElement('th');n.className='n';n.scope='row';n.textContent=String(i+1);tr.appendChild(n);
+  for(var k=0;k<nc;k++){var td=document.createElement('td');td.textContent=filas[i][k]==null?'':filas[i][k];tr.appendChild(td)}tb.appendChild(tr)}
+ t.appendChild(th);t.appendChild(tb);d.appendChild(t);b.textContent='';b.appendChild(d);
+ var nota=document.createElement('p');nota.className='pv-nota';nota.textContent=trunc?'Se muestran las primeras 200 filas. Usa Descargar para ver el archivo completo.':filas.length+' filas';b.appendChild(nota)}
 async function ocPanContenido(nombre,datos,tok,z){var b=$('oc-pan-b'),sub=$('oc-pan-sub'),k=claseArchivo(nombre),ext=extensionArchivo(nombre);
  b.textContent='';sub.textContent='';ocPanSoltar();var hay=false;
  function bt(txt,fn,cl,tab,sel){var x=document.createElement('button');x.type='button';x.textContent=txt;if(cl)x.className=cl;if(tab){x.setAttribute('role','tab');x.setAttribute('aria-selected',String(!!sel))}x.addEventListener('click',fn);sub.appendChild(x);hay=true;return x}
  if(z){bt('← Archivos',function(){ocPanZipLista(z)},'b');var r=document.createElement('span');r.className='pan-ruta';r.textContent=nombre;r.title=nombre;sub.appendChild(r)}
  if(k==='html'){bt('Vista',function(){ocPan.modo='vista';ocPanContenido(nombre,datos,++ocPan.tok,z)},'',true,ocPan.modo==='vista');bt('Código',function(){ocPan.modo='codigo';ocPanContenido(nombre,datos,++ocPan.tok,z)},'',true,ocPan.modo==='codigo')}
+ var xl=null;if(ext==='xlsx'){try{xl=await leerXlsx(datos,200)}catch(e){xl={error:e&&e.message?e.message:'error'}}if(tok!==ocPan.tok)return;
+  if(xl.hojas){if(ocPan.hojaDe!==nombre){ocPan.hojaDe=nombre;ocPan.hoja=0}if(ocPan.hoja>=xl.hojas.length)ocPan.hoja=0;
+   if(xl.hojas.length>1)xl.hojas.forEach(function(h,hi){bt(h.nombre,function(){ocPan.hoja=hi;ocPanContenido(nombre,datos,++ocPan.tok,z)},'',true,hi===ocPan.hoja)})}}
  if(z)bt('Descargar este archivo',function(){ocDescargar(nombre.split('/').pop(),datos,mimeArchivo(nombre))},'b');
  sub.hidden=!hay;
  if(k==='imagen'){var im=document.createElement('img');im.className='pv-img';im.alt=nombre.split('/').pop();ocPan.url=URL.createObjectURL(new Blob([datos],{type:mimeArchivo(nombre)}));im.src=ocPan.url;b.appendChild(im);return}
  if(k==='pdf'){var f=document.createElement('iframe');f.title='Vista previa de '+nombre;ocPan.url=URL.createObjectURL(new Blob([datos],{type:'application/pdf'}));f.src=ocPan.url;b.appendChild(f);return}
  if(k==='docx'){try{var a=await leerDocx(nombre,datos);if(tok!==ocPan.tok)return;var dv=document.createElement('div');dv.className='pv-md';ocMd(dv,a.texto);b.appendChild(dv)}catch(e){ocPanMsg('No se pudo mostrar el texto del documento: '+(e&&e.message?e.message:'error')+' Usa Descargar.')}return}
+ if(ext==='xlsx'){if(xl&&xl.hojas){var hj=xl.hojas[ocPan.hoja];ocPanTabla(b,hj.filas,hj.truncada)}else ocPanMsg('No se pudo mostrar la hoja de cálculo: '+(xl&&xl.error||'error')+' Usa Descargar.');return}
+ if((ext==='csv'||ext==='tsv')&&esTextoBytes(datos)){var cv=csvAFilas(new TextDecoder('utf-8').decode(datos.subarray(0,2000000)),200);ocPanTabla(b,cv.filas,cv.truncada);return}
  if(k==='zip'||k==='otro'&&!esTextoBytes(datos)){ocPanMsg('Este tipo de archivo no tiene vista previa. Usa Descargar para abrirlo en tu equipo.');return}
  var txt=new TextDecoder('utf-8').decode(datos.subarray(0,600000));
  if(k==='html'){

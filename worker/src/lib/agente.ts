@@ -589,6 +589,159 @@ export async function leerDocx(nombre: string, bytes: Uint8Array): Promise<Adjun
   return { nombre: nombreSeguro(nombre), tipo: "docx", texto: t };
 }
 
+/** Decodifica las entidades XML básicas (y numéricas). */
+export function xmlTexto(s: string): string {
+  return String(s).replace(/&(#x[0-9a-fA-F]+|#[0-9]+|lt|gt|amp|quot|apos);/g, (m, e) => {
+    if (e === "lt") return "<";
+    if (e === "gt") return ">";
+    if (e === "amp") return "&";
+    if (e === "quot") return '"';
+    if (e === "apos") return "'";
+    const n = e[1] === "x" ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10);
+    try { return String.fromCodePoint(n); } catch (err) { return m; }
+  });
+}
+
+/** Valor de un atributo dentro del texto de una etiqueta XML ('' si no está). */
+export function xmlAtributo(tag: string, nombre: string): string {
+  const m = new RegExp("(?:^|\\s)" + nombre.replace(/[:.]/g, "\\$&") + "\\s*=\\s*(?:\"([^\"]*)\"|'([^']*)')").exec(tag);
+  return m ? xmlTexto(m[1] != null ? m[1] : m[2]) : "";
+}
+
+/** Índice de columna (0 = A) de una referencia A1 como «C7»; -1 si no es válida. */
+export function columnaDeRef(ref: string): number {
+  const m = /^([A-Za-z]+)/.exec(ref);
+  if (!m) return -1;
+  let n = 0;
+  for (const ch of m[1].toUpperCase()) n = n * 26 + (ch.charCodeAt(0) - 64);
+  return n - 1;
+}
+
+/** Texto de los <t> de un fragmento (<si> o <is>), sin la fonética <rPh>. */
+export function xlsxTextoT(frag: string): string {
+  const limpio = frag.replace(/<rPh\b[\s\S]*?<\/rPh>/g, "");
+  let out = "";
+  const re = /<t\b[^>]*?(?:\/>|>([\s\S]*?)<\/t>)/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(limpio))) out += m[1] ? xmlTexto(m[1]) : "";
+  return out;
+}
+
+/** Filas de una hoja (sheetN.xml) como texto; las celdas vacías quedan como "". Máx. maxFilas filas y 100 columnas. */
+export function xlsxFilasHoja(xml: string, compartidas: string[], maxFilas: number): { filas: string[][]; truncada: boolean } {
+  const filas: string[][] = [];
+  let truncada = false;
+  const reFila = /<row\b([^>]*?)(?:\/>|>([\s\S]*?)<\/row>)/g;
+  let mf: RegExpExecArray | null;
+  let sigFila = 0;
+  while ((mf = reFila.exec(xml))) {
+    const rr = parseInt(xmlAtributo(mf[1], "r"), 10);
+    const idx = rr > 0 ? rr - 1 : sigFila;
+    sigFila = idx + 1;
+    if (idx >= maxFilas) { truncada = true; break; }
+    while (filas.length < idx) filas.push([]);
+    const fila: string[] = [];
+    const reCel = /<c\b([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g;
+    let mc: RegExpExecArray | null;
+    let sigCol = 0;
+    while ((mc = reCel.exec(mf[2] || ""))) {
+      let col = columnaDeRef(xmlAtributo(mc[1], "r"));
+      if (col < 0) col = sigCol;
+      sigCol = col + 1;
+      if (col >= 100) continue;
+      const t = xmlAtributo(mc[1], "t");
+      const cuerpo = mc[2] || "";
+      const v = /<v\b[^>]*>([\s\S]*?)<\/v>/.exec(cuerpo);
+      let val = "";
+      if (t === "inlineStr") val = xlsxTextoT(cuerpo);
+      else if (!v) val = "";
+      else if (t === "s") val = compartidas[parseInt(v[1], 10)] || "";
+      else if (t === "b") val = v[1].trim() === "1" ? "TRUE" : "FALSE";
+      else val = xmlTexto(v[1]);
+      while (fila.length < col) fila.push("");
+      fila[col] = val;
+    }
+    filas.push(fila);
+  }
+  return { filas, truncada };
+}
+
+/** Texto UTF-8 de una entrada del zip (null si no existe o no se puede leer). */
+export async function xlsxLeer(bytes: Uint8Array, z: EntradaZip[], ruta: string): Promise<string | null> {
+  const e = z.filter((x) => x.nombre === ruta)[0];
+  if (!e) return null;
+  const d = await zipExtraer(bytes, e, 20 * 1024 * 1024);
+  return d ? new TextDecoder("utf-8").decode(d) : null;
+}
+
+/** Lee un .xlsx (zip) y devuelve sus hojas con las primeras maxFilas filas. Lanza Error en español si no es válido. */
+export async function leerXlsx(bytes: Uint8Array, maxFilas = 200): Promise<{ hojas: { nombre: string; filas: string[][]; truncada: boolean }[] }> {
+  const z = zipEntradas(bytes).entradas;
+  const wb = await xlsxLeer(bytes, z, "xl/workbook.xml");
+  if (!wb) throw new Error("no parece un archivo .xlsx válido.");
+  const rels = (await xlsxLeer(bytes, z, "xl/_rels/workbook.xml.rels")) || "";
+  const destinos: Record<string, string> = {};
+  const reRel = /<Relationship\b([^>]*?)\/?>/g;
+  let mr: RegExpExecArray | null;
+  while ((mr = reRel.exec(rels))) {
+    const id = xmlAtributo(mr[1], "Id");
+    let t = xmlAtributo(mr[1], "Target");
+    t = t.charAt(0) === "/" ? t.slice(1) : "xl/" + t;
+    if (id) destinos[id] = t;
+  }
+  const ss = await xlsxLeer(bytes, z, "xl/sharedStrings.xml");
+  const compartidas: string[] = [];
+  if (ss) {
+    const reSi = /<si\b[^>]*?(?:\/>|>([\s\S]*?)<\/si>)/g;
+    let ms: RegExpExecArray | null;
+    while ((ms = reSi.exec(ss))) compartidas.push(xlsxTextoT(ms[1] || ""));
+  }
+  const hojas: { nombre: string; filas: string[][]; truncada: boolean }[] = [];
+  const reHoja = /<sheet\b([^>]*?)\/?>/g;
+  let mh: RegExpExecArray | null;
+  let n = 0;
+  while ((mh = reHoja.exec(wb)) && n < 30) {
+    n++;
+    const nombre = xmlAtributo(mh[1], "name") || "Hoja " + n;
+    const ruta = destinos[xmlAtributo(mh[1], "r:id")] || "xl/worksheets/sheet" + n + ".xml";
+    const xml = await xlsxLeer(bytes, z, ruta);
+    const r = xml ? xlsxFilasHoja(xml, compartidas, maxFilas) : { filas: [], truncada: false };
+    hojas.push({ nombre, filas: r.filas, truncada: r.truncada });
+  }
+  if (!hojas.length) throw new Error("el libro no tiene hojas.");
+  return { hojas };
+}
+
+/** Parte un CSV/TSV (comillas, separador , ; o tab detectado en la primera línea) en filas de texto. */
+export function csvAFilas(texto: string, maxFilas = 200): { filas: string[][]; truncada: boolean } {
+  const t = String(texto).replace(/^\uFEFF/, "");
+  const prim = t.split(/\r?\n/, 1)[0] || "";
+  const nt = prim.split("\t").length - 1, np = prim.split(";").length - 1, nc = prim.split(",").length - 1;
+  const sep = nt > 0 && nt >= np && nt >= nc ? "\t" : np > nc ? ";" : ",";
+  const filas: string[][] = [];
+  let fila: string[] = [];
+  let cel = "";
+  let q = false;
+  let truncada = false;
+  for (let i = 0; i < t.length; i++) {
+    const c = t[i];
+    if (q) {
+      if (c === '"') { if (t[i + 1] === '"') { cel += '"'; i++; } else q = false; }
+      else cel += c;
+    } else if (c === '"' && cel === "") q = true;
+    else if (c === sep) { fila.push(cel); cel = ""; }
+    else if (c === "\n" || c === "\r") {
+      if (c === "\r" && t[i + 1] === "\n") i++;
+      fila.push(cel); cel = "";
+      filas.push(fila);
+      fila = [];
+      if (filas.length >= maxFilas) { truncada = i + 1 < t.length && t.slice(i + 1).trim() !== ""; return { filas, truncada }; }
+    } else cel += c;
+  }
+  if (cel !== "" || fila.length) { fila.push(cel); filas.push(fila); }
+  return { filas, truncada };
+}
+
 /** Texto de una página de pdf.js (items de getTextContent). */
 export function textoPdfPagina(items: any[]): string {
   return (Array.isArray(items) ? items : []).map((i) => (i && typeof i.str === "string" ? i.str : "") + (i && i.hasEOL ? "\n" : " ")).join("")

@@ -4,6 +4,7 @@ import {
   presetsIA, truncate, validarConexion, limitesImagen, validarImagen, escalarImagen, construirContenido, aBloquesAnthropic,
   tituloChat, grupoFecha, recortarChats, serializarChats, deserializarChats, sinImagenes,
   limitesAdjuntos, rutaSegura, extraerArchivos, crearZip, crearDocx, mdALineasPdf, recortarMensajes, componerAdjuntos,
+  leerXlsx, csvAFilas, columnaDeRef,
   claseArchivo, mimeArchivo, tamanoLegible, resaltarLinea, htmlConRecursos, prepararCompartir,
 } from "../src/lib/agente";
 import { demoScript } from "../src/demo";
@@ -287,5 +288,45 @@ describe("adjuntos de la respuesta (tarjetas y panel)", () => {
     expect(c.mensajes[1].arch).toBeUndefined();
     const out = prepararCompartir(c.mensajes, null, false);
     expect(out[0].adjuntos).toEqual([{ nombre: "s.zip", tipo: "archivo", tamano: 10 }]);
+  });
+});
+
+describe("vista previa de .xlsx y .csv", () => {
+  const hoja1 = '<?xml version="1.0"?><worksheet><sheetData>' +
+    '<row r="1"><c r="A1" t="s"><v>0</v></c><c r="B1" t="s"><v>1</v></c><c r="D1" t="inlineStr"><is><t>en línea</t></is></c></row>' +
+    '<row r="2"><c r="A2"><v>12.5</v></c><c r="C2" t="b"><v>1</v></c><c r="D2" t="b"><v>0</v></c></row>' +
+    '<row r="4"><c r="B4" t="str"><v>a &amp; b</v></c></row></sheetData></worksheet>';
+  const filasMuchas = Array.from({ length: 300 }, (_, i) => '<row r="' + (i + 1) + '"><c r="A' + (i + 1) + '"><v>' + (i + 1) + "</v></c></row>").join("");
+  const hoja2 = "<worksheet><sheetData>" + filasMuchas + "</sheetData></worksheet>";
+  const xlsx = () => crearZip([
+    { ruta: "xl/workbook.xml", datos: '<workbook><sheets><sheet name="Obras &amp; datos" sheetId="1" r:id="rId1"/><sheet name="Grande" sheetId="2" r:id="rId2"/></sheets></workbook>' },
+    { ruta: "xl/_rels/workbook.xml.rels", datos: '<Relationships><Relationship Id="rId1" Type="x" Target="worksheets/sheet1.xml"/><Relationship Target="worksheets/sheet2.xml" Id="rId2" Type="x"/></Relationships>' },
+    { ruta: "xl/sharedStrings.xml", datos: '<sst><si><t>Código</t></si><si><r><t>Nom</t></r><r><t xml:space="preserve">bre</t></r></si></sst>' },
+    { ruta: "xl/worksheets/sheet1.xml", datos: hoja1 },
+    { ruta: "xl/worksheets/sheet2.xml", datos: hoja2 },
+  ]);
+  it("lee hojas, tipos de celda y columnas vacías", async () => {
+    const r = await leerXlsx(xlsx());
+    expect(r.hojas.map((h) => h.nombre)).toEqual(["Obras & datos", "Grande"]);
+    expect(r.hojas[0].filas).toEqual([["Código", "Nombre", "", "en línea"], ["12.5", "", "TRUE", "FALSE"], [], ["", "a & b"]]);
+    expect(r.hojas[0].truncada).toBe(false);
+  });
+  it("limita a 200 filas", async () => {
+    const h = (await leerXlsx(xlsx())).hojas[1];
+    expect(h.filas.length).toBe(200);
+    expect(h.truncada).toBe(true);
+  });
+  it("rechaza lo que no es xlsx", async () => {
+    await expect(leerXlsx(crearZip([{ ruta: "a.txt", datos: "x" }]))).rejects.toThrow(/xlsx/);
+  });
+  it("columnaDeRef", () => {
+    expect(columnaDeRef("A1")).toBe(0);
+    expect(columnaDeRef("AA9")).toBe(26);
+  });
+  it("csv con comillas, separador ; y tope de filas", () => {
+    expect(csvAFilas('a;b\n"x;y";"di ""hola"""\n').filas).toEqual([["a", "b"], ["x;y", 'di "hola"']]);
+    const r = csvAFilas("n\n" + Array.from({ length: 250 }, (_, i) => i).join("\n"), 200);
+    expect(r.filas.length).toBe(200);
+    expect(r.truncada).toBe(true);
   });
 });
