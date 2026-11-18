@@ -142,6 +142,16 @@ code,kbd,pre{font-family:var(--mono);font-size:.88em}
 .tag-a{background:var(--accent-soft);color:var(--accent)}
 .nota{border-left:2px solid var(--line-2);padding:2px 0 2px 16px;color:var(--ink-2)}
 
+/* En sencillo */
+.sencillo{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:var(--r);background:var(--accent-soft);padding:18px 22px;margin:28px 0 0;max-width:780px}
+.sencillo h2{font:600 var(--s1)/1.3 var(--sans);margin:0 0 8px;color:var(--ink)}
+.sencillo p{color:var(--ink);margin:0}.sencillo p+p{margin-top:10px}
+.que{margin:12px auto 0;max-width:62ch;padding:10px 14px;border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 8px 8px 0;font-size:var(--s-1);color:var(--ink);text-align:left}
+details.det{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:0 18px;margin:18px 0}
+details.det>summary{cursor:pointer;padding:14px 0;font-weight:600;color:var(--ink)}
+details.det[open]>summary{border-bottom:1px solid var(--line);margin-bottom:14px}
+details.det>*:last-child{margin-bottom:16px}
+
 /* Figuras */
 figure{margin:0}
 figcaption{margin-top:12px;font-size:var(--s-1);color:var(--mut)}

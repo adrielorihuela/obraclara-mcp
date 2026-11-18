@@ -1,0 +1,90 @@
+// Sección «Métricas» de /proyecto: gráficos de barras en SVG generados desde metricas-datos.ts (a su vez generado desde metricas/resultados/*.csv).
+import { esc } from "./layout";
+import { METRICAS as M } from "./metricas-datos";
+import { nf } from "./proyecto-diagramas";
+
+type Barra = { v: number; t: string; cls: string };
+type Fila = { e: string; b: Barra[] };
+
+// Barras horizontales; una o dos barras por fila. El texto de cada barra va a su derecha.
+function hbar(id: string, titulo: string, desc: string, filas: Fila[], max?: number): string {
+  const lw = 178, bw = 150, h = 20, gap = 4, pad = 14, W = 470;
+  const m = max ?? Math.max(...filas.flatMap((f) => f.b.map((x) => x.v)), 1);
+  let y = 4, s = "";
+  for (const f of filas) {
+    const alto = f.b.length * h + (f.b.length - 1) * gap;
+    s += `<text x="0" y="${y + alto / 2 + 4.5}" class="gx-t">${esc(f.e)}</text>`;
+    f.b.forEach((b, i) => {
+      const w = Math.max(2, (b.v / m) * bw), yy = y + i * (h + gap);
+      s += `<rect x="${lw}" y="${yy}" width="${w.toFixed(1)}" height="${h}" rx="3" class="${b.cls}"/><text x="${(lw + w + 6).toFixed(1)}" y="${yy + 14.5}" class="gx-t gx-n">${esc(b.t)}</text>`;
+    });
+    y += alto + pad;
+  }
+  return `<svg class="gx gx-m2" viewBox="0 0 ${W} ${Math.round(y)}" role="img" aria-labelledby="${id}-t ${id}-d"><title id="${id}-t">${esc(titulo)}</title><desc id="${id}-d">${esc(desc)}</desc>${s}</svg>`;
+}
+const fig = (g: string, titulo: string, leyenda: string, que: string) =>
+  `<figure class="fig rv"><h4 class="gt">${titulo}</h4>${g}${leyenda}<p class="que"><b>Qué significa:</b> ${que}</p></figure>`;
+const ley = (...it: [string, string][]) => `<ul class="leyenda">${it.map(([c, t]) => `<li><i style="background:var(${c})"></i>${t}</li>`).join("")}</ul>`;
+const kpi = (b: string, t: string) => `<div class="kpi"><b>${b}</b><span>${t}</span></div>`;
+const p1 = (v: number) => nf(v, 1) + " %";
+const NIV: Record<string, string> = { GL: "Gobiernos locales", GR: "Gobiernos regionales", GN: "Gobierno nacional" };
+const COL: Record<string, string> = { avance_fisico: "Avance físico", ultimo_devengado: "Último gasto registrado", avance_ejecucion: "Avance de ejecución", habitantes: "Habitantes beneficiados", fec_ini_ejecucion: "Fecha de inicio", monto_viable: "Monto aprobado (viable)", ubigeo: "Código de ubicación", departamento: "Departamento", costo_actualizado: "Costo actualizado" };
+const tit = (s: string) => s.toLowerCase().replace(/(^|\s)\S/g, (c) => c.toUpperCase());
+const ms = (v: number) => nf(v / 1000, 1) + " s";
+const quita = (t: string) => t.replace(/\s*\(.*\)/, "");
+
+export function metricasHtml(): string {
+  const vac = hbar("mV", "Porcentaje de datos vacíos en las columnas clave", `Barras horizontales: ${M.vacios.map((v) => `${COL[v.columna]} ${p1(v.pct)}`).join("; ")}.`,
+    M.vacios.map((v) => ({ e: COL[v.columna], b: [{ v: v.pct, t: p1(v.pct), cls: v.pct > 20 ? "gx-b3" : "gx-b4" }] })), 100);
+  const niv = hbar("mN", "Inversiones por nivel de gobierno", `Inversiones: ${M.porNivel.map((v) => `${NIV[v.nivel]} ${nf(v.inversiones)} (${p1(v.pct)})`).join("; ")}.`,
+    M.porNivel.map((v) => ({ e: NIV[v.nivel], b: [{ v: v.inversiones, t: `${nf(v.inversiones)} · ${p1(v.pct)}`, cls: "gx-b4" }] })), M.porNivel[0].inversiones * 1.25);
+  const dep = hbar("mD", "Los 10 departamentos con más inversiones", `Barras: ${M.topDepartamentos.map((v) => `${tit(v.departamento)} ${nf(v.inversiones)}`).join("; ")}.`,
+    M.topDepartamentos.map((v) => ({ e: tit(v.departamento), b: [{ v: v.inversiones, t: `${nf(v.inversiones)} · ${p1(v.pct)}`, cls: "gx-b4" }] })), M.topDepartamentos[0].inversiones * 1.3);
+  const aniv = hbar("mAN", "Porcentaje de inversiones con alerta, por nivel de gobierno", `Por nivel: ${M.alertasPorNivel.map((v) => `${NIV[v.nivel]} ${p1(v.pctSobrecosto)} con sobrecosto y ${p1(v.pctParalizacion)} con posible paralización`).join("; ")}.`,
+    M.alertasPorNivel.map((v) => ({ e: NIV[v.nivel], b: [{ v: v.pctSobrecosto, t: p1(v.pctSobrecosto), cls: "gx-b3" }, { v: v.pctParalizacion, t: p1(v.pctParalizacion), cls: "gx-b2" }] })), 40);
+  const adep = hbar("mAD", "Alertas en los 10 departamentos con más alertas de sobrecosto", `Cantidad de inversiones con alerta: ${M.alertasTopDepartamentos.map((v) => `${tit(v.departamento)} ${nf(v.sobrecosto)} de sobrecosto y ${nf(v.paralizacion)} de posible paralización`).join("; ")}.`,
+    M.alertasTopDepartamentos.map((v) => ({ e: tit(v.departamento), b: [{ v: v.sobrecosto, t: nf(v.sobrecosto), cls: "gx-b3" }, { v: v.paralizacion, t: nf(v.paralizacion), cls: "gx-b2" }] })));
+  const hs = hbar("mHS", "Cuánto se pasó del monto aprobado cada inversión", `Número de inversiones por tramo de sobrecosto: ${M.histSobrecosto.map((v) => `${v.tramo} ${nf(v.inversiones)}`).join("; ")}.`,
+    M.histSobrecosto.map((v) => ({ e: quita(v.tramo).replace("< 0 %", "Menos que lo aprobado").replace("sin dato", "Sin dato"), b: [{ v: v.inversiones, t: `${nf(v.inversiones)} · ${p1(v.pct)}`, cls: v.tramo.includes("alerta") ? "gx-b3" : "gx-b1" }] })));
+  const hm = hbar("mHM", "Cuántos meses llevan sin registrar gasto", `Número de inversiones por tramo de meses sin gasto: ${M.histMeses.map((v) => `${v.tramo} ${nf(v.inversiones)}`).join("; ")}.`,
+    M.histMeses.map((v) => ({ e: quita(v.tramo).replace("sin dato", "Sin gasto registrado"), b: [{ v: v.inversiones, t: `${nf(v.inversiones)} · ${p1(v.pct)}`, cls: v.tramo.includes("alerta") ? "gx-b2" : "gx-b1" }] })));
+  const rend = M.rendimiento;
+  const rm = hbar("mR", "Cuánto tarda el servidor en responder, por herramienta", `Tiempo mediano y tiempo del 95 % de las llamadas: ${rend.map((r) => `${r.prueba} ${ms(r.p50)} y ${ms(r.p95)}`).join("; ")}.`,
+    rend.map((r) => ({ e: r.prueba, b: [{ v: r.p50, t: ms(r.p50), cls: "gx-con" }, { v: r.p95, t: ms(r.p95), cls: "gx-sin" }] })));
+  const asi = hbar("mA", "Cuánto tarda el asistente del sitio en responder", `Tiempo medio, mediano y máximo: ${M.asistente.map((a) => `${a.modo} (${a.preguntas} preguntas) ${nf(a.media, 1)} s de media y ${nf(a.max, 1)} s de máximo`).join("; ")}.`,
+    M.asistente.map((a) => ({ e: `${a.modo === "chat" ? "Chat" : "Modo agente"} (${a.preguntas} preguntas)`, b: [{ v: a.media, t: `media ${nf(a.media, 1)} s`, cls: "gx-con" }, { v: a.max, t: `máximo ${nf(a.max, 1)} s`, cls: "gx-sin" }] })));
+  const ex = M.exactitud;
+  const todasOk = rend.every((r) => r.exito === 100);
+  const al = M.alertasTotales.find((a) => a.alerta === "ambas")!;
+  return `
+<p><b>En sencillo:</b> medimos cuatro cosas: si los datos están completos, cuántas obras tienen alertas, si el servidor responde rápido y sin fallar, y si lo que responde coincide con la base de datos. Todos los números salen de archivos con los resultados (carpeta <code>metricas/</code> del repositorio) y se volvieron a calcular con el corte del ${esc("10 de noviembre de 2026")}.</p>
+<h3>1. Calidad de los datos</h3>
+<div class="kpis rv">${kpi(nf(M.filas), "inversiones en la base, ya sin repetidos")}${kpi(M.vacios.filter((v) => v.pct < 1).length + " de " + M.vacios.length, "columnas clave con menos de 1 % de vacíos")}</div>
+${fig(vac, "Datos vacíos en las columnas clave", "", `casi todos los datos de identificación y ubicación están completos, pero el avance físico falta en ${p1(M.vacios[0].pct)} de las obras. Por eso la alerta de paralización solo puede evaluar las obras que sí informan su avance.`)}
+<div class="figs">${fig(niv, "Obras por nivel de gobierno", "", `${p1(M.porNivel[0].pct)} de las obras registradas las ejecutan las municipalidades; el resto, los gobiernos regionales y el nacional.`)}${fig(dep, "Los 10 departamentos con más obras", "", `Lima, Áncash y Cusco concentran la mayor cantidad de obras registradas; no significa que tengan más problemas, solo que tienen más obras.`)}</div>
+<h3>2. Alertas</h3>
+<div class="kpis rv">${M.alertasTotales.map((a) => kpi(nf(a.inversiones), { sobrecosto: "con alerta de sobrecosto (" + p1(a.pct) + ")", posible_paralizacion: "con posible paralización (" + p1(a.pct) + ")", ambas: "con las dos alertas (" + p1(a.pct) + ")", ninguna: "sin ninguna alerta (" + p1(a.pct) + ")" }[a.alerta] ?? a.alerta)).join("")}</div>
+${fig(aniv, "Obras con alerta, por nivel de gobierno", ley(["--warn", "Sobrecosto"], ["--risk", "Posible paralización"]), `en los gobiernos regionales y el nacional hay más sobrecosto proporcional (${p1(M.alertasPorNivel[1].pctSobrecosto)} y ${p1(M.alertasPorNivel[2].pctSobrecosto)}) que en los locales (${p1(M.alertasPorNivel[0].pctSobrecosto)}); la posible paralización es más frecuente en los locales (${p1(M.alertasPorNivel[0].pctParalizacion)}). Son señales para revisar, no pruebas.`)}
+${fig(adep, "Obras con alerta, por departamento", ley(["--warn", "Sobrecosto"], ["--risk", "Posible paralización"]), "los departamentos con más obras tienen más alertas en cifras absolutas; para comparar, conviene mirar el porcentaje (en la página <a href=\"/datos\">Datos</a>) y no solo la cantidad.")}
+<div class="figs">${fig(hs, "Cuánto se pasó del monto aprobado", ley(["--warn", "Con alerta (50 % o más)"], ["--mut", "Sin alerta"]), `la mayoría de las obras (${p1(M.histSobrecosto[0].pct + M.histSobrecosto[1].pct)}) cuesta igual o menos de lo aprobado o hasta un 10 % más; ${p1(M.histSobrecosto.filter((x) => x.tramo.includes("alerta")).reduce((s, x) => s + x.pct, 0))} supera el 50 % y dispara la alerta.`)}${fig(hm, "Meses sin registrar gasto", ley(["--risk", "Tramo de la alerta (si el avance es de 40 % a 99 %)"], ["--mut", "Otros tramos"]), `muchas obras llevan años sin registrar gasto, pero la alerta solo se activa si además la obra va entre 40 % y 99 % de avance. Una obra terminada también deja de gastar: por eso es solo una señal.`)}</div>
+<p class="small mut">Entre ambas alertas hay ${nf(al.inversiones)} inversiones que cumplen las dos a la vez (${p1(al.pct)}).</p>
+<h3>3. Rendimiento del servidor MCP</h3>
+<p>Se llamó 20 veces a cada herramienta y 10 veces a la lista de herramientas y al estado del servicio, desde Lima, contra el servidor público. Resultado: ${todasOk ? "<b>100 % de éxito</b> en las " + rend.reduce((s, r) => s + r.llamadas, 0) + " llamadas" : "con fallas"}.</p>
+${fig(rm, "Tiempo de respuesta por herramienta", ley(["--accent", "Mediana: la mitad de las respuestas tardó menos"], ["--mut", "P95: el 95 % tardó menos"]), `casi todas las consultas se responden en 2 a 3 segundos o menos; una consulta de detalle de una obra tarda ${ms(rend[1].p50)} en la mediana. Lo que tarda incluye el viaje por internet desde Lima.`)}
+<h3>4. ¿Las herramientas dicen lo mismo que la base de datos?</h3>
+<p>Se compararon las respuestas del servidor contra consultas directas a la base de datos, campo por campo.</p>
+<div class="kpis rv">${kpi(`${ex.detalle.coinciden} de ${ex.detalle.casos}`, "fichas de obras idénticas a la base")}${kpi(`${ex.detalle.camposIguales} de ${ex.detalle.campos}`, "campos de esas fichas, iguales")}${kpi(`${ex.resumen.coinciden} de ${ex.resumen.casos}`, "resúmenes por filtro idénticos")}${kpi(`${ex.alertas.coinciden} de ${ex.alertas.casos}`, "listas de alertas con el mismo total")}</div>
+${que2("el servidor no cambia ni inventa cifras: lo que muestra es igual a lo que hay en la base, en los 30 casos de detalle, los 10 resúmenes y las 14 consultas de alertas probadas.")}
+<h3>5. Pruebas de software</h3>
+<div class="kpis rv">${kpi(`${M.pruebas.pasan} de ${M.pruebas.total}`, `pruebas automáticas que pasan, en ${M.pruebas.archivos} archivos`)}${kpi(p1(M.pruebas.coberturaLineas), "de las líneas de código se ejecutan al probar")}${kpi(p1(M.pruebas.coberturaLogica), "en la lógica del servidor (sin las páginas)")}</div>
+${que2("una prueba automática es un pequeño programa que verifica que otro funciona; las 104 pasan. «Cobertura» es qué parte del código se ejecutó durante las pruebas: cerca de cuatro quintos.")}
+<h3>6. Asistente del sitio</h3>
+${fig(asi, "Tiempo de respuesta del asistente", ley(["--accent", "Tiempo medio"], ["--mut", "Tiempo máximo"]), "el asistente responde en unos 7 a 10 segundos; es una muestra pequeña (5 y 2 preguntas) y sirve solo como orden de magnitud. Funciona sobre un servicio compartido que puede hacer cola.")}
+<p class="small mut">Cómo se generan: <code>node metricas/exportar_sitio.mjs</code> escribe <code>worker/src/sitio/metricas-datos.ts</code> a partir de <code>metricas/resultados/</code>. Detalle de cada medición en <a href="https://github.com/adrielorihuela/obraclara-mcp/blob/main/metricas/LEEME.md">metricas/LEEME.md</a>.</p>`;
+}
+function que2(t: string) { return `<p class="que"><b>Qué significa:</b> ${t}</p>`; }
+
+export const metricasCss = String.raw`
+.gx-m2{max-width:520px}
+.gt{margin:0 0 10px;font:600 var(--s0)/1.35 var(--sans);color:var(--ink);text-align:center}
+`;

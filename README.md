@@ -1,6 +1,23 @@
 # ObraClara Perú
 
-Servidor MCP público que permite a un asistente de IA consultar datos de inversión pública del Perú (MEF): buscar obras, ver su detalle, detectar alertas y resumir por entidad o región. Proyecto del Grupo 1, curso I.A. Aplicada (ULima). Este repositorio es el código fuente del Anexo 01 del informe.
+## En palabras sencillas
+
+ObraClara es un sitio donde cualquiera puede preguntar, en castellano, por las obras públicas del Perú (colegios, hospitales, carreteras) y recibir una respuesta con la cifra oficial, la fuente y la fecha.
+
+Un asistente de inteligencia artificial (un programa que conversa como un chat) normalmente responde de memoria, como alguien que contesta sin mirar ningún papel, y a veces inventa. Con ObraClara, el asistente primero consulta el registro oficial del Ministerio de Economía y Finanzas (MEF) y luego te cuenta lo que encontró. La conexión se hace con un «enchufe» estándar llamado MCP.
+
+**Resultado:** de 40 preguntas, sin la conexión el asistente acertó 3 y con la conexión acertó las 40. Sin ella, 21 de las 40 respuestas traían cifras que no coinciden con el registro oficial; con ella, ninguna.
+
+Las «alertas» (sobrecosto y posible paralización) son señales para revisar una obra con más atención; **no prueban irregularidades ni corrupción**.
+
+**Glosario rápido:** *servidor* = programa siempre encendido que responde consultas; *base de datos* = archivo organizado para buscar rápido; *ETL* = limpiar y ordenar el archivo del MEF; *devengado* = gasto que el Estado reconoce como ya realizado; *monto viable* = lo que costaba la obra al aprobarse; *costo actualizado* = lo que cuesta hoy. El glosario completo está en [`docs/PROYECTO.md`](docs/PROYECTO.md#glosario).
+
+- **Para exponer a un público sin conocimientos técnicos:** [`docs/EXPOSICION.md`](docs/EXPOSICION.md)
+- **Referencias y documentos oficiales:** [`fuentes/REFERENCIAS.md`](fuentes/REFERENCIAS.md)
+
+## Detalle técnico
+
+Servidor MCP público (Model Context Protocol) que permite a un asistente de IA consultar datos de inversión pública del Perú (MEF): buscar obras, ver su detalle, detectar alertas y resumir por entidad o región. Proyecto del Grupo 1, curso I.A. Aplicada (ULima). Este repositorio es el código fuente del Anexo 01 del informe.
 
 - **Documentación completa del proyecto:** [`docs/PROYECTO.md`](docs/PROYECTO.md) (misma información que la página `/proyecto`)
 - **Sitio:** https://obraclara.adrielorihuela.net (inicio, `/proyecto`, `/datos`, `/asistente`, `/conectar`, `/acerca`; estado en `/salud`)
@@ -16,7 +33,9 @@ Servidor MCP público que permite a un asistente de IA consultar datos de invers
 | `etl/` | ETL en Python: `inversiones.py` (CSV a SQL), `cargar_sqlite.py` (SQLite local), `schema.sql` |
 | `conector/` | Programa saliente que conecta el Worker con la IA y la base SQLite del grupo (`LEEME.md`) |
 | `eval/` | Banco de 40 preguntas, ejecutor, puntuador y resultados; `exportar_sitio.mjs` genera los datos de la página `/proyecto` |
-| `docs/` | `PROYECTO.md` (documentación completa) y capturas |
+| `metricas/` | Mediciones de calidad de datos, alertas, rendimiento, exactitud y pruebas (`LEEME.md`); `exportar_sitio.mjs` genera los gráficos de `/proyecto` |
+| `fuentes/` | `REFERENCIAS.md` (APA 7, enlace, qué respalda y dónde se usa) y copias de documentos oficiales de libre acceso |
+| `docs/` | `PROYECTO.md` (documentación completa), `EXPOSICION.md` (guía para exponer sin tecnicismos) y capturas |
 | `.github/workflows/` | `deploy.yml` (pruebas y despliegue), `etl.yml` (carga manual a D1) |
 
 ## Arquitectura

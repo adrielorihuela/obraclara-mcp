@@ -60,7 +60,8 @@ export function conectar(m: Meta): string {
 <section class="pag-h"><div class="wrap">
 <p class="eyebrow">Documentación</p>
 <h1 style="max-width:15ch">Conecta ObraClara a tu asistente.</h1>
-<p class="lead">Es un servidor MCP público por Streamable HTTP. No pide cuenta, clave ni instalación: solo la dirección.</p>
+<p class="lead">ObraClara ofrece un «enchufe» público (un servidor MCP) al que se puede conectar un asistente de IA para que consulte las obras públicas del Perú. No pide cuenta, clave ni instalación: solo la dirección.</p>
+<aside class="sencillo rv" aria-label="Explicación sencilla"><h2>En palabras sencillas</h2><p>Si usas un asistente de IA compatible (por ejemplo, Claude), pegas la dirección de abajo en sus ajustes, como quien conecta un aparato a un enchufe. Desde ese momento el asistente puede revisar el registro oficial del MEF antes de responder. Esta guía es para quien quiere conectarlo; si solo quieres probarlo, usa el <a href="/asistente">asistente del sitio</a>. Las secciones de código (comandos, JSON) son para personas que programan.</p></aside>
 <span class="inline-url"><code>${MCP_URL}</code><button class="copiar" type="button" data-copy="${MCP_URL}">Copiar</button></span>
 </div></section>
 <div class="wrap doc">
@@ -167,25 +168,26 @@ export function acerca(m: Meta): string {
 <p class="eyebrow">Acerca del proyecto</p>
 <h1>Un proyecto de curso, hecho para usarse.</h1>
 <p class="lead">ObraClara Perú es el proyecto final del Grupo 1 del curso Inteligencia Artificial Aplicada de la Universidad de Lima, ciclo 2026-2.</p>
+<aside class="sencillo rv" aria-label="Explicación sencilla"><h2>En palabras sencillas</h2><p>ObraClara es un sitio donde cualquiera puede preguntar por las obras públicas del Perú y recibir una respuesta con la cifra oficial, la fuente y la fecha. Un asistente de inteligencia artificial (un programa que conversa como un chat) consulta el registro del Ministerio de Economía y Finanzas en lugar de responder de memoria. En una prueba de 40 preguntas, sin esa consulta acertó 3 y con ella acertó las 40.</p></aside>
 </div></section>
 <section style="padding-bottom:var(--sec)"><div class="wrap narrow">
 <div class="filas-a rv">
 <h2>Por qué</h2><div><p>Los datos de inversión pública del Perú son abiertos, pero consultarlos exige descargar un CSV de cientos de megabytes y saber leer sus columnas. Un asistente de IA puede hacer esa consulta por ti, siempre que tenga acceso al dato oficial y no lo invente.</p></div>
-<h2>Qué es</h2><div><p>Un servidor MCP público con cuatro herramientas sobre el archivo de inversiones del MEF, este sitio y un panel para probarlo con o sin MCP.</p></div>
-<h2>Evaluación</h2><div><p>40 preguntas con respuesta verificada en el archivo del MEF (10 de búsqueda, 10 de detalle, 10 de alertas y 10 de resumen), hechas al mismo modelo de lenguaje sin herramientas y con el servidor MCP. Puntuación automática; los casos dudosos se marcan para revisión manual.</p>
+<h2>Qué es</h2><div><p>Un «servidor» (programa siempre encendido en internet) con cuatro «herramientas» (funciones de consulta) sobre el archivo de inversiones del MEF, conectado mediante MCP, un enchufe estándar para asistentes de IA. Incluye este sitio y un panel para probarlo con o sin la conexión.</p></div>
+<h2>Evaluación</h2><div><p>40 preguntas con respuesta verificada en el archivo del MEF (10 de búsqueda, 10 de detalle, 10 de alertas y 10 de resumen), hechas al mismo asistente de IA (un modelo de lenguaje, es decir, un programa que entiende y escribe texto) sin la conexión y con ella. En palabras: <b>de 40 preguntas, sin la conexión acertó 3 y con la conexión acertó las 40</b>; sin ella, 21 de las 40 respuestas traían cifras que no coinciden con el registro oficial. Puntuación automática; los casos dudosos se marcan para revisión manual.</p>
 <table class="ref"><thead><tr><th>Métrica</th><th>Sin MCP</th><th>Con MCP</th></tr></thead><tbody>
-<tr><td>Respuesta exacta (±1 % del valor oficial)</td><td>8 %</td><td>100 %</td></tr>
-<tr><td>Cita fuente y fecha</td><td>10 %</td><td>100 %</td></tr>
-<tr><td>Información inventada</td><td>53 %</td><td>0 %</td></tr>
+<tr><td>Respuesta correcta (a ±1 % del valor oficial)</td><td>8 % (3 de 40)</td><td>100 % (40 de 40)</td></tr>
+<tr><td>Dice la fuente y la fecha</td><td>10 % (4 de 40)</td><td>100 % (40 de 40)</td></tr>
+<tr><td>Cifras que no coinciden (máximo de «inventada»)</td><td>53 % (21 de 40)</td><td>0 % (0 de 40)</td></tr>
 <tr><td>Preguntas respondidas</td><td>40 / 40</td><td>40 / 40</td></tr>
-<tr><td>Tiempo medio sin reintentos</td><td>11,1 s</td><td>20,2 s</td></tr>
+<tr><td>Tiempo medio por pregunta (sin reintentos)</td><td>11,1 s</td><td>20,2 s</td></tr>
 </tbody></table>
 <p>Sin MCP, el modelo respondió de memoria o con búsquedas web, con cifras de otras fuentes o fechas. «Inventada» es una cota superior: incluye cifras reales de otras fuentes que no coinciden con el MEF. Detalle por pregunta y método en <a href="${REPO}/blob/main/eval/resultados/resumen.md">eval/resultados/resumen.md</a>.</p></div>
 <h2>Datos</h2><div><p>Ministerio de Economía y Finanzas, <a href="${esc(m.url ?? "https://www.datosabiertos.gob.pe")}">Información de inversiones públicas 2001-2026</a>. Licencia Open Data Commons Attribution (ODC-BY). Descarga del ${esc(fechaLarga(m.fecha_descarga))}.</p></div>
 <h2>Limitaciones</h2><div><ul>
 <li>Los datos se actualizan una vez por semana y pueden no reflejar el estado más reciente en el MEF.</li>
-<li>Las alertas son aproximaciones con reglas simples. No prueban irregularidades.</li>
-<li>La IA por defecto del panel, un proveedor de IA del grupo (API compatible con OpenAI), corre en un equipo del grupo: es compartido, tiene límite de uso y puede estar apagado.</li>
+<li>Las alertas son aproximaciones con reglas simples: son señales para revisar, no prueban irregularidades.</li>
+<li>La IA del panel corre en un computador del grupo: es compartida, tiene límite de uso y puede estar apagada (entonces responde un respaldo).</li>
 <li>Durante la recarga semanal, por unos minutos, las consultas pueden devolver pocos resultados.</li></ul></div>
 <h2>Código</h2><div><p>Abierto con licencia MIT en <a href="${REPO}">github.com/adrielorihuela/obraclara-mcp</a>: ETL en Python, Worker en TypeScript, pruebas y banco de preguntas de evaluación.</p></div>
 <h2>Uso de IA</h2><div><p>El código se desarrolló con ayuda de IA generativa y fue revisado y probado por el grupo.</p></div>

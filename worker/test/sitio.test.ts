@@ -11,7 +11,7 @@ describe("página /proyecto", () => {
     expect(html).toContain('<a href="/proyecto" aria-current="page">El proyecto</a>');
   });
   it("contiene todas las secciones y sus enlaces del índice", () => {
-    for (const id of ["problema", "objetivo", "ods", "metodologia", "datos", "alertas", "arquitectura", "herramientas", "tecnologias", "evaluacion", "pruebas", "limitaciones", "ia", "referencias", "enlaces"]) {
+    for (const id of ["problema", "objetivo", "ods", "metodologia", "datos", "alertas", "arquitectura", "herramientas", "tecnologias", "evaluacion", "pruebas", "metricas", "limitaciones", "ia", "glosario", "exposicion", "referencias", "fuentes", "enlaces"]) {
       expect(html, id).toContain(`id="${id}"`);
       expect(html, id).toContain(`href="#${id}"`);
     }
@@ -23,7 +23,12 @@ describe("página /proyecto", () => {
     expect((html.match(/<svg class="(?:gx|arq)[^>]*role="img"/g) ?? []).length).toBe((html.match(/<svg class="(?:gx|arq)/g) ?? []).length);
     expect((html.match(/<desc id=/g) ?? []).length).toBeGreaterThanOrEqual(svgs.length);
   });
-  it("muestra los resultados de la evaluación exportados de eval/resultados", () => {
+  it("muestra los resultados de la evaluación y abre con una explicación sencilla", () => {
+    expect(html).toContain("En palabras sencillas");
+    expect(html).toContain("docs/EXPOSICION.md");
+    expect(html).toContain("sin la conexión el asistente acertó 3 y con la conexión acertó las 40");
+    expect((html.match(/Qué significa:/g) ?? []).length).toBeGreaterThanOrEqual(15);
+    expect(html).toContain("fuentes/REFERENCIAS.md");
     expect(html).toContain("100 %");
     expect(html).toContain("22,1 s");
     expect(html).toContain("99,9 s");

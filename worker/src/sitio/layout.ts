@@ -116,3 +116,7 @@ ${pie}
 <script>${scriptSitio}</script>${o.scriptExtra ? `<script>${o.scriptExtra}</script>` : ""}
 </body></html>`;
 }
+
+// Bloque «En pocas palabras» que abre cada página: lenguaje cotidiano, sin términos técnicos sin explicar.
+export const enSencillo = (...parrafos: string[]) =>
+  `<aside class="sencillo rv" aria-label="Explicación sencilla"><h2>En palabras sencillas</h2>${parrafos.map((p) => `<p>${p}</p>`).join("")}</aside>`;

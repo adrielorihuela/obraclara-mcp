@@ -68,3 +68,6 @@ de datos (flujo real con herramientas). Es un servicio compartido con cola; si u
 ## Cómo leer los CSV para gráficos
 Una fila por categoría y una columna por medida; las tablas `*_top10` y `*_hist_*` están ordenadas para barras directas. Las latencias crudas de cada
 llamada están en `metricas.json` → `bloques.rendimiento.latencias_ms` (para cajas o histogramas).
+
+## Datos para la página /proyecto
+`node metricas/exportar_sitio.mjs` lee `metricas/resultados/*.csv` y `metricas.json` y escribe `worker/src/sitio/metricas-datos.ts`, que usa la sección «Métricas» de `/proyecto` (gráficos SVG). No se edita a mano: se vuelve a generar después de cada medición.

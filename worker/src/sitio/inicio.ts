@@ -1,5 +1,5 @@
 import { arquitecturaAncha, arquitecturaCss, arquitecturaVertical } from "./arquitectura";
-import { esc, fechaLarga, MCP_URL, num, REPO, shell, type Meta } from "./layout";
+import { enSencillo, esc, fechaLarga, MCP_URL, num, REPO, shell, type Meta } from "./layout";
 
 // Consulta real hecha al servidor el 2026-11-10 (alertas_inversion, Cusco, Salud, paralización, límite 3).
 const TRAZA_FECHA = "10 de noviembre de 2026";
@@ -116,11 +116,11 @@ export function inicio(m: Meta): string {
   const cuerpo = `
 <section class="hero"><div class="wrap">
 <div>
-<p class="eyebrow"><span class="pulso" aria-hidden="true"></span>Servidor MCP público · datos del MEF</p>
+<p class="eyebrow"><span class="pulso" aria-hidden="true"></span>Datos oficiales del Estado · consulta gratuita</p>
 <h1>Las obras públicas del Perú, en una conversación.</h1>
-<p class="lead">ObraClara conecta a un asistente de IA con el Banco de Inversiones del Ministerio de Economía y Finanzas. Preguntas en castellano y la respuesta llega con la cifra oficial, la fuente y la fecha de los datos.</p>
+<p class="lead">ObraClara permite preguntar en castellano por las obras públicas del Perú. Un asistente de inteligencia artificial (un programa que conversa como un chat) revisa el registro oficial del Ministerio de Economía y Finanzas (MEF) y responde con la cifra, la fuente y la fecha de los datos.</p>
 <div class="acc"><a class="btn btn-p" href="/asistente">Probar el asistente ${icoFlecha}</a><a class="btn btn-s" href="/conectar">Conectarlo a Claude</a></div>
-<div class="url"><span class="small">Dirección del servidor, sin inicio de sesión</span>
+<div class="url"><span class="small">Dirección del servidor (el «enchufe» para conectar tu asistente), sin inicio de sesión</span>
 <span class="inline-url"><code>${MCP_URL}</code><button class="copiar" type="button" data-copy="${MCP_URL}">Copiar</button></span></div>
 </div>
 <figure>
@@ -142,12 +142,17 @@ export function inicio(m: Meta): string {
 </figure>
 </div></section>
 
+<section class="sec" style="padding-bottom:0"><div class="wrap">${enSencillo(
+  "Cuando una obra pública se retrasa o cuesta mucho más de lo previsto, saberlo no debería exigir descargar un archivo gigante ni ser experto. ObraClara deja que cualquier persona pregunte, por ejemplo, «¿qué obras de salud en Cusco llevan seis meses sin gastar dinero?».",
+  "Un asistente de IA normalmente responde de memoria, como alguien que contesta sin mirar ningún papel, y a veces se equivoca o inventa. Con ObraClara, el asistente primero revisa el registro oficial del MEF y luego te cuenta lo que encontró, mostrando de dónde sacó cada dato. En una prueba de 40 preguntas, sin esta conexión el asistente acertó 3; con ella acertó las 40.",
+  "Las «alertas» son señales para mirar una obra con más atención. <b>No prueban que haya algo malo.</b>")}</div></section>
+
 <section class="cifras" aria-label="Cifras de la base de datos"><div class="wrap">
 <dl>
-<div><dt data-count="${total}">${num(total)}</dt><dd>inversiones activas del Banco de Inversiones del MEF</dd></div>
-<div class="w"><dt data-count="${sob}">${num(sob)}</dt><dd>con alerta de sobrecosto: costo actualizado 50 % o más sobre el monto viable</dd></div>
-<div class="r"><dt data-count="${par}">${num(par)}</dt><dd>con alerta de posible paralización: avance entre 40 % y 99 % y 6 meses sin gasto</dd></div>
-<div><dt>4</dt><dd>herramientas MCP públicas, sin cuenta ni clave</dd></div>
+<div><dt data-count="${total}">${num(total)}</dt><dd>obras y proyectos públicos registrados por el MEF</dd></div>
+<div class="w"><dt data-count="${sob}">${num(sob)}</dt><dd>con alerta de sobrecosto: hoy cuestan la mitad o más de lo aprobado al inicio</dd></div>
+<div class="r"><dt data-count="${par}">${num(par)}</dt><dd>con alerta de posible paralización: van entre 40 % y 99 % de avance y llevan 6 meses sin gastar dinero</dd></div>
+<div><dt>4</dt><dd>«herramientas» (funciones que el asistente puede usar), sin cuenta ni clave</dd></div>
 </dl>
 <p class="cifras-p">Cifras de la base cargada el ${esc(fecha)}. La carga se repite cada lunes desde el CSV oficial.</p>
 </div></section>
@@ -155,40 +160,42 @@ export function inicio(m: Meta): string {
 <section class="sec" id="como"><div class="wrap">
 <div class="head rv"><p class="eyebrow"><b>01</b> Cómo funciona</p>
 <h2>Tu asistente pregunta. El servidor responde con el dato oficial.</h2>
-<p class="lead">MCP (Model Context Protocol) es un estándar abierto para que un modelo de IA use herramientas externas. ObraClara publica cuatro herramientas sobre los datos del MEF: el asistente elige cuál usar, el servidor ejecuta la consulta y devuelve cifras con su fuente.</p></div>
+<p class="lead">Imagina a alguien que, antes de contestar, abre el libro oficial y te muestra la página de donde sacó el dato. Eso hace ObraClara. La pieza que lo permite se llama MCP (Model Context Protocol): un «enchufe» estándar que deja a un asistente de IA consultar una fuente de datos real en lugar de responder de memoria. Nuestro «servidor» (un programa que está siempre encendido en internet esperando preguntas) ofrece cuatro herramientas y el asistente elige cuál usar.</p></div>
 <ol class="pasos">
 <li class="rv"><h3>Preguntas en castellano</h3><p>«¿Cuánto se ha devengado este año en las obras de la Municipalidad Provincial de Piura?»</p></li>
-<li class="rv d1"><h3>El modelo elige una herramienta</h3><p>En este caso <code>resumen_inversiones</code>, con la entidad como filtro.</p></li>
-<li class="rv d2"><h3>El servidor consulta la base</h3><p>SQL parametrizado sobre la copia del CSV del MEF. El servidor no estima ni completa cifras.</p></li>
-<li class="rv d3"><h3>La respuesta cita la fuente</h3><p>Cada resultado incluye <code>fuente</code>, <code>url</code> y <code>fecha_descarga</code> para que el asistente los cite.</p></li>
+<li class="rv d1"><h3>El asistente elige una herramienta</h3><p>Como si escogiera un cajón del archivo: aquí, el resumen de una entidad (<code>resumen_inversiones</code>).</p></li>
+<li class="rv d2"><h3>El servidor consulta la base de datos</h3><p>Busca en una copia ordenada del archivo del MEF (una «base de datos» es un archivo organizado para buscar rápido). No estima ni completa cifras. <small class="mut">Detalle técnico: SQL parametrizado.</small></p></li>
+<li class="rv d3"><h3>La respuesta cita la fuente</h3><p>Cada resultado trae la fuente, el enlace y la fecha de los datos, para que el asistente te diga de dónde salió.</p></li>
 </ol>
 <figure class="arq-fig rv">${arquitecturaAncha()}${arquitecturaVertical()}
-<figcaption>Todo corre en el plan gratuito de Cloudflare más un equipo del grupo. Si el conector del grupo está apagado, el Worker consulta D1 y el resto del sitio sigue funcionando.</figcaption></figure>
+<figcaption>Dibujo técnico del recorrido de un dato: del archivo del MEF al asistente. Todo funciona con servicios gratuitos de Cloudflare más un computador del grupo. Si ese computador está apagado, el servidor usa una copia de respaldo y el sitio sigue funcionando.</figcaption></figure>
+<p class="que rv" style="margin-inline:0"><b>Qué significa:</b> entre tu pregunta y la respuesta hay un paso de revisión del registro oficial; sin ese paso, el asistente solo adivina.</p>
 </div></section>
 
 <section class="sec"><div class="wrap">
 <div class="head rv"><p class="eyebrow"><b>02</b> Con y sin MCP</p>
 <h2>Con datos y sin ellos.</h2>
-<p class="lead">En el panel de prueba puedes apagar el MCP. Sin herramientas, el modelo responde de memoria y puede dar cifras que no existen. Con el MCP activado consulta la base y responde con los registros del MEF.</p></div>
+<p class="lead">En el panel de prueba puedes apagar la conexión (el MCP). Sin ella, el asistente responde de memoria y puede dar cifras que no existen. Con ella, consulta la base y responde con los registros del MEF. Medimos la diferencia: de 40 preguntas, <b>sin la conexión acertó 3 (8 %) y con la conexión acertó las 40 (100 %)</b>. Sin la conexión, 21 de las 40 respuestas traían cifras que no coinciden con el registro oficial (53 %); con la conexión, ninguna.</p></div>
 <div class="duo">
 <figure class="rv"><p class="lbl on"><i aria-hidden="true"></i>MCP activado</p><div class="shot"><img src="/img/con-mcp.png" width="1200" height="900" alt="Panel del asistente con MCP activado: la respuesta muestra la herramienta usada y cita al MEF" loading="lazy" decoding="async"></div>
-<figcaption><b>Con MCP.</b> El modelo llamó a <code>alertas_inversion</code> y lista los códigos únicos reales. La tarjeta se despliega para ver argumentos y resultado.</figcaption></figure>
+<figcaption><b>Con la conexión (MCP).</b> El asistente consultó la herramienta de alertas y lista códigos de obra reales. La tarjeta se despliega para ver qué pidió y qué recibió.</figcaption></figure>
 <figure class="rv d1"><p class="lbl"><i aria-hidden="true"></i>MCP desactivado</p><div class="shot"><img src="/img/sin-mcp.png" width="1200" height="900" alt="Panel del asistente con MCP desactivado: el modelo responde sin consultar datos" loading="lazy" decoding="async"></div>
-<figcaption><b>Sin MCP.</b> La misma pregunta. Los números de expediente, montos y fechas de esta tabla no existen en los datos del MEF.</figcaption></figure>
+<figcaption><b>Sin la conexión.</b> La misma pregunta. Los números de expediente, montos y fechas de esta tabla no existen en los datos del MEF: el asistente los inventó.</figcaption></figure>
 </div>
-<p class="small mut" style="margin-top:20px">Capturas reales del panel, tomadas el 10 de noviembre de 2026 con una conexión propia a Groq: <code>openai/gpt-oss-20b</code> con MCP y <code>openai/gpt-oss-120b</code> sin MCP (el de 20b no devolvió texto sin herramientas). Las respuestas varían entre intentos.</p>
+<p class="small mut" style="margin-top:20px">Capturas reales del panel, tomadas el 10 de noviembre de 2026. Las respuestas de un asistente cambian entre intentos. <a href="/proyecto#evaluacion">Ver la evaluación completa</a>.</p>
 </div></section>
 
 <section class="sec"><div class="wrap tools">
 <div>
 <div class="head rv" style="margin-bottom:36px"><p class="eyebrow"><b>03</b> Herramientas</p>
 <h2>Cuatro herramientas, una sola fuente.</h2>
-<p class="lead">Todas leen el mismo archivo del MEF, <code>DETALLE_INVERSIONES.csv</code>, y devuelven como máximo 20 filas por consulta.</p></div>
+<p class="lead">Una «herramienta» es una función que el asistente puede usar, como un cajón del archivo con una etiqueta. Las cuatro leen el mismo archivo del MEF, <code>DETALLE_INVERSIONES.csv</code>, y devuelven como máximo 20 resultados por consulta.</p>
+<details class="det"><summary>Para quien quiere el detalle técnico</summary><p>Cada herramienta tiene parámetros con nombre (abajo, en recuadros: los obligatorios resaltados) que el servidor valida antes de ejecutar un SQL fijo. Las definiciones completas están en <a href="/conectar#herramientas">la guía de conexión</a>.</p></details></div>
 <dl class="rv">
-<dt>buscar_inversiones</dt><dd>Busca por texto libre (nombre de la obra, distrito, provincia) y filtros. Ordena por costo actualizado.<div class="params"><span>texto</span><span>entidad</span><span>departamento</span><span>funcion</span><span>nivel</span><span>limite</span></div></dd>
-<dt>detalle_inversion</dt><dd>Ficha de una inversión por su código único: montos, avance físico y de ejecución, último devengado, ubicación y alertas.<div class="params"><span class="req">codigo_unico</span></div></dd>
-<dt>alertas_inversion</dt><dd>Lista inversiones con alerta de sobrecosto o de posible paralización, con los mismos filtros.<div class="params"><span class="req">tipo</span><span>entidad</span><span>departamento</span><span>funcion</span><span>nivel</span><span>limite</span></div></dd>
-<dt>resumen_inversiones</dt><dd>Cantidad, costo actualizado total, devengado del año, saldo por ejecutar y alertas de un conjunto.<div class="params"><span>entidad</span><span>departamento</span><span>funcion</span><span>nivel</span></div></dd>
+<dt>buscar_inversiones</dt><dd>Encuentra obras por palabras (nombre, distrito, provincia) y filtros. Las ordena de la más cara a la más barata.<div class="params"><span>texto</span><span>entidad</span><span>departamento</span><span>funcion</span><span>nivel</span><span>limite</span></div></dd>
+<dt>detalle_inversion</dt><dd>La ficha de una obra por su código único: montos, avance, último gasto registrado (devengado), ubicación y alertas.<div class="params"><span class="req">codigo_unico</span></div></dd>
+<dt>alertas_inversion</dt><dd>Lista las obras con señal de sobrecosto o de posible paralización, con los mismos filtros.<div class="params"><span class="req">tipo</span><span>entidad</span><span>departamento</span><span>funcion</span><span>nivel</span><span>limite</span></div></dd>
+<dt>resumen_inversiones</dt><dd>El «total» de un grupo de obras: cuántas son, cuánto cuestan hoy, cuánto se gastó este año, cuánto falta y cuántas tienen alerta.<div class="params"><span>entidad</span><span>departamento</span><span>funcion</span><span>nivel</span></div></dd>
 </dl>
 <p class="rv"><a href="/conectar#herramientas">Referencia completa de parámetros</a></p>
 </div>
@@ -198,14 +205,14 @@ export function inicio(m: Meta): string {
 <section class="sec"><div class="wrap">
 <div class="head rv"><p class="eyebrow"><b>04</b> Alertas</p>
 <h2>Una alerta es una pregunta, no una acusación.</h2>
-<p class="lead">Las dos alertas se calculan con reglas simples y públicas sobre los mismos datos. Sirven para decidir qué revisar primero.</p></div>
+<p class="lead">Una alerta es una señal para mirar una obra con más atención, como la luz del tablero de un auto: avisa que conviene revisar, no que el motor esté dañado. Las dos alertas se calculan con reglas simples y públicas sobre los mismos datos y sirven para decidir qué revisar primero.</p></div>
 <div class="alertas rv">
 <div><h3><span class="tag tag-w">sobrecosto</span></h3>
 <p class="f">(costo actualizado − monto viable) / monto viable ≥ 50 %</p>
-<p>El costo actual de la inversión supera en la mitad o más al monto con el que se declaró viable. Puede deberse a cambios de alcance aprobados, no solo a problemas.</p></div>
+<p>La obra hoy cuesta la mitad o más de lo que se aprobó al inicio («monto viable»). Puede deberse a cambios aprobados, como ampliar la obra, y no solo a problemas.</p></div>
 <div><h3><span class="tag tag-r">posible paralización</span></h3>
 <p class="f">40 % ≤ avance físico &lt; 100 % y ≥ 6 meses sin devengado</p>
-<p>La obra está a medio camino y lleva medio año o más sin gasto devengado. Es una aproximación a la definición de obra paralizada de la Ley 31589.</p></div>
+<p>La obra va por la mitad o más y lleva seis meses o más sin registrar gasto («devengado» es el gasto que el Estado reconoce como ya realizado). Se parece a la definición de obra paralizada de la Ley 31589, pero es una aproximación.</p></div>
 </div>
 <div class="aviso rv">${icoAviso}<p>Las alertas son indicadores calculados con datos abiertos. <b>No constituyen evidencia de irregularidades</b> y deben verificarse en la fuente oficial. <a href="/datos">Ver criterios y buscar en los datos</a></p></div>
 </div></section>
@@ -213,7 +220,7 @@ export function inicio(m: Meta): string {
 <section class="sec"><div class="wrap final">
 <div class="rv"><p class="eyebrow"><b>05</b> Conectar</p>
 <h2>Agrégalo a tu asistente en un minuto.</h2>
-<p class="lead" style="margin-top:18px">En claude.ai, pega la dirección como conector personalizado. En Claude Code, basta un comando.</p>
+<p class="lead" style="margin-top:18px">Si usas un asistente de IA compatible (por ejemplo, Claude), solo pegas la dirección del servidor, como quien conecta un aparato a un enchufe. No necesitas cuenta ni clave. Quien programa puede hacerlo con un comando.</p>
 <div class="acc"><a class="btn btn-p" href="/conectar">Guía de conexión ${icoFlecha}</a><a class="btn btn-s" href="${REPO}">Ver el código</a></div></div>
 <div class="code rv d1"><div class="code-h">Terminal<button class="copiar" type="button" data-copy="claude mcp add --transport http obraclara ${MCP_URL}">Copiar</button></div>
 <pre><span class="c">$</span> <span class="f">claude</span> mcp add --transport http obraclara \

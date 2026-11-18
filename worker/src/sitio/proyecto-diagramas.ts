@@ -96,12 +96,12 @@ export function flujoEtl(): string {
 export function flujoConsulta(): string {
   const etapas: [string, string, boolean][] = [
     ["El usuario pregunta", "en lenguaje natural", false],
-    ["El LLM identifica", "entidad, región, sector y tipo", false],
-    ["El LLM elige la herramienta", "y sus parámetros", false],
-    ["El servidor MCP valida y ejecuta", "un SQL fijo y parametrizado", true],
+    ["El asistente identifica", "entidad, región, sector y tipo", false],
+    ["El asistente elige la herramienta", "y sus parámetros", false],
+    ["El servidor MCP valida y busca", "con una consulta fija y segura", true],
     ["Devuelve los datos", "con fuente, enlace y fecha", true],
-    ["El LLM puede encadenar otra consulta", "(ciclo ReAct)", false],
-    ["El LLM redacta la respuesta", "con alertas y fuente", false],
+    ["El asistente puede consultar de nuevo", "si le falta información", false],
+    ["El asistente redacta la respuesta", "con alertas y fuente", false],
   ];
   const x = 50, w = 340, h = 62, paso = 92;
   const cuerpo = etapas.map(([a, b, srv], i) => {
@@ -142,33 +142,39 @@ function barrasAgrupadas(id: string, titulo: string, desc: string, grupos: Par[]
 const G = (c: string) => EVAL.global.find((x) => x.condicion === c)!;
 export function graficoGlobal(): string {
   const a = G("sin_mcp"), b = G("con_mcp");
-  return barrasAgrupadas("gG", "Resultado global de la evaluación, sin MCP y con MCP",
-    `Barras agrupadas sobre ${EVAL.preguntas} preguntas. Exactitud: ${a.exactitud} % sin MCP y ${b.exactitud} % con MCP. Cita de fuente y fecha: ${a.citacion} % y ${b.citacion} %. Información inventada: ${a.inventada} % y ${b.inventada} %.`,
-    [{ etiqueta: "Exactitud", sin: a.exactitud, con: b.exactitud }, { etiqueta: "Cita", sin: a.citacion, con: b.citacion }, { etiqueta: "Inventada", sin: a.inventada, con: b.inventada }],
+  return barrasAgrupadas("gG", "De 40 preguntas: respuestas correctas, con fuente e inventadas, sin y con la conexión (MCP)",
+    `Barras agrupadas sobre ${EVAL.preguntas} preguntas. Respuestas correctas: ${a.exactitud} % sin la conexión y ${b.exactitud} % con ella. Respuestas que citan fuente y fecha: ${a.citacion} % y ${b.citacion} %. Respuestas con datos inventados: ${a.inventada} % y ${b.inventada} %.`,
+    [{ etiqueta: "Correctas", sin: a.exactitud, con: b.exactitud }, { etiqueta: "Citan fuente", sin: a.citacion, con: b.citacion }, { etiqueta: "Inventadas", sin: a.inventada, con: b.inventada }],
     [400, 290], 44);
 }
 
 const TIPOS: [string, string][] = [["busqueda", "Búsqueda"], ["detalle", "Detalle"], ["alertas", "Alertas"], ["resumen", "Resumen"]];
 export function graficosPorTipo(): string {
   const f = (t: string, c: string) => EVAL.porTipo.find((x) => x.tipo === t && x.condicion === c)!;
-  return ([["exactitud", "Exactitud"], ["citacion", "Cita de fuente y fecha"], ["inventada", "Información inventada"]] as const).map(([k, nom]) => {
+  const m = (v: number) => Math.round(v / 10); // 10 preguntas por tipo: porcentaje -> cantidad de 10
+  const defs = [
+    ["exactitud", "Respuestas correctas", "Sin la conexión, el asistente acertó 0 a 2 de cada 10 preguntas según el tipo; con la conexión acertó 10 de 10 en los cuatro tipos."],
+    ["citacion", "Respuestas que citan la fuente y la fecha", "Sin la conexión casi nunca dijo de dónde sacó el dato (0 a 3 de cada 10); con la conexión lo dijo siempre."],
+    ["inventada", "Respuestas con datos inventados", "Sin la conexión inventó cifras en 8 de 10 búsquedas y en 7 de 10 alertas; con la conexión, en ninguna."],
+  ] as const;
+  return defs.map(([k, nom, que]) => {
     const g = TIPOS.map(([t, e]) => ({ etiqueta: e, sin: f(t, "sin_mcp")[k], con: f(t, "con_mcp")[k] }));
-    const detalle = g.map((x) => `${x.etiqueta}: ${x.sin} % sin MCP y ${x.con} % con MCP`).join("; ");
-    return `<figure class="rv">${barrasAgrupadas(`gT${k}`, `${nom} por tipo de pregunta`, `Barras agrupadas por tipo de pregunta (10 preguntas cada una). ${nom}: ${detalle}.`, g, [320, 260], 26)}<figcaption>${nom} por tipo</figcaption></figure>`;
+    const detalle = g.map((x) => `${x.etiqueta}: ${m(x.sin)} de 10 sin la conexión y ${m(x.con)} de 10 con ella`).join("; ");
+    return `<figure class="rv">${barrasAgrupadas(`gT${k}`, `${nom}, por tipo de pregunta`, `Barras agrupadas por tipo de pregunta (10 preguntas cada una). ${nom}. ${detalle}.`, g, [320, 260], 26)}<figcaption>${nom}, por tipo de pregunta (10 de cada tipo)</figcaption><p class="que"><b>Qué significa:</b> ${que}</p></figure>`;
   }).join("");
 }
 
 export function graficoLatencia(): string {
   const a = G("sin_mcp"), b = G("con_mcp");
-  const filas: [string, number, number][] = [["Media total (con reintentos)", a.latTotal, b.latTotal], ["Media sin reintentos", a.latSinReintentos, b.latSinReintentos]];
+  const filas: [string, number, number][] = [["Tiempo medio total (con reintentos)", a.latTotal, b.latTotal], ["Tiempo medio sin reintentos", a.latSinReintentos, b.latSinReintentos]];
   const max = Math.max(...filas.flatMap((f) => [f[1], f[2]])), x0 = 0, ancho = 290;
   const cuerpo = filas.map(([n, s, c], i) => {
     const y = 8 + i * 92;
     const barra = (v: number, cls: string, dy: number) => `<rect x="${x0}" y="${y + 24 + dy}" width="${Math.max(3, (v / max) * ancho).toFixed(1)}" height="22" rx="4" class="${cls}"/>` + txt(x0 + Math.max(3, (v / max) * ancho) + 8, y + 41 + dy, `${nf(v, 1)} s`, "gx-t gx-n");
     return txt(0, y + 14, n, "gx-m") + barra(s, "gx-sin", 0) + barra(c, "gx-con", 26);
   }).join("");
-  return svg("gL", "0 0 400 190", "Latencia media por pregunta, sin MCP y con MCP",
-    `Barras horizontales. Latencia media total: ${nf(a.latTotal, 1)} s sin MCP y ${nf(b.latTotal, 1)} s con MCP. Sin contar los reintentos: ${nf(a.latSinReintentos, 1)} s y ${nf(b.latSinReintentos, 1)} s.`, cuerpo);
+  return svg("gL", "0 0 400 190", "Cuánto tarda en responder cada pregunta, sin y con la conexión (MCP)",
+    `Barras horizontales. Tiempo medio total: ${nf(a.latTotal, 1)} s sin la conexión y ${nf(b.latTotal, 1)} s con ella. Sin contar los reintentos: ${nf(a.latSinReintentos, 1)} s y ${nf(b.latSinReintentos, 1)} s.`, cuerpo);
 }
 
 export const diagramasCss = String.raw`

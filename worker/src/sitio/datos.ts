@@ -87,7 +87,8 @@ export function datos(m: Meta): string {
 <section class="pag-h"><div class="wrap">
 <p class="eyebrow">Datos y alertas</p>
 <h1 style="max-width:16ch">Lo que dicen los datos del MEF, sin intermediarios.</h1>
-<p class="lead">Una sola fuente: el archivo <code>DETALLE_INVERSIONES.csv</code> del portal de datos abiertos del MEF, con las inversiones activas del Banco de Inversiones. Descargado el ${esc(fechaLarga(m.fecha_descarga))}.</p>
+<p class="lead">Una sola fuente: el archivo <code>DETALLE_INVERSIONES.csv</code> (una tabla enorme, una fila por obra) del portal de datos abiertos del MEF, con las inversiones activas del Banco de Inversiones. Descargado el ${esc(fechaLarga(m.fecha_descarga))}.</p>
+<aside class="sencillo rv" aria-label="Explicación sencilla"><h2>En palabras sencillas</h2><p>Esta página muestra los datos oficiales detrás de ObraClara. Puedes buscar una obra por nombre o lugar, sin inteligencia artificial, y ver cuáles tienen alertas. Una alerta es una señal para revisar una obra con más atención: <b>no es una prueba de que haya algo malo</b>.</p><p>«Datos abiertos» significa información pública que cualquiera puede descargar. «Inversión» es una obra o proyecto pagado con dinero del Estado.</p></aside>
 <div class="prop rv" aria-label="Proporción de inversiones con alertas">
 <div class="barra" role="img" aria-label="${p(sob)} % con alerta de sobrecosto y ${p(par)} % con alerta de posible paralización, sobre ${num(total)} inversiones. Una inversión puede tener ambas."><span class="b-w" style="width:${p(sob)}%"></span><span class="b-r" style="width:${p(par)}%"></span></div>
 <ul><li><i style="background:var(--warn)"></i>${num(sob)} con sobrecosto (${p(sob)} %)</li><li><i style="background:var(--risk)"></i>${num(par)} con posible paralización (${p(par)} %)</li><li><i style="background:var(--surface-2);border:1px solid var(--line-2)"></i>${num(total)} inversiones activas</li></ul>
@@ -115,11 +116,11 @@ export function datos(m: Meta): string {
 <div class="criterios">
 <div class="rv"><h3><span class="tag tag-w">sobrecosto</span></h3>
 <p class="f">(costo_actualizado − monto_viable) / monto_viable ≥ 0.5</p>
-<p>Compara el costo actualizado de la inversión con el monto con que fue declarada viable. Un aumento puede tener causas legítimas, como un expediente técnico con mayor alcance.</p>
+<p>En sencillo: la obra hoy cuesta la mitad o más de lo que se aprobó al inicio (el «monto viable»). Un aumento puede tener causas legítimas, como un expediente técnico con mayor alcance.</p>
 <p>No se calcula cuando el monto viable es cero o falta.</p></div>
 <div class="rv d1"><h3><span class="tag tag-r">posible paralización</span></h3>
 <p class="f">40 ≤ avance_fisico &lt; 100 y meses_sin_devengado ≥ 6</p>
-<p>Aproxima la definición de obra paralizada de la Ley 31589 con dos campos del archivo: el avance físico y el último mes con gasto devengado.</p>
+<p>En sencillo: la obra va entre 40 % y 99 % de avance y lleva seis meses o más sin gasto («devengado» es el gasto que el Estado reconoce como ya realizado). Aproxima la definición de obra paralizada de la Ley 31589 con dos campos del archivo.</p>
 <p>El archivo no registra si la entidad declaró la paralización; por eso es «posible».</p></div>
 </div>
 <p class="nota rv" style="margin-top:36px;max-width:760px">Las alertas son indicadores calculados con datos abiertos. No constituyen evidencia de irregularidades ni de corrupción y deben verificarse en la fuente oficial.</p>
@@ -128,13 +129,13 @@ export function datos(m: Meta): string {
 <section class="sec"><div class="wrap narrow">
 <div class="head rv"><p class="eyebrow"><b>Campos</b></p><h2>Qué significa cada cifra.</h2></div>
 <dl class="campos rv">
-<dt>codigo_unico</dt><dd>Identificador de la inversión en el Banco de Inversiones (Invierte.pe).</dd>
-<dt>monto_viable</dt><dd>Monto con el que la inversión fue declarada viable, en soles.</dd>
-<dt>costo_actualizado</dt><dd>Costo total vigente según el MEF, en soles.</dd>
-<dt>avance_fisico</dt><dd>Porcentaje de avance físico reportado por la entidad.</dd>
-<dt>avance_ejecucion</dt><dd>Avance de la ejecución financiera que publica el MEF, en porcentaje.</dd>
-<dt>ultimo_devengado</dt><dd>Año y mes (AAAAMM) del último gasto devengado.</dd>
-<dt>meses_sin_devengado</dt><dd>Meses entre el último devengado y la fecha de descarga.</dd>
+<dt>codigo_unico</dt><dd>El «DNI» de la obra: identificador de la inversión en el Banco de Inversiones (Invierte.pe).</dd>
+<dt>monto_viable</dt><dd>Lo que costaba la obra cuando se aprobó, en soles.</dd>
+<dt>costo_actualizado</dt><dd>Lo que cuesta la obra hoy según el MEF, en soles.</dd>
+<dt>avance_fisico</dt><dd>Qué parte de la obra está construida, en porcentaje, según la entidad.</dd>
+<dt>avance_ejecucion</dt><dd>Qué parte del dinero ya se gastó, en porcentaje, según el MEF.</dd>
+<dt>ultimo_devengado</dt><dd>Año y mes (AAAAMM) del último gasto que el Estado reconoció como realizado.</dd>
+<dt>meses_sin_devengado</dt><dd>Cuántos meses pasaron sin gasto registrado, hasta la fecha de descarga.</dd>
 </dl>
 <p class="small mut rv" style="margin-top:24px">Fuente: <a href="${esc(m.url ?? "https://www.datosabiertos.gob.pe")}">${esc(m.fuente ?? "Ministerio de Economía y Finanzas")}</a>. Licencia Open Data Commons Attribution (ODC-BY). Atribución: «Fuente: MEF, Datos Abiertos».</p>
 </div></section>`;

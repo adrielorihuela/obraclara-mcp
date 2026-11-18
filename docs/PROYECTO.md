@@ -2,9 +2,45 @@
 
 Misma información que la página [`/proyecto`](https://obraclara.adrielorihuela.net/proyecto) del sitio. Proyecto del Grupo 1, I.A. Aplicada (sección 356), Universidad de Lima, 2026-2.
 
+## En palabras sencillas
+
+ObraClara es un sitio donde cualquiera puede preguntar, en castellano, por las obras públicas del Perú (colegios, hospitales, carreteras) y recibir una respuesta con la cifra oficial, la fuente y la fecha.
+
+Funciona así: un asistente de inteligencia artificial (un programa que conversa como un chat) no responde de memoria, sino que primero consulta el registro oficial del Ministerio de Economía y Finanzas (MEF). Esa conexión se hace con un «enchufe» estándar llamado MCP. Es como la diferencia entre alguien que responde de memoria y alguien que abre el libro oficial y te muestra la página.
+
+En una prueba de 40 preguntas, **sin la conexión el asistente acertó 3 y con la conexión acertó las 40**. Sin ella, 21 de las 40 respuestas traían cifras que no coinciden con el registro oficial; con ella, ninguna. El sitio también marca «alertas» sobre obras que conviene revisar; una alerta es una señal, **no una prueba de irregularidad ni de corrupción**.
+
+Los términos técnicos se explican en el [glosario](#glosario). Después de cada resumen sencillo viene el detalle técnico. Para explicar el proyecto a un público sin conocimientos técnicos, usa la [guía de exposición](EXPOSICION.md); las referencias y los documentos oficiales están en [`fuentes/`](../fuentes/REFERENCIAS.md).
+
+## Glosario
+
+- **Inteligencia artificial (IA):** Programas que hacen tareas que antes pedían una persona, como entender un texto o responder una pregunta.
+- **Modelo de lenguaje:** Programa de IA que entiende y escribe texto, como el asistente de un chat. Aprendió leyendo muchísimos textos y por eso redacta bien, pero no «sabe» datos actuales.
+- **Alucinación:** Cuando un asistente de IA da un dato falso con total seguridad, porque responde de memoria y rellena lo que no sabe.
+- **MCP (Model Context Protocol):** Un «enchufe» estándar que permite a un asistente de IA consultar una fuente de datos real en lugar de responder de memoria.
+- **Herramienta:** Una función concreta que el asistente puede usar a través del MCP, por ejemplo «buscar obras» o «ver el detalle de una obra».
+- **Servidor:** Un programa que está siempre encendido en internet esperando pedidos y respondiéndolos. El de ObraClara responde las consultas de los asistentes.
+- **Base de datos:** Un archivo organizado para encontrar información rápido, como un fichero con cajones y etiquetas.
+- **Datos abiertos:** Información pública que cualquiera puede descargar y usar. Aquí, el archivo de inversiones que publica el MEF.
+- **MEF:** Ministerio de Economía y Finanzas del Perú, que registra y publica las inversiones públicas.
+- **CSV:** Un archivo de texto con una tabla muy grande, una fila por obra. El del MEF pesa 247 MB y tiene 150 641 filas.
+- **ETL:** Limpiar y ordenar el archivo del MEF antes de usarlo: quitar repetidos, convertir cifras y calcular las alertas. Las siglas vienen de extraer, transformar y cargar.
+- **Inversión pública:** Dinero del Estado destinado a una obra o proyecto, como un colegio, un hospital o una carretera.
+- **Monto viable:** Lo que costaba la obra cuando se aprobó su ejecución.
+- **Costo actualizado:** Lo que cuesta la obra hoy, según el MEF. Puede ser mayor que el monto viable.
+- **Devengado:** Gasto que el Estado reconoce como ya realizado (por ejemplo, un servicio ya prestado), aunque aún no se haya pagado.
+- **PIM:** Presupuesto institucional modificado: el dinero autorizado para este año a la entidad, después de los cambios.
+- **Avance físico:** Qué parte de la obra está construida, en porcentaje.
+- **Alerta:** Una señal para revisar una obra con más atención. No es una prueba de irregularidad ni de corrupción.
+- **Sobrecosto (alerta):** La obra hoy cuesta la mitad o más de lo aprobado al inicio (50 % o más sobre el monto viable).
+- **Posible paralización (alerta):** La obra tiene entre 40 % y 99 % de avance físico y lleva 6 meses o más sin gasto devengado.
+- **Exactitud, cita e inventada:** Las tres medidas de la evaluación: cuántas respuestas fueron correctas, cuántas dijeron de qué fuente y fecha salió el dato y cuántas traían cifras que no coinciden con el registro oficial.
+- **CRISP-DM:** Un método de seis pasos para proyectos con datos: entender el problema, entender los datos, prepararlos, modelar, evaluar y publicar.
+- **ODS 16:** Objetivo de Desarrollo Sostenible de la ONU sobre paz, justicia e instituciones sólidas, que incluye transparencia y acceso a la información.
+
 ## Contenido
 
-1. [Problema y contexto](#1-problema-y-contexto) · 2. [Objetivo y alcance](#2-objetivo-y-alcance) · 3. [ODS 16](#3-ods-16) · 4. [Metodología CRISP-DM](#4-metodología-crisp-dm) · 5. [Datos y ETL](#5-datos-y-etl) · 6. [Criterios de alerta](#6-criterios-de-alerta) · 7. [Arquitectura](#7-arquitectura) · 8. [Herramientas](#8-las-4-herramientas) · 9. [Tecnologías](#9-tecnologías) · 10. [Evaluación](#10-evaluación) · 11. [Pruebas](#11-pruebas) · 12. [Limitaciones](#12-limitaciones-y-trabajo-futuro) · 13. [Uso de IA](#13-uso-de-ia) · 14. [Referencias](#14-referencias) · 15. [Enlaces](#15-enlaces)
+1. [Problema y contexto](#1-problema-y-contexto) · 2. [Objetivo y alcance](#2-objetivo-y-alcance) · 3. [ODS 16](#3-ods-16) · 4. [Metodología CRISP-DM](#4-metodología-crisp-dm) · 5. [Datos y ETL](#5-datos-y-etl) · 6. [Criterios de alerta](#6-criterios-de-alerta) · 7. [Arquitectura](#7-arquitectura) · 8. [Herramientas](#8-las-4-herramientas) · 9. [Tecnologías](#9-tecnologías) · 10. [Evaluación](#10-evaluación) · [Métricas](#métricas) · 11. [Pruebas](#11-pruebas) · 12. [Limitaciones](#12-limitaciones-y-trabajo-futuro) · 13. [Uso de IA](#13-uso-de-ia) · [Glosario](#glosario) · 14. [Referencias](#14-referencias) · 15. [Enlaces](#15-enlaces)
 
 ## 1. Problema y contexto
 
@@ -63,6 +99,8 @@ flowchart LR
 
 ## 5. Datos y ETL
 
+**En sencillo:** el MEF publica un archivo enorme con todas las obras. Antes de usarlo hay que limpiarlo y ordenarlo (eso es el ETL): quitar filas repetidas, convertir las cifras a números y calcular las alertas. De 150 641 filas quedaron 150 574 obras. Los detalles técnicos siguen.
+
 Descarga del 10 de noviembre de 2026 (archivo modificado el 8 de noviembre): **150 641 filas, 68 columnas, 247 MB**. 67 códigos únicos repetidos: se conserva la primera fila, quedan **150 574 inversiones**. Se conservan **23 columnas**; la base SQLite pesa unos 141 MB. Licencia ODC-BY.
 
 ```mermaid
@@ -84,6 +122,8 @@ Columnas derivadas: `sobrecosto_pct`, `meses_sin_devengado`, `alerta_sobrecosto`
 
 ## 6. Criterios de alerta
 
+**En sencillo:** una alerta es una señal para mirar una obra con más atención, como la luz de un tablero; no prueba que haya un problema ni corrupción. Hay dos: sobrecosto (hoy cuesta la mitad o más de lo aprobado) y posible paralización (entre 40 % y 99 % de avance y 6 meses o más sin gasto). Los detalles técnicos siguen.
+
 - **Sobrecosto:** `(COSTO_ACTUALIZADO − MONTO_VIABLE) / MONTO_VIABLE ≥ 0,50`, con `MONTO_VIABLE > 0`.
 - **Posible paralización:** `40 % ≤ AVANCE_FISICO < 100 %` y `meses desde ULTIMO_DEVENGADO ≥ 6`.
 
@@ -92,6 +132,8 @@ Base: Ley N.° 31589, que considera paralizada una obra por contrata con avance 
 Cifras al corte del 10/11/2026 (API pública `/api/alertas` y `/salud`): **16 502** con posible paralización (11,0 % de 150 574) y **26 387** con sobrecosto ≥ 50 % (17,5 %). Frente a las 684 del inventario oficial (unas 24 veces menos): el universo es distinto (todas las inversiones activas), el indicador es distinto (gasto, no situación de la obra), no se distingue modalidad ni declaración, las fechas difieren (marzo frente a noviembre de 2026) y puede haber meses sin gasto por motivos administrativos. Sirven para priorizar revisiones, no para contar obras paralizadas.
 
 ## 7. Arquitectura
+
+**En sencillo:** es como una biblioteca: el asistente pregunta, el servidor es el bibliotecario y la base de datos es el archivo. El asistente nunca toca la base directamente; solo recibe lo que el servidor le entrega, con fuente y fecha. Los detalles técnicos siguen.
 
 ```mermaid
 flowchart LR
@@ -135,6 +177,8 @@ Filtros comunes (opcionales): `entidad`, `departamento`, `funcion`, `nivel` (loc
 TypeScript y Zod; Cloudflare Workers, D1 y Durable Objects; MCP SDK y Agents SDK (`createMcpHandler`); Streamable HTTP; Python 3.12 (ETL); SQLite; Vitest; GitHub Actions. IA del servidor (API de IA privada del grupo, compatible con OpenAI) con respaldo de Workers AI y Groq.
 
 ## 10. Evaluación
+
+**En sencillo:** le hicimos al mismo asistente las mismas 40 preguntas, sin la conexión (respondiendo de memoria) y con ella (consultando el registro oficial). Sin la conexión acertó 3 de 40 (8 %), citó la fuente en 4 (10 %) y 21 respuestas (53 %) traían cifras que no coinciden con el registro; con la conexión acertó y citó las 40 (100 %) y ninguna fue inventada. Con la conexión tarda más (20,2 s frente a 11,1 s por pregunta, sin reintentos). «Inventada» es un máximo: incluye cifras reales de otras fuentes. Los detalles técnicos siguen.
 
 **Método.** 40 preguntas (10 de búsqueda, 10 de detalle, 10 de alertas y 10 de resumen) con referencia verificada contra el CSV antes de correr; las mismas preguntas sin y con MCP (hasta 5 pasos); una corrida (R02, R03 y R07–R10 el 18/11/2026; el resto el 10/11/2026).
 
@@ -181,6 +225,140 @@ xychart-beta
 **Limitaciones** (de `resumen.md`): proveedor de IA gratuito con límite de uso y modelo no controlado (sin MCP puede usar búsqueda web); protocolo de herramientas en texto y resultados de más de 15 000 caracteres recortados; puntuación automática con reglas simples (los casos «revisar» requieren revisión manual); la latencia incluye reintentos; «inventada» es una cota superior (sin MCP el chat cita fuentes reales de otras fechas); el marcado interno del proveedor afecta sobre todo a «cita» sin MCP; las abstenciones no cuentan como exactas ni inventadas; una sola corrida por condición; referencia con corte 2026-11-10.
 
 Para regenerar los datos del sitio: `node eval/exportar_sitio.mjs`.
+
+## Métricas
+
+**En sencillo:** medimos cuatro cosas: si los datos están completos, cuántas obras tienen alertas, si el servidor responde rápido y sin fallar, y si lo que responde coincide con la base de datos. Todos los números salen de los archivos de [`metricas/resultados/`](../metricas/resultados/) (corte del 10 de noviembre de 2026); las tablas y los gráficos de la página `/proyecto` se generan con `node metricas/exportar_sitio.mjs`.
+
+### Calidad de los datos
+
+La base tiene **150 574 inversiones** sin repetidos.
+
+| Columna clave | Vacíos | % vacío |
+|---|---:|---:|
+| Avance físico | 86 301 | 57,3 % |
+| Último gasto registrado | 54 898 | 36,5 % |
+| Avance de ejecución | 37 699 | 25,0 % |
+| Habitantes beneficiados | 46 278 | 30,7 % |
+| Fecha de inicio | 11 606 | 7,7 % |
+| Monto aprobado (viable) | 243 | 0,2 % |
+| Código de ubicación | 166 | 0,1 % |
+| Departamento | 13 | 0,0 % |
+| Costo actualizado | 0 | 0,0 % |
+
+**Qué significa:** los datos de identificación y ubicación están casi completos, pero el avance físico falta en 57,3 % de las obras; la alerta de paralización solo puede evaluar las que informan su avance.
+
+| Nivel de gobierno | Inversiones | % |
+|---|---:|---:|
+| Gobiernos locales | 124 181 | 82,5 % |
+| Gobiernos regionales | 13 674 | 9,1 % |
+| Gobierno nacional | 12 719 | 8,4 % |
+
+| Departamento (10 con más obras) | Inversiones | % |
+|---|---:|---:|
+| Lima | 15 904 | 10,6 % |
+| Ancash | 12 935 | 8,6 % |
+| Cusco | 10 604 | 7,0 % |
+| Junin | 8 994 | 6,0 % |
+| Cajamarca | 8 755 | 5,8 % |
+| Puno | 8 425 | 5,6 % |
+| La Libertad | 7 894 | 5,2 % |
+| Ayacucho | 7 844 | 5,2 % |
+| Piura | 7 485 | 5,0 % |
+| Arequipa | 7 218 | 4,8 % |
+
+**Qué significa:** más obras registradas no quiere decir más problemas, solo más obras.
+
+### Alertas
+
+| Alerta | Inversiones | % del total |
+|---|---:|---:|
+| Sobrecosto | 26 387 | 17,5 % |
+| Posible paralización | 16 502 | 11,0 % |
+| Las dos alertas | 4 205 | 2,8 % |
+| Ninguna alerta | 111 890 | 74,3 % |
+
+| Nivel | % con sobrecosto | % con posible paralización |
+|---|---:|---:|
+| Gobiernos locales | 16,6 % | 11,7 % |
+| Gobiernos regionales | 22,4 % | 7,3 % |
+| Gobierno nacional | 21,4 % | 7,9 % |
+
+| Departamento | Con sobrecosto | Con posible paralización |
+|---|---:|---:|
+| Lima | 2 275 (14,3 %) | 2 275 (14,3 %) |
+| Cusco | 2 782 (26,2 %) | 1 484 (14,0 %) |
+| Ancash | 2 559 (19,8 %) | 1 126 (8,7 %) |
+| Junin | 1 525 (17,0 %) | 1 117 (12,4 %) |
+| Arequipa | 1 504 (20,8 %) | 968 (13,4 %) |
+| Puno | 1 095 (13,0 %) | 1 179 (14,0 %) |
+| Cajamarca | 1 413 (16,1 %) | 687 (7,8 %) |
+| Piura | 1 312 (17,5 %) | 705 (9,4 %) |
+| Ayacucho | 1 003 (12,8 %) | 815 (10,4 %) |
+| Ica | 955 (17,6 %) | 706 (13,0 %) |
+
+**Qué significa:** son señales para decidir qué revisar primero; los gobiernos regionales y el nacional tienen proporcionalmente más sobrecosto y los locales más posible paralización. No prueban irregularidades.
+
+| Cuánto se pasó del monto aprobado | Inversiones | % |
+|---|---:|---:|
+| < 0 % (costo menor al viable) | 26 363 | 17,5 % |
+| 0 a 10 % | 69 919 | 46,5 % |
+| 10 a 25 % | 13 413 | 8,9 % |
+| 25 a 50 % | 14 247 | 9,5 % |
+| 50 a 100 % (alerta) | 12 965 | 8,6 % |
+| 100 a 200 % (alerta) | 8 327 | 5,5 % |
+| 200 % o más (alerta) | 5 095 | 3,4 % |
+| sin dato (monto viable vacío o 0) | 245 | 0,2 % |
+
+| Meses sin registrar gasto | Inversiones | % |
+|---|---:|---:|
+| sin dato (sin devengado registrado) | 54 898 | 36,5 % |
+| 0 a 2 meses | 20 774 | 13,8 % |
+| 3 a 5 meses | 8 437 | 5,6 % |
+| 6 a 11 meses (alerta si avance 40-99 %) | 12 375 | 8,2 % |
+| 12 a 23 meses | 13 159 | 8,7 % |
+| 24 a 59 meses | 24 502 | 16,3 % |
+| 60 meses o más | 16 429 | 10,9 % |
+
+**Qué significa:** la mayoría de las obras cuesta lo aprobado o poco más; muchas llevan años sin registrar gasto, pero la alerta solo se activa si además van entre 40 % y 99 % de avance.
+
+### Rendimiento del servidor MCP
+
+Se llamó 20 veces a cada herramienta y 10 veces a la lista de herramientas y al estado del servicio, desde Lima, contra el servidor público.
+
+| Prueba | Llamadas | Éxito | Mediana | P95 | Máximo |
+|---|---:|---:|---:|---:|---:|
+| `buscar_inversiones` | 20 | 100 % | 2,1 s | 2,6 s | 2,8 s |
+| `detalle_inversion` | 20 | 100 % | 1,4 s | 1,8 s | 2,1 s |
+| `alertas_inversion` | 20 | 100 % | 2,0 s | 2,7 s | 3,1 s |
+| `resumen_inversiones` | 20 | 100 % | 1,4 s | 1,9 s | 2,0 s |
+| `tools/list` | 10 | 100 % | 0,5 s | 0,7 s | 0,7 s |
+| `GET /salud` | 10 | 100 % | 1,0 s | 1,1 s | 1,2 s |
+
+**Qué significa:** todas las llamadas funcionaron (100 % de éxito) y casi todas se respondieron en menos de 3 segundos; «P95» es el tiempo por debajo del cual quedó el 95 % de las respuestas.
+
+### ¿Las herramientas dicen lo mismo que la base de datos?
+
+- Detalle de obras: **30 de 30** fichas idénticas (810 de 810 campos iguales).
+- Resúmenes por filtro: **10 de 10** idénticos.
+- Listas de alertas: **14 de 14** con el mismo total que la base.
+
+**Qué significa:** el servidor no cambia ni inventa cifras.
+
+### Pruebas de software
+
+**104 de 104** pruebas automáticas pasan, en 9 archivos. Cobertura de código: 81,5 % de las líneas (79,0 % en la lógica del servidor, sin las páginas).
+
+**Qué significa:** una prueba automática es un programa que revisa que otro funciona; «cobertura» es la parte del código que se ejecutó al probar.
+
+### Asistente del sitio
+
+| Modo | Preguntas | Exitosas | Media | Máximo |
+|---|---:|---:|---:|---:|
+| chat | 5 | 5 | 7,2 s | 10,0 s |
+| agente | 2 | 2 | 9,2 s | 9,5 s |
+
+**Qué significa:** responde en unos 7 a 10 segundos; es una muestra pequeña y sirve como orden de magnitud.
 
 ## 11. Pruebas
 
@@ -231,6 +409,8 @@ El código se desarrolló con ayuda de IA generativa y fue revisado y probado po
 
 ## 15. Enlaces
 
+- Guía de exposición: [`docs/EXPOSICION.md`](EXPOSICION.md)
+- Fuentes y referencias: [`fuentes/REFERENCIAS.md`](../fuentes/REFERENCIAS.md)
 - Repositorio: <https://github.com/adrielorihuela/obraclara-mcp>
 - Servidor MCP: <https://obraclara.adrielorihuela.net/mcp>
 - [Conectar](https://obraclara.adrielorihuela.net/conectar) · [Asistente](https://obraclara.adrielorihuela.net/asistente) · [Datos y alertas](https://obraclara.adrielorihuela.net/datos) · [El proyecto](https://obraclara.adrielorihuela.net/proyecto)
