@@ -203,6 +203,21 @@ body.es-app main{flex:1;min-height:0}
 #oc-send{margin-left:0;width:36px;height:36px;border-radius:50%;border:0;background:var(--ink);color:var(--bg);display:grid;place-items:center;cursor:pointer}
 #oc-send:disabled{opacity:.35;cursor:default}
 #oc-send svg{width:16px;height:16px}
+.cola{display:flex;flex-direction:column;gap:10px;padding:0 0 28px}
+.cola[hidden]{display:none}
+.msg.u.enc{opacity:.78;border-style:dashed;background:var(--bg);display:grid;gap:8px;white-space:normal}
+.msg.u.enc .enc-e{font:500 11.5px/1 var(--mono);color:var(--mut)}
+.msg.u.enc .enc-t{white-space:pre-wrap}
+.msg.u.enc textarea{width:100%;min-height:56px;resize:vertical;border:1px solid var(--line-2);border-radius:10px;background:var(--surface);color:var(--ink);font:inherit;padding:8px 10px}
+.msg.u.enc .enc-a{display:flex;gap:6px;justify-content:flex-end}
+.msg.u.enc .enc-a button{min-height:32px;min-width:32px;padding:0 12px;border-radius:8px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink);font:500 13px/1 var(--sans);cursor:pointer}
+.msg.u.enc .enc-a button:hover{border-color:var(--ink)}
+.msg.u.enc .enc-a .x{padding:0 10px;font-size:16px}
+.msg.u.enc .enc-a button:focus-visible,#oc-stop:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#oc-stop{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 14px;border-radius:18px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink);font:500 13px/1 var(--sans);cursor:pointer}
+#oc-stop[hidden]{display:none}
+#oc-stop:hover{border-color:var(--ink)}
+#oc-stop i{width:10px;height:10px;border-radius:2px;background:currentColor}
 .composer .nota-c{max-width:780px;margin:8px auto 0;text-align:center;font-size:12px;color:var(--mut)}
 
 #oc-cfg{width:min(620px,calc(100vw - 32px));max-height:min(88vh,860px);padding:0;border:1px solid var(--line-2);border-radius:16px;background:var(--surface);color:var(--ink);box-shadow:0 30px 80px -20px rgba(0,0,0,.45);overflow:auto}
@@ -288,9 +303,7 @@ export const demoHtml = String.raw`
 <nav class="b-chats" aria-label="Chats guardados"><p class="ch-est" id="oc-chat-est" role="status" hidden></p><div id="oc-chats"></div></nav>
 <div class="b-sw"><span class="lbl" id="oc-swl">Herramientas</span>
 <button type="button" id="oc-sw" class="sw" role="switch" aria-checked="true" aria-describedby="oc-swd"><span class="sw-t"><span class="sw-n" id="oc-swt">MCP: ACTIVADO</span><small id="oc-sws">obraclara · 4 herramientas</small></span><span class="pista" aria-hidden="true"></span></button>
-<p class="ayuda" id="oc-swd"></p>
-<button type="button" id="oc-ag" class="sw" role="switch" aria-checked="false" aria-describedby="oc-agd" hidden><span class="sw-t"><span class="sw-n" id="oc-agt">AGENTE: DESACTIVADO</span><small>archivos y tareas</small></span><span class="pista" aria-hidden="true"></span></button>
-<p class="ayuda" id="oc-agd" hidden>El agente del servidor puede leer tus archivos adjuntos y crear archivos para descargar (una página web, un Word, un Excel…). Puedes usarlo junto con el MCP.</p></div>
+<p class="ayuda" id="oc-swd"></p></div>
 <div class="b-mod"><p class="ayuda" id="oc-info" style="margin:0 0 8px"></p>
 <button type="button" id="oc-gear" class="cfg-b" aria-haspopup="dialog" aria-label="Configuración de IA">${icoEngranaje}<span>Configuración</span></button></div>
 <div class="pie-l"><p>Los chats se guardan solo en este navegador y dispositivo (no en nuestro servidor). Si borras los datos del sitio, se pierden.</p><p>Las alertas son indicios para revisar, no prueba de irregularidades.</p><p>Universidad de Lima · I.A. Aplicada · Grupo 1. Código hecho con ayuda de IA generativa y revisado por el grupo.</p></div>
@@ -308,10 +321,11 @@ export const demoHtml = String.raw`
 <button type="button">¿Cuál es el avance de la inversión 2716769?</button>
 </div></div>
 <div id="oc-log" aria-live="polite"></div>
+<div id="oc-cola" class="cola" role="group" aria-label="Mensajes en cola" hidden></div>
 </div></div>
 <form id="oc-form" class="composer">
 <div class="caja"><div class="thumbs" id="oc-thumbs" hidden></div><textarea id="oc-in" rows="1" placeholder="Escribe tu pregunta" aria-label="Tu pregunta"></textarea>
-<div class="barra"><span class="ind on" id="oc-ind"><i></i><span>MCP activado</span></span><input type="file" id="oc-file" multiple hidden><button type="button" id="oc-adj" aria-label="Adjuntar imagen, documento o .zip" title="Adjuntar imagen, documento o .zip">${icoClip}</button><button id="oc-send" aria-label="Enviar">${icoEnviar}</button></div></div>
+<div class="barra"><span class="ind on" id="oc-ind"><i></i><span>MCP activado</span></span><input type="file" id="oc-file" multiple hidden><button type="button" id="oc-stop" class="stop" aria-label="Detener la respuesta" hidden><i aria-hidden="true"></i><span>Detener</span></button><button type="button" id="oc-adj" aria-label="Adjuntar imagen, documento o .zip" title="Adjuntar imagen, documento o .zip">${icoClip}</button><button id="oc-send" aria-label="Enviar">${icoEnviar}</button></div></div>
 <p class="nota-c">El modelo puede equivocarse. Verifica las cifras en la fuente oficial del MEF.</p>
 </form>
 </section>
@@ -437,7 +451,7 @@ async function ocAlmEscribir(txt){var fallo=null;
 `;
 
 const app = String.raw`
-var ocMcp=true,ocHist=[],ocTools=null,ocBusy=false,ocConns=[],ocActiva='servidor',ocEdit='',ocHL='servidor',ocImgs=[],ocDocs=[],ocLeyendo=0,ocAvisoCtx=false,ocMsgs=[],ocChats=[],ocChatId='',ocRest=false,ocRen='',ocAg=false,ocAgOk=false,ocAgId='';
+var ocMcp=true,ocHist=[],ocTools=null,ocBusy=false,ocConns=[],ocActiva='servidor',ocEdit='',ocHL='servidor',ocImgs=[],ocDocs=[],ocLeyendo=0,ocAvisoCtx=false,ocMsgs=[],ocChats=[],ocChatId='',ocRest=false,ocRen='',ocAgOk=false,ocAgId='',ocCola=[],ocAbort=null,ocParar=false,ocColaId=0;
 var OC_ICO_TOOL='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4h12M2 8h8M2 12h5"/><path d="m11 10 2 2-2 2"/></svg>';
 function ocBajar(){var s=$('oc-scroll');if(s)s.scrollTop=s.scrollHeight}
 function ocRec(m){if(ocRest)return null;ocMsgs.push(m);ocShareUi();return m}
@@ -466,13 +480,13 @@ function ocTool(name,args,res){ocRec({rol:'t',texto:'',herramienta:{nombre:name,
  d.appendChild(s);d.appendChild(b);$('oc-vacio').hidden=true;$('oc-log').appendChild(d);ocBajar()}
 function ocRead(st,k){try{return JSON.parse(st.getItem(k)||'null')}catch(e){return null}}
 function ocWrite(st,k,v){try{if(v===null)st.removeItem(k);else st.setItem(k,JSON.stringify(v))}catch(e){}}
-function ocSwitchText(){var sw=$('oc-sw'),ag=ocAgActivo();sw.setAttribute('aria-checked',String(ocMcp));sw.removeAttribute('aria-disabled');
+function ocSwitchText(){var sw=$('oc-sw'),ag=ocAgActivo(),DESC='El asistente puede consultar los datos oficiales del MEF (si MCP está activado), leer tus archivos y entregarte archivos como Excel, Word o PDF.';sw.setAttribute('aria-checked',String(ocMcp));sw.removeAttribute('aria-disabled');
  $('oc-swt').textContent=ocMcp?'MCP: ACTIVADO':'MCP: DESACTIVADO';$('oc-sws').textContent='obraclara · 4 herramientas';
- $('oc-swd').textContent=ocMcp?(ag?'MCP + agente: el agente consulta los datos oficiales del MEF y te entrega archivos, como un Excel o un Word.':'Con MCP: el modelo puede consultar los datos oficiales del MEF mediante las herramientas de este servidor.'):(ag?'Sin MCP el agente trabaja solo con tus archivos y no consulta los datos oficiales.':'Sin MCP: chat normal con el mismo modelo, sin acceso a los datos; puede equivocarse o inventar.');
- var ind=$('oc-ind');ind.className='ind'+(ag||ocMcp?' on':'');ind.lastChild.textContent=ag?(ocMcp?'Agente + MCP':'Agente activado · sin MCP'):(ocMcp?'MCP activado':'MCP desactivado · sin datos');
- $('oc-in').placeholder=ag?(ocMcp?'Pídele datos y archivos al agente':'Dile al agente qué hacer (puedes adjuntar archivos)'):'Escribe tu pregunta';$('oc-chips').hidden=ag&&!ocMcp;
- $('oc-vp').textContent=ag?(ocMcp?'Modo agente con MCP: el agente consulta los datos oficiales del MEF y te entrega archivos para descargar, como un Excel o un Word.':'Modo agente: el agente del servidor lee tus archivos adjuntos y puede crear archivos para descargar. Activa el MCP para que también consulte los datos del MEF.'):'Pregunta por una obra, una entidad o una región. Con el MCP activado, el modelo consulta los datos del MEF y te muestra qué herramienta usó.'}
-function ocPrefs(){ocWrite(localStorage,'oc_prefs',{mcp:ocMcp,ag:ocAg})}
+ $('oc-swd').textContent=ag?(ocMcp?DESC:'Sin MCP el asistente no consulta los datos oficiales: trabaja con tus archivos y te entrega otros, como un Excel, un Word o un PDF.'):(ocMcp?'Con MCP: el modelo puede consultar los datos oficiales del MEF mediante las herramientas de este servidor.':'Sin MCP: chat normal con el mismo modelo, sin acceso a los datos; puede equivocarse o inventar.');
+ var ind=$('oc-ind');ind.className='ind'+(ocMcp?' on':'');ind.lastChild.textContent=ocMcp?'MCP activado':'Sin MCP';
+ $('oc-in').placeholder=ag?(ocMcp?'Pídele datos y archivos al asistente':'Dile al asistente qué hacer (puedes adjuntar archivos)'):'Escribe tu pregunta';$('oc-chips').hidden=ag&&!ocMcp;
+ $('oc-vp').textContent=ag?DESC:'Pregunta por una obra, una entidad o una región. Con el MCP activado, el modelo consulta los datos del MEF y te muestra qué herramienta usó.'}
+function ocPrefs(){ocWrite(localStorage,'oc_prefs',{mcp:ocMcp})}
 function ocConnById(id){for(var i=0;i<ocConns.length;i++)if(ocConns[i].id===id)return ocConns[i];return null}
 function ocPersist(){var s=[],l=[];ocConns.forEach(function(c){(c.recordar?l:s).push(c)});
  ocWrite(sessionStorage,'oc_conns',s.length?s:null);ocWrite(localStorage,'oc_conns',l.length?l:null);ocWrite(localStorage,'oc_activa',ocActiva)}
@@ -485,8 +499,8 @@ function ocLoad(){var a=ocRead(sessionStorage,'oc_conns')||[],b=ocRead(localStor
  if(typeof act==='string'&&(act===ocHL||ocConnById(act)))ocActiva=act}
 function ocUi(){if(ocActiva!==ocHL&&!ocConnById(ocActiva))ocActiva=ocHL;
  $('oc-info').textContent=ocActiva===ocHL?'Por defecto la respuesta viene del servidor de ObraClara, que prueba primero la IA del grupo, luego Workers AI y luego Groq. En «Configuración» puedes usar tu propia IA con tu clave: nunca llega a nuestro servidor.':'Usando tu conexión «'+ocConnById(ocActiva).nombre+'»: las solicitudes van directo desde tu navegador al proveedor; la clave nunca llega a nuestro servidor.'}
-function ocAgActivo(){return ocAg&&ocAgOk&&ocActiva===ocHL}
-function ocAgUi(){var v=ocAgOk&&ocActiva===ocHL;$('oc-ag').hidden=!v;$('oc-agd').hidden=!v;$('oc-ag').setAttribute('aria-checked',String(ocAgActivo()));$('oc-agt').textContent=ocAgActivo()?'AGENTE: ACTIVADO':'AGENTE: DESACTIVADO';$('oc-agd').textContent=ocAgActivo()&&ocMcp?'Agente + MCP: el agente consulta los datos oficiales del MEF, lee tus archivos y te entrega otros, como un Excel, un Word o una página web.':'El agente del servidor puede leer tus archivos adjuntos y crear archivos para descargar (una página web, un Word, un Excel…). Puedes usarlo junto con el MCP.';ocSwitchText()}
+function ocAgActivo(){return ocAgOk&&ocActiva===ocHL}
+function ocAgUi(){ocSwitchText()}
 function ocElegir(id){ocActiva=id;ocPersist();ocUi();ocAgUi();ocRenderLista()}
 function ocRenderLista(){var u=$('oc-lista');u.textContent='';
  function fila(id,txt,extras){var li=document.createElement('li'),sp=document.createElement('span'),lb=document.createElement('label'),r=document.createElement('input');
@@ -522,7 +536,7 @@ function ocHttpError(st){if(st===401||st===403)return 'El proveedor rechazó la 
  if(st===404)return 'El proveedor no encontró el modelo o la dirección (404). Revisa el nombre del modelo y la URL base.';
  return 'El proveedor respondió con error '+st+'.'}
 async function ocPost(url,headers,body){var r;
- try{r=await fetch(url,{method:'POST',headers:headers,body:JSON.stringify(body)})}catch(e){throw new Error('No se pudo conectar con el proveedor. Revisa tu conexión (o si el proveedor permite llamadas desde el navegador).')}
+ try{r=await fetch(url,{method:'POST',headers:headers,body:JSON.stringify(body),signal:ocAbort?ocAbort.signal:undefined})}catch(e){throw new Error('No se pudo conectar con el proveedor. Revisa tu conexión (o si el proveedor permite llamadas desde el navegador).')}
  if(!r.ok){var eb=null;try{eb=await r.json()}catch(e){}
   var fg=eb&&eb.error&&eb.error.failed_generation;
   // Algunos modelos (p. ej. gpt-oss en Groq) intentan llamar a una herramienta con su formato propio y el proveedor lo rechaza con 400, pero devuelve lo generado: se usa como respuesta del modelo.
@@ -533,7 +547,7 @@ async function ocPost(url,headers,body){var r;
 async function ocLlmConn(c,msgs){var q=construirPeticion(c,msgs);var j=await ocPost(q.url,q.headers,q.body);return extraerRespuesta(c.tipo,j)}
 async function ocLlm(msgs){
  if(ocActiva===ocHL){var r;
-  try{r=await fetch('/api/chat',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({messages:recortarMensajes(msgs,140000)})})}catch(e){throw new Error('No se pudo conectar con el servidor.')}
+  try{r=await fetch('/api/chat',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({messages:recortarMensajes(msgs,140000)}),signal:ocAbort?ocAbort.signal:undefined})}catch(e){throw new Error('No se pudo conectar con el servidor.')}
   var d=null;try{d=await r.json()}catch(e){}
   if(r.status===429)throw new Error('Muchas preguntas seguidas, espera un minuto o agrega tu propia IA en Configuración.');
   if(r.status===503||r.status===504)throw new Error('El servidor de ObraClara no pudo responder ahora (ninguna IA disponible). Inténtalo de nuevo o agrega tu propia IA en Configuración.');
@@ -543,7 +557,7 @@ async function ocLlm(msgs){
  var c=ocConnById(ocActiva);if(!c)throw new Error('La IA seleccionada ya no existe. Elige otra.');
  return {texto:await ocLlmConn(c,msgs),modelo:c.nombre}}
 async function ocMcpCall(method,params){
- var r;try{r=await fetch('/mcp',{method:'POST',headers:{'content-type':'application/json','accept':'application/json, text/event-stream'},body:JSON.stringify({jsonrpc:'2.0',id:Date.now(),method:method,params:params||{}})})}
+ var r;try{r=await fetch('/mcp',{method:'POST',headers:{'content-type':'application/json','accept':'application/json, text/event-stream'},body:JSON.stringify({jsonrpc:'2.0',id:Date.now(),method:method,params:params||{}}),signal:ocAbort?ocAbort.signal:undefined})}
  catch(e){throw new Error('No se pudo conectar con el servidor MCP.')}
  if(r.status===429)throw new Error('Demasiadas solicitudes al servidor MCP (429). Espera un minuto.');
  if(!r.ok)throw new Error('El servidor MCP respondió con error '+r.status+'.');
@@ -553,7 +567,9 @@ async function ocRun(q,urls){
  if(ocMcp&&!ocTools){ocTools=((await ocMcpCall('tools/list')).tools)||[]}
  var sys=buildSystemPrompt(ocTools||[],ocMcp);
  for(var step=0;step<5;step++){
+  if(ocParar)throw new Error('Detenido');
   var rr=await ocLlm([{role:'system',content:sys}].concat(ocHist)),out=rr.texto,mo=rr.modelo;
+  if(ocActiva===ocHL&&!ocAgOk)mo=(mo?mo+' · ':'')+'sin agente (respaldo)';
   var c=parseToolCall(out);
   if(!c){ocHist.push({role:'assistant',content:out});ocLog('a',out.trim()||'(sin respuesta)',mo);return}
   if(c.tipo==='respuesta'){ocHist.push({role:'assistant',content:out});ocLog('a',c.texto,mo);return}
@@ -578,10 +594,9 @@ function ocGuardar(){var hay=false;ocMsgs.forEach(function(m){if(m.rol==='a')hay
   ocChatId='c'+ahora.toString(36)+Math.random().toString(36).slice(2,6);c={id:ocChatId,titulo:tituloChat(pu),creado:ahora,actualizado:ahora,mensajes:[]};ocChats.push(c)}
  c.mensajes=ocMsgs.slice();c.actualizado=ahora;if(ocAgId)c.agenteId=ocAgId;ocPersistChats()}
 async function ocCargarChats(){var t=await ocAlmLeer();ocChats=deserializarChats(t);ocRenderChats()}
-function ocLimpiar(){ocPanCerrar();ocAgId='';ocHist=[];ocMsgs=[];ocChatId='';ocImgs=[];ocDocs=[];ocThumbs();$('oc-log').textContent='';$('oc-vacio').hidden=false;ocShareUi()}
+function ocLimpiar(){ocPanCerrar();ocCola=[];ocColaUi();ocAgId='';ocHist=[];ocMsgs=[];ocChatId='';ocImgs=[];ocDocs=[];ocThumbs();$('oc-log').textContent='';$('oc-vacio').hidden=false;ocShareUi()}
 function ocAbrir(id){if(ocBusy)return;var c=null;ocChats.forEach(function(x){if(x.id===id)c=x});if(!c)return;
  ocLimpiar();ocChatId=c.id;ocAgId=c.agenteId||'';ocRest=true;
- if(ocAgOk&&ocActiva===ocHL){ocAg=!!c.agenteId;ocPrefs();ocAgUi()}
  c.mensajes.forEach(function(m){
   if(m.rol==='u'){var ad=m.adj&&m.adj.length?{meta:m.adj,ctx:m.ctx||''}:null;ocLog('u',m.texto,null,ad);ocHist.push({role:'user',content:m.ctx?m.texto+'\n\n'+m.ctx:ad?m.texto+'\n\n[Adjuntos de este mensaje no disponibles: '+m.adj.map(function(x){return x.n}).join(', ')+']':m.texto})}
   else if(m.rol==='a'){ocLog('a',m.texto,m.modelo||'',null,m.arch&&m.arch.length?{meta:m.arch}:undefined);ocHist.push({role:'assistant',content:m.texto})}
@@ -691,43 +706,84 @@ async function ocAdjuntar(files){var msgs=[];
   catch(e){var k=ocDocs.indexOf(d);if(k>=0)ocDocs.splice(k,1);msgs.push('«'+d.meta.n+'»: '+(e&&e.message?e.message:'no se pudo leer.'))}
   ocLeyendo--;ocThumbs()}
  ocThumbs();if(msgs.length)ocLog('n',msgs.join(' '))}
-async function ocSend(q){q=(q||'').trim();if(ocBusy)return;
+function ocBusyUi(){$('oc-stop').hidden=!ocBusy}
+async function ocSend(q){q=(q||'').trim();
  if(ocLeyendo>0){ocLog('n','Espera a que termine de leerse el archivo adjunto.');return}
- if(ocAgActivo())return ocSendAg(q);
- var im=ocImgs.slice(),dc=ocDocs.map(function(d){return d.adj}).filter(function(a){return a});if(!q&&!im.length&&!dc.length)return;
+ var it={id:++ocColaId,q:q,docs:ocDocs.slice(),imgs:ocImgs.slice(),ed:false};
+ if(!q&&!it.imgs.length&&!it.docs.some(function(d){return d.raw||d.adj}))return;
+ $('oc-in').value='';ocAlto();ocImgs=[];ocDocs=[];ocThumbs();
+ if(ocBusy){ocCola.push(it);ocColaUi();return}
+ await ocProcesar([it])}
+async function ocProcesar(items){
+ var q=items.map(function(x){return x.q}).filter(function(x){return x}).join('\n'),docs=[],imgs=[];
+ items.forEach(function(x){docs=docs.concat(x.docs);imgs=imgs.concat(x.imgs)});
+ ocBusy=true;ocParar=false;ocAbort=typeof AbortController==='function'?new AbortController():null;ocBusyUi();
+ try{if(ocAgActivo())await ocSendAg(q,docs);else await ocSendLeg(q,docs,imgs)}
+ catch(e){ocLog('e',e&&e.message?e.message:'Error inesperado.')}
+ ocBusy=false;ocAbort=null;ocBusyUi();ocBajar();ocGuardar();
+ if(ocCola.length){var sig=ocCola.splice(0);ocColaUi();await ocProcesar(sig)}}
+function ocDetener(){if(!ocBusy)return;ocParar=true;if(ocAbort)ocAbort.abort()}
+function ocFinTurno(w,e){if(w)w.remove();
+ if(ocParar)ocLog('n','Detenido. Los mensajes en cola siguen.');
+ else ocLog('e',e&&e.message?e.message:'Error inesperado.')}
+async function ocSendLeg(q,docs,im){
+ var dc=docs.map(function(d){return d.adj}).filter(function(a){return a});if(!q&&!im.length&&!dc.length)return;
  if(!q)q=dc.length?(im.length?'Describe la imagen y resume el archivo adjunto.':'Resume el contenido del archivo adjunto.'):'Describe la imagen y dime qué ves.';
  var cp=componerAdjuntos(dc),ad=dc.length?{meta:metaAdjuntos(dc),ctx:cp.texto}:null;
- ocBusy=true;$('oc-send').disabled=true;$('oc-in').value='';ocAlto();ocImgs=[];ocDocs=[];ocThumbs();ocLog('u',q,im,ad);var w=ocLog('w','Pensando…');
+ ocLog('u',q,im,ad);var w=ocLog('w','Pensando…');
  if(cp.omitidos.length)ocLog('n','No cupieron en el límite de texto por mensaje y se omitieron: '+cp.omitidos.join(', ')+'.');
- try{await ocRun(ad?q+'\n\n'+cp.texto:q,im)}catch(e){ocLog('e',e&&e.message?e.message:'Error inesperado.')}
- w.remove();ocBusy=false;$('oc-send').disabled=false;ocBajar();ocGuardar()}
+ try{await ocRun(ad?q+'\n\n'+cp.texto:q,im);w.remove()}catch(e){ocFinTurno(w,e)}}
+async function ocFallback(q,fs){
+ var im=[],dc=[],msgs=[];
+ for(var i=0;i<fs.length;i++){var d=fs[i];if(!d.file)continue;
+  try{if(d.meta.t==='imagen')im.push(await ocReducir(d.file));else dc.push(await ocLeerDoc(d.file,d.meta.t))}
+  catch(e){msgs.push('«'+d.meta.n+'»: '+(e&&e.message?e.message:'no se pudo leer.'))}}
+ ocHist=[];ocMsgs.slice(0,-1).forEach(function(m){if(m.rol==='u')ocHist.push({role:'user',content:m.ctx?m.texto+'\n\n'+m.ctx:m.texto});else if(m.rol==='a')ocHist.push({role:'assistant',content:m.texto})});
+ var cp=componerAdjuntos(dc),w=ocLog('w','Pensando…');if(msgs.length)ocLog('n',msgs.join(' '));
+ try{await ocRun(dc.length?q+'\n\n'+cp.texto:q,im);w.remove()}catch(e){ocFinTurno(w,e)}}
+function ocColaFila(c,it){var d=document.createElement('div'),et=document.createElement('span');d.className='msg u enc';et.className='enc-e';et.textContent='En cola';d.appendChild(et);
+ function btn(t,al,cls,fn){var b=document.createElement('button');b.type='button';b.textContent=t;if(al)b.setAttribute('aria-label',al);if(cls)b.className=cls;b.addEventListener('click',fn);return b}
+ function quitar(){ocCola=ocCola.filter(function(x){return x!==it});ocColaUi()}
+ if(it.ed){var ta=document.createElement('textarea'),ac=document.createElement('div');ta.value=it.q;ta.setAttribute('aria-label','Editar el mensaje en cola');d.appendChild(ta);ac.className='enc-a';
+  ac.appendChild(btn('Cancelar','',null,function(){it.ed=false;ocColaUi()}));
+  ac.appendChild(btn('Guardar','',null,function(){it.q=ta.value.trim();it.ed=false;if(!it.q&&!it.imgs.length&&!it.docs.length)quitar();else ocColaUi()}));
+  d.appendChild(ac);c.appendChild(d);return}
+ var p=document.createElement('span');p.className='enc-t';p.textContent=it.q||'(solo archivos adjuntos)';d.appendChild(p);
+ if(it.imgs.length||it.docs.length){var g=document.createElement('div');g.className='ims';
+  it.imgs.forEach(function(u){var im=document.createElement('img');im.alt='Imagen adjunta';im.src=u;g.appendChild(im)});
+  it.docs.forEach(function(x){g.appendChild(ocChip(x.meta,false,null))});d.appendChild(g)}
+ var ac2=document.createElement('div');ac2.className='enc-a';
+ ac2.appendChild(btn('Editar','Editar el mensaje en cola',null,function(){it.ed=true;ocColaUi();var t=document.querySelector('#oc-cola textarea');if(t)t.focus()}));
+ ac2.appendChild(btn('×','Quitar el mensaje de la cola','x',quitar));
+ d.appendChild(ac2);c.appendChild(d)}
+function ocColaUi(){var c=$('oc-cola');c.textContent='';c.hidden=!ocCola.length;ocCola.forEach(function(it){ocColaFila(c,it)});if(ocCola.length)ocBajar()}
 function ocB64Bytes(b64){var bin=atob(b64),u=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return u}
 async function ocAdjuntarAg(files){var msgs=[];
  for(var i=0;i<files.length;i++){var f=files[i],tot=0;ocDocs.forEach(function(x){tot+=x.raw?x.raw.length:0});
   if(ocDocs.length>=10){msgs.push('Máximo 10 archivos en modo agente.');break}
   if((tot+f.size*1.37)>24*1024*1024){msgs.push('«'+nombreSeguro(f.name)+'»: se superarían los 17 MB en total.');continue}
-  var d={meta:{n:nombreSeguro(f.name),t:tipoAdjunto(f.name,f.type),c:0,b:f.size},leyendo:true,adj:null,raw:''};ocDocs.push(d);ocLeyendo++;ocThumbs();
+  var d={meta:{n:nombreSeguro(f.name),t:tipoAdjunto(f.name,f.type),c:0,b:f.size},leyendo:true,adj:null,raw:'',file:f};ocDocs.push(d);ocLeyendo++;ocThumbs();
   try{var u=await ocLeer(f);d.raw=u;d.leyendo=false}
   catch(e){var k=ocDocs.indexOf(d);if(k>=0)ocDocs.splice(k,1);msgs.push('«'+d.meta.n+'»: no se pudo leer.')}
   ocLeyendo--;ocThumbs()}
  if(msgs.length)ocLog('n',msgs.join(' '))}
-async function ocSendAg(q){var fs=ocDocs.filter(function(d){return d.raw});if(!q&&!fs.length)return;
+async function ocSendAg(q,docs){var fs=docs.filter(function(d){return d.raw});if(!q&&!fs.length)return;
  if(!q)q='Revisa los archivos adjuntos y resume su contenido.';
  var meta=fs.map(function(d){return d.meta}),adj=fs.map(function(d){return {nombre:d.meta.n,datos:d.raw}});
- ocBusy=true;$('oc-send').disabled=true;$('oc-in').value='';ocAlto();ocImgs=[];ocDocs=[];ocThumbs();ocLog('u',q,null,meta.length?{meta:meta,ctx:''}:null);var w=ocLog('w','El agente está trabajando…');
- var msg=q;
+ ocLog('u',q,null,meta.length?{meta:meta,ctx:''}:null);var w=ocLog('w','El asistente está trabajando…');
  try{var r,d=null;
-  try{r=await fetch('/api/agente',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({chat_id:ocAgId||undefined,mensaje:msg,archivos:adj,mcp:ocMcp?true:undefined})})}catch(e){throw new Error('No se pudo conectar con el servidor.')}
-  try{d=await r.json()}catch(e){}
+  try{r=await fetch('/api/agente',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({chat_id:ocAgId||undefined,mensaje:q,archivos:adj,mcp:ocMcp?true:undefined}),signal:ocAbort?ocAbort.signal:undefined})}catch(e){if(ocParar)throw e;throw new Error('No se pudo conectar con el servidor.')}
+  if(r.status===503){w.remove();ocAgOk=false;ocAgUi();setTimeout(ocAgEstado,60000);return await ocFallback(q,fs)}
+  try{d=await r.json()}catch(e){if(ocParar)throw e}
   if(!r.ok)throw new Error(d&&typeof d.error==='string'?d.error.slice(0,200):'El servidor respondió con error '+r.status+'.');
   if(!d||typeof d.respuesta!=='string')throw new Error('Respuesta del agente no válida.');
   if(typeof d.chat_id==='string'&&/^[A-Za-z0-9_-]{1,64}$/.test(d.chat_id))ocAgId=d.chat_id;
   var arch=[];(Array.isArray(d.archivos)?d.archivos:[]).slice(0,20).forEach(function(f){if(!f||typeof f.datos!=='string'||typeof f.nombre!=='string')return;var bb;try{bb=ocB64Bytes(f.datos)}catch(e){return}
    arch.push(ocArchNuevo(rutaSegura(f.nombre)||'archivo',typeof f.titulo==='string'?f.titulo.slice(0,100):'',bb))});
   ocLog('a',d.respuesta.trim()||'(sin respuesta)','Agente del servidor',null,arch);
-  if(d.omitidos&&d.omitidos.length)ocLog('n','Algunos archivos no se enviaron por su tamaño: '+d.omitidos.join(', ')+'.')}
- catch(e){ocLog('e',(e&&e.message?e.message:'Error inesperado.')+' Prueba a desactivar el modo agente.')}
- w.remove();ocBusy=false;$('oc-send').disabled=false;ocBajar();ocGuardar()}
+  if(d.omitidos&&d.omitidos.length)ocLog('n','Algunos archivos no se enviaron por su tamaño: '+d.omitidos.join(', ')+'.');
+  w.remove()}
+ catch(e){ocFinTurno(w,e)}}
 var OC_ADJ_MAX=20*1024*1024,OC_CSP='<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; img-src data: blob: https:; media-src data: blob: https:; style-src \'unsafe-inline\' https:; font-src data: https:; script-src \'unsafe-inline\' https:; connect-src \'none\'; form-action \'none\'">';
 var ocPan={lista:[],i:-1,zip:null,modo:'vista',hoja:0,hojaDe:'',url:'',disp:null,tok:0};
 function ocArchNuevo(ruta,titulo,datos){return {id:'a'+Date.now().toString(36)+Math.random().toString(36).slice(2,8),n:ruta,ti:titulo||'',t:mimeArchivo(ruta),b:datos.length,datos:datos,g:false}}
@@ -833,7 +889,7 @@ ocZona.addEventListener('dragover',function(e){if(!ocHayArchivos(e))return;e.pre
 ocZona.addEventListener('dragleave',function(e){if(!e.relatedTarget||!ocZona.contains(e.relatedTarget))$('oc-form').firstElementChild.classList.remove('arrastre')});
 ocZona.addEventListener('drop',function(e){if(!ocHayArchivos(e))return;e.preventDefault();$('oc-form').firstElementChild.classList.remove('arrastre');var d=e.dataTransfer;if(d&&d.files&&d.files.length)ocAdjuntar(Array.prototype.slice.call(d.files))});
 $('oc-sw').addEventListener('click',function(){if(ocBusy)return;ocMcp=!ocMcp;ocPrefs();ocAgUi()});
-$('oc-ag').addEventListener('click',function(){if(ocBusy)return;ocAg=!ocAg;ocDocs=[];ocImgs=[];ocThumbs();ocPrefs();ocAgUi()});
+$('oc-stop').addEventListener('click',ocDetener);
 $('oc-pan-x').addEventListener('click',ocPanCerrar);
 $('oc-pan-d').addEventListener('click',ocPanDescargar);
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!$('oc-pan').hidden&&!document.querySelector('dialog[open]')){e.preventDefault();ocPanCerrar()}});
@@ -849,7 +905,7 @@ $('oc-in').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKe
 $('oc-in').addEventListener('input',ocAlto);
 $('oc-chips').addEventListener('click',function(e){var t=e.target&&e.target.closest?e.target.closest('button'):null;if(t)ocSend(t.textContent)});
 $('oc-nueva').addEventListener('click',function(){if(ocBusy)return;ocLimpiar();ocRenderChats();$('oc-in').focus()});
-var ocPf=ocRead(localStorage,'oc_prefs');if(ocPf&&typeof ocPf==='object'){ocMcp=ocPf.mcp!==false;ocAg=ocPf.ag===true}
+var ocPf=ocRead(localStorage,'oc_prefs');if(ocPf&&typeof ocPf==='object'){ocMcp=ocPf.mcp!==false;if('ag' in ocPf||'agente' in ocPf)ocPrefs()}
 $('oc-share').addEventListener('click',function(){var pu='';ocMsgs.forEach(function(m){if(!pu&&m.rol==='u')pu=m.texto});ocCompartir({id:ocChatId,titulo:tituloChat(pu),mensajes:ocMsgs.slice(),imgs:ocImgsDe()})});
 $('oc-sh-x').addEventListener('click',ocShCerrar);
 $('oc-sh').addEventListener('click',function(e){if(e.target===$('oc-sh'))ocShCerrar()});
