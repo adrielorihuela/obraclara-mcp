@@ -172,6 +172,15 @@ export function acerca(m: Meta): string {
 <div class="filas-a rv">
 <h2>Por qué</h2><div><p>Los datos de inversión pública del Perú son abiertos, pero consultarlos exige descargar un CSV de cientos de megabytes y saber leer sus columnas. Un asistente de IA puede hacer esa consulta por ti, siempre que tenga acceso al dato oficial y no lo invente.</p></div>
 <h2>Qué es</h2><div><p>Un servidor MCP público con cuatro herramientas sobre el archivo de inversiones del MEF, este sitio y un panel para probarlo con o sin MCP.</p></div>
+<h2>Evaluación</h2><div><p>40 preguntas con respuesta verificada en el archivo del MEF (10 de búsqueda, 10 de detalle, 10 de alertas y 10 de resumen), hechas al mismo modelo de lenguaje sin herramientas y con el servidor MCP. Puntuación automática; los casos dudosos se marcan para revisión manual.</p>
+<table class="ref"><thead><tr><th>Métrica</th><th>Sin MCP</th><th>Con MCP</th></tr></thead><tbody>
+<tr><td>Respuesta exacta (±1 % del valor oficial)</td><td>8 %</td><td>100 %</td></tr>
+<tr><td>Cita fuente y fecha</td><td>10 %</td><td>100 %</td></tr>
+<tr><td>Información inventada</td><td>53 %</td><td>0 %</td></tr>
+<tr><td>Preguntas respondidas</td><td>40 / 40</td><td>40 / 40</td></tr>
+<tr><td>Tiempo medio sin reintentos</td><td>11,1 s</td><td>20,2 s</td></tr>
+</tbody></table>
+<p>Sin MCP, el modelo respondió de memoria o con búsquedas web, con cifras de otras fuentes o fechas. «Inventada» es una cota superior: incluye cifras reales de otras fuentes que no coinciden con el MEF. Detalle por pregunta y método en <a href="${REPO}/blob/main/eval/resultados/resumen.md">eval/resultados/resumen.md</a>.</p></div>
 <h2>Datos</h2><div><p>Ministerio de Economía y Finanzas, <a href="${esc(m.url ?? "https://www.datosabiertos.gob.pe")}">Información de inversiones públicas 2001-2026</a>. Licencia Open Data Commons Attribution (ODC-BY). Descarga del ${esc(fechaLarga(m.fecha_descarga))}.</p></div>
 <h2>Limitaciones</h2><div><ul>
 <li>Los datos se actualizan una vez por semana y pueden no reflejar el estado más reciente en el MEF.</li>

@@ -1,22 +1,13 @@
 # Evaluación ObraClara: sin MCP vs con MCP
 
-Fecha: 2026-11-10 · 40 preguntas (`preguntas.csv`) · modelo: IA del servidor del grupo (API privada compatible con OpenAI, con respaldo automático) · una corrida.
+Fecha: 2026-11-18 · 40 preguntas (`preguntas.csv`) · modelo: IA del servidor del grupo (API privada compatible con OpenAI, con respaldo automático) · una corrida (R02, R03 y R07–R10 se ejecutaron el 2026-11-18: R02 y R03 de nuevo tras corregir la búsqueda por entidad, y R07–R10 porque faltaban; el resto, el 2026-11-10).
 
 ## Resultado global (porcentaje de las 40 preguntas)
 
 | Condición | Exacta | Cita fuente y fecha | Inventada | Revisar | Latencia media total (s) | Latencia media sin reintentos (s) | Llamadas medias | Reintentos | Ejecutadas |
 |---|---|---|---|---|---|---|---|---|---|
-| sin_mcp | 5 % | 15 % | 48 % | 23 | 53.2 | 16.7 | 0.0 | 4 | 37/40 |
-| con_mcp | 85 % | 90 % | 0 % | 6 | 133.4 | 21.4 | 0.9 | 18 | 36/40 (R07 terminó sin respuesta final) |
-
-### Solo las 36 preguntas con respuesta válida en ambas condiciones
-
-| Condición | Exacta | Cita | Inventada |
-|---|---|---|---|
-| sin_mcp | 6 % | 14 % | 53 % |
-| con_mcp | 94 % | 100 % | 0 % |
-
-Faltan: R07, R08, R09, R10 (el proveedor de IA alcanzó su límite de uso; en la tabla global cuentan como no acertadas).
+| sin_mcp | 8 % | 10 % | 53 % | 20 | 22.1 | 11.1 | 0.0 | 2 | 40/40 |
+| con_mcp | 100 % | 100 % | 0 % | 0 | 99.9 | 20.2 | 1.0 | 16 | 40/40 |
 
 ## Por tipo de pregunta (10 preguntas cada uno)
 
@@ -28,10 +19,10 @@ Faltan: R07, R08, R09, R10 (el proveedor de IA alcanzó su límite de uso; en la
 | detalle | con_mcp | 100 % | 100 % | 0 % | 0 |
 | alertas | sin_mcp | 0 % | 0 % | 70 % | 6 |
 | alertas | con_mcp | 100 % | 100 % | 0 % | 0 |
-| resumen | sin_mcp | 0 % | 30 % | 20 % | 8 |
-| resumen | con_mcp | 40 % | 60 % | 0 % | 6 |
+| resumen | sin_mcp | 10 % | 10 % | 40 % | 5 |
+| resumen | con_mcp | 100 % | 100 % | 0 % | 0 |
 
-Con MCP, la herramienta esperada se usó en 34/40 preguntas; 3 respuestas no llamaron a ninguna herramienta.
+Con MCP, la herramienta esperada se usó en 37/40 preguntas; 0 respuestas no llamaron a ninguna herramienta.
 
 ## Cómo se puntuó (automático)
 

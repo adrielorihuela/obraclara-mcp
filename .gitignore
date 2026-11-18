@@ -9,4 +9,5 @@ __pycache__/
 *.log
 .DS_Store
 !eval/*.csv
+!eval/resultados/*.csv
 conector/*.env

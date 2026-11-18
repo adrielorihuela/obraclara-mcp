@@ -104,7 +104,10 @@ export function extractJSON(text) {
     }
   }
   for (const c of cands) {
-    try { const o = JSON.parse(c.trim()); if (o && typeof o === 'object' && (o.tool || 'respuesta' in o)) return o; } catch {}
+    // Algunos modelos escapan caracteres de Markdown dentro del JSON (p. ej. "resumen\_inversiones"): se reintenta sin esos escapes inválidos.
+    for (const v of [c.trim(), c.trim().replace(/\\(?!["\\\/bfnrtu])/g, '')]) {
+      try { const o = JSON.parse(v); if (o && typeof o === 'object' && (o.tool || 'respuesta' in o)) return o; } catch {}
+    }
   }
   return null;
 }
