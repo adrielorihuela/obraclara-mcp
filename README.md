@@ -299,3 +299,9 @@ El código fue desarrollado con ayuda de IA generativa (vibe coding) y **revisad
 - La recarga de D1 vacía brevemente la tabla, por lo que durante unos minutos las consultas a D1 pueden devolver pocos o ningún resultado.
 - Las alertas son aproximaciones y no prueban irregularidades.
 - La evaluación es de una sola corrida y su puntuación es automática (ver advertencias en `eval/resultados/resumen.md`).
+
+## Para el informe y la exposición
+
+- [`docs/GUIA-INFORME.md`](docs/GUIA-INFORME.md): qué poner en cada sección del informe, de qué archivo sale cada dato y qué gráficos hacer a mano.
+- [`docs/EXPOSICION.md`](docs/EXPOSICION.md): guion y preguntas probables.
+- [`docs/material-apoyo/`](docs/material-apoyo/): material de apoyo hecho con IA (revisión externa con diagramas y tablas), solo como referencia.
