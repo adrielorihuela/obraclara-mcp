@@ -39,8 +39,15 @@ python etl/cargar_sqlite.py --build build --db ~/.local/share/obraclara/inversio
 
 ## Modo agente
 
-El conector anuncia `agente: true` al conectarse. El Worker expone `POST /api/agente` (`{chat_id?, mensaje, archivos?: [{nombre, datos}]}`,
-con `datos` en base64 o data URL; máx. 30 000 caracteres, 10 archivos y 17 MB en total; el conector los sube en tandas) y lo reenvía al conector como tarea `agente`.
-El conector llama a `IA_URL/v1/agente`, descarga los `archivos_nuevos` (máx. 16 MB en total; los que no caben se listan en `omitidos`)
-y devuelve `{chat_id, respuesta, pasos, archivos: [{nombre, tipo, datos}]}`. Espera máxima: 300 s. Al visitante no se le muestra qué
-proveedor respondió (solo queda en el registro local). El agente no tiene las herramientas MCP de ObraClara.
+El conector anuncia `agente: true` al conectarse. Es un **cliente delgado**: toda la lógica del agente (turnos, mensajes durante un turno,
+lectura y creación de archivos, MCP, reintentos, limpieza de la respuesta) vive en la API local.
+
+- El Worker expone `POST /api/agente` (`{chat_id, mensaje, archivos?: [{nombre, datos}], mcp?: true}`; `datos` en base64 crudo; cuerpo máx. ~25 MB)
+  y lo reenvía al conector como tarea `agente`. El conector llama una sola vez a `IA_URL/v1/agente` tal cual, añadiendo el servidor MCP de ObraClara
+  (`SITIO/mcp`) si `mcp` es verdadero.
+- Respuesta 200: el conector descarga solo los `adjuntos` que declara la API (máx. 16 MB en total; los que no caben van en `omitidos`) y devuelve
+  `{chat_id, respuesta, adjuntos, mensajes_incorporados, archivos: [{nombre, titulo, tipo, datos}]}`. Respuesta 202 (ya había un turno en curso):
+  `{estado: "inyectado", chat_id, pendientes}`. Espera máxima: 300 s. Al visitante no se le muestra qué proveedor respondió.
+- Progreso: mientras dura el turno, el conector sigue `IA_URL/v1/agente/chats/<id>/eventos` (SSE) y empuja cada evento (`paso`, `herramienta`,
+  `archivo`, `mensaje_incorporado`, `fin`, `error`) por el WebSocket; el Worker los guarda en memoria por chat y el navegador los lee en
+  `GET /api/agente/eventos?chat_id=…&desde=N`.

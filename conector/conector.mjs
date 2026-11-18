@@ -37,8 +37,8 @@ const log = (...m) => console.log(new Date().toISOString(), ...m);
 const CONCURRENCIA = Number(process.env.CONCURRENCIA || 3);
 let activas = 0;
 const enCola = [];
-function lanzar(ws, tarea, fn = responder) {
-  const correr = () => { activas++; fn(ws, tarea).finally(() => { activas--; const sig = enCola.shift(); if (sig) sig(); }); };
+function lanzar(ws, tarea) {
+  const correr = () => { activas++; responder(ws, tarea).finally(() => { activas--; const sig = enCola.shift(); if (sig) sig(); }); };
   if (activas < CONCURRENCIA) correr(); else enCola.push(correr);
 }
 async function responder(ws, tarea) {
@@ -62,98 +62,87 @@ async function responder(ws, tarea) {
   try { ws.send(JSON.stringify(msg)); } catch { /* conexión caída: el Worker ya avisó al visitante */ }
 }
 
-// Modo agente: POST /v1/agente de la API local; los archivos nuevos se descargan y se devuelven en base64 (máx. 8 MB en total).
-const AGENTE_MAX_BYTES = 16 * 1024 * 1024;
-const TANDA_MAX = 10_000_000; // caracteres base64 por petición a la API local
-const TIPOS = { txt: "text/plain", md: "text/markdown", csv: "text/csv", json: "application/json", html: "text/html", pdf: "application/pdf", zip: "application/zip", png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" };
-// A veces el modelo deja su JSON interno en la respuesta ({"final":"…"} con restos como «\</escape»): se extrae el texto.
-function limpiarRespuesta(t) {
-  const s = String(t).replace(/\\?<\/?escape[^>]*>?\s*$/i, "").trim();
-  const m = s.match(/^\{\s*"(?:final|respuesta|answer)"\s*:\s*("(?:[^"\\]|\\.)*")\s*\}\s*\\?$/s);
-  if (m) { try { return JSON.parse(m[1]); } catch { /* deja el original */ } }
-  return s;
+// Modo agente: el conector solo reenvía. La API local lleva toda la lógica (turnos, mensajes durante un turno, lectura y creación
+// de archivos, reintentos, limpieza de la respuesta); aquí se añade el servidor MCP de ObraClara, se reenvía el POST /v1/agente
+// tal cual, se descargan los `adjuntos` que declara la API y se empujan al Worker los eventos de progreso del turno.
+const AGENTE_MAX_BYTES = 16 * 1024 * 1024; // descarga total de adjuntos hacia el navegador
+const TIPOS = { txt: "text/plain", md: "text/markdown", csv: "text/csv", json: "application/json", html: "text/html", pdf: "application/pdf", zip: "application/zip", png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation" };
+const cabIA = () => (IA_KEY ? { authorization: "Bearer " + IA_KEY } : {});
+const enviar = (ws, msg) => { try { ws.send(JSON.stringify(msg)); } catch { /* conexión caída */ } };
+
+// Una suscripción al SSE de eventos por chat mientras dura el turno; cada evento va al Worker por el WebSocket.
+const turnos = new Map();
+function suscribir(ws, chat, esperar) {
+  const ctl = new AbortController();
+  (async () => {
+    try {
+      const r = await fetch(`${IA_URL}/v1/agente/chats/${chat}/eventos${esperar ? "?esperar=1" : ""}`, { headers: { accept: "text/event-stream", ...cabIA() }, signal: ctl.signal });
+      if (!r.ok || !r.body) return;
+      const dec = new TextDecoder(); let buf = "";
+      for await (const trozo of r.body) {
+        buf += dec.decode(trozo, { stream: true });
+        let i;
+        while ((i = buf.indexOf("\n\n")) >= 0) {
+          const bloque = buf.slice(0, i); buf = buf.slice(i + 2);
+          const datos = bloque.split("\n").filter((l) => l.startsWith("data:")).map((l) => l.slice(5).replace(/^ /, "")).join("");
+          if (!datos) continue;
+          let ev; try { ev = JSON.parse(datos); } catch { continue; }
+          enviar(ws, { type: "evento", chat_id: chat, tipo: ev.tipo, texto: ev.texto });
+          if (ev.tipo === "fin" || ev.tipo === "error") { ctl.abort(); return; }
+        }
+      }
+    } catch { /* cerrada o caída: el progreso es opcional */ }
+  })();
+  return ctl;
 }
-// Solo se descarga lo que la API local marca en `adjuntos`; si no viene, no se adjunta nada (queda en el registro local).
-function elegirAdjuntos(j, id) {
-  if (Array.isArray(j.adjuntos)) return j.adjuntos.slice(0, 10);
-  if (Array.isArray(j.archivos_nuevos) && j.archivos_nuevos.length) log("agente sin adjuntos declarados", id.slice(0, 8), `archivos_nuevos=${j.archivos_nuevos.length}`);
-  return [];
-}
+
 async function agente(ws, tarea) {
   const t0 = Date.now();
+  const chat = /^[A-Za-z0-9_-]{1,64}$/.test(String(tarea.chat_id)) ? tarea.chat_id : "";
+  let sub = chat ? turnos.get(chat) : null, propia = false;
+  if (chat && !sub) { sub = suscribir(ws, chat, true); turnos.set(chat, sub); propia = true; }
   let msg;
   try {
-    const cab = IA_KEY ? { authorization: "Bearer " + IA_KEY } : {};
-    // La API local acepta cuerpos de ~12 MB: los archivos se suben en tandas al mismo chat (el agente conserva su espacio
-    // de trabajo).
-    const tandas = [[]]; let tam = 0;
-    for (const a of tarea.archivos ?? []) {
-      const n = (a.datos?.length || 0) + 200;
-      if (tam + n > TANDA_MAX && tandas[tandas.length - 1].length) { tandas.push([]); tam = 0; }
-      tandas[tandas.length - 1].push(a); tam += n;
+    const r = await fetch(IA_URL + "/v1/agente", {
+      method: "POST", headers: { "content-type": "application/json", ...cabIA() },
+      body: JSON.stringify({ ...(chat ? { chat_id: chat } : {}), mensaje: tarea.mensaje, archivos: tarea.archivos ?? [], ...(tarea.mcp === true ? { mcp: [{ url: SITIO + "/mcp", nombre: "obraclara" }] } : {}) }), signal: AbortSignal.timeout(300000),
+    });
+    const j = await r.json().catch(() => ({}));
+    if (r.status === 202) {
+      // Había un turno en curso: la API ya guardó el mensaje. Si este conector no seguía ese turno, empieza a seguirlo.
+      if (propia) { sub.abort(); turnos.delete(chat); propia = false; sub = suscribir(ws, chat, false); turnos.set(chat, sub); setTimeout(() => { if (turnos.get(chat) === sub) turnos.delete(chat); sub.abort(); }, 300000); }
+      msg = { type: "resultado", id: tarea.id, codigo: 202, cuerpo: { estado: j.estado ?? "inyectado", chat_id: j.chat_id ?? chat, ...(Number.isFinite(j.pendientes) ? { pendientes: j.pendientes } : {}) } };
+      log("agente 202", tarea.id.slice(0, 8));
+    } else if (!r.ok || typeof j?.respuesta !== "string") {
+      throw new Error(j?.error?.message || (typeof j?.error === "string" ? j.error : "") || `respuesta vacía (${r.status})`);
+    } else {
+      const archivos = []; const omitidos = []; let total = 0;
+      const adjuntos = (Array.isArray(j.adjuntos) ? j.adjuntos : []).slice(0, 20);
+      for (const a of adjuntos) {
+        try {
+          if (typeof a?.url !== "string" || !a.url.startsWith("/") || a.url.startsWith("//")) continue;
+          if (total + (Number(a.bytes) || 0) > AGENTE_MAX_BYTES) { omitidos.push(a.ruta); continue; }
+          const d = await fetch(IA_URL + a.url, { headers: cabIA(), signal: AbortSignal.timeout(60000) });
+          if (!d.ok) { omitidos.push(a.ruta); continue; }
+          const b = Buffer.from(await d.arrayBuffer());
+          if (total + b.length > AGENTE_MAX_BYTES) { omitidos.push(a.ruta); continue; }
+          total += b.length;
+          const ext = String(a.ruta).split(".").pop().toLowerCase();
+          archivos.push({ nombre: String(a.ruta), ...(typeof a.titulo === "string" && a.titulo ? { titulo: a.titulo.slice(0, 100) } : {}), tipo: TIPOS[ext] || "application/octet-stream", datos: b.toString("base64") });
+        } catch { omitidos.push(a?.ruta); }
+      }
+      // Solo se reenvían los campos que el sitio usa (sin direcciones internas ni datos del proveedor).
+      const cuerpo = { chat_id: j.chat_id ?? chat, respuesta: j.respuesta, adjuntos: adjuntos.map((a) => ({ ruta: a.ruta, titulo: a.titulo, bytes: a.bytes, tipo: a.tipo })), mensajes_incorporados: Number(j.mensajes_incorporados) || 0, archivos, ...(omitidos.length ? { omitidos } : {}) };
+      msg = { type: "resultado", id: tarea.id, codigo: 200, cuerpo };
+      log("agente ok", tarea.id.slice(0, 8), `${Date.now() - t0}ms`, `archivos=${archivos.length}`);
     }
-    // Los archivos van en turnos propios y la instrucción en un turno final sin adjuntos: si la instrucción viaja junto
-    // con adjuntos grandes, el agente tiende a responder sin usar sus herramientas.
-    if (tandas[tandas.length - 1].length) tandas.push([]);
-    let chatId = tarea.chat_id, r, j;
-    for (let i = 0; i < tandas.length; i++) {
-      const ultima = i === tandas.length - 1;
-      const mensaje = ultima ? tarea.mensaje
-        : `Archivos adjuntos (parte ${i + 1} de ${tandas.length - 1}). Solo guárdalos en el espacio de trabajo; las instrucciones llegan en el siguiente mensaje. Responde solo «recibido».`;
-      r = await fetch(IA_URL + "/v1/agente", {
-        method: "POST", headers: { "content-type": "application/json", ...cab },
-        body: JSON.stringify({ ...(chatId ? { chat_id: chatId } : {}), mensaje, archivos: tandas[i], ...(tarea.mcp === true ? { mcp: [{ url: SITIO + "/mcp", nombre: "obraclara" }] } : {}) }), signal: AbortSignal.timeout(300000),
-      });
-      j = await r.json();
-      if (!r.ok) break;
-      chatId = j.chat_id || chatId;
-    }
-    if (r.status === 409 && j?.estado === "turno_en_curso") {
-      try { ws.send(JSON.stringify({ type: "resultado", id: tarea.id, codigo: 409, estado: "turno_en_curso" })); } catch { /* conexión caída */ }
-      return;
-    }
-    if (!r.ok || typeof j?.respuesta !== "string") throw new Error(j?.error?.message || (typeof j?.error === "string" ? j.error : "") || `respuesta vacía (${r.status})`);
-    const archivos = []; const omitidos = []; let total = 0;
-    for (const a of elegirAdjuntos(j, tarea.id)) {
-      try {
-        if (typeof a?.url !== "string" || !a.url.startsWith("/") || a.url.startsWith("//")) continue;
-        if (total + (Number(a.bytes) || 0) > AGENTE_MAX_BYTES) { omitidos.push(a.ruta); continue; }
-        const d = await fetch(IA_URL + a.url, { headers: cab, signal: AbortSignal.timeout(60000) });
-        if (!d.ok) { omitidos.push(a.ruta); continue; }
-        const b = Buffer.from(await d.arrayBuffer());
-        if (total + b.length > AGENTE_MAX_BYTES) { omitidos.push(a.ruta); continue; }
-        total += b.length;
-        const ext = String(a.ruta).split(".").pop().toLowerCase();
-        archivos.push({ nombre: String(a.ruta), ...(typeof a.titulo === "string" && a.titulo ? { titulo: a.titulo.slice(0, 100) } : {}), tipo: TIPOS[ext] || "application/octet-stream", datos: b.toString("base64") });
-      } catch { omitidos.push(a?.ruta); }
-    }
-    // El proveedor real solo se registra aquí; al visitante no se le muestra.
-    msg = { type: "resultado", id: tarea.id, agente: { chat_id: j.chat_id, respuesta: limpiarRespuesta(j.respuesta), pasos: Array.isArray(j.pasos) ? j.pasos.length : Number(j.pasos) || 0, mensajes_incorporados: Number(j.mensajes_incorporados) || 0, archivos, ...(omitidos.length ? { omitidos } : {}) } };
-    log("agente ok", tarea.id.slice(0, 8), `${Date.now() - t0}ms`, `archivos=${archivos.length}`, typeof j.proveedor === "string" ? j.proveedor : "");
   } catch (e) {
     log("agente error", tarea.id.slice(0, 8), e.message);
     msg = { type: "resultado", id: tarea.id, error: "Agente del servidor: " + String(e.message).slice(0, 200) };
   }
-  try { ws.send(JSON.stringify(msg)); } catch { /* conexión caída */ }
-}
-
-// Mensaje para el turno en curso: va directo (sin pasar por la cola de concurrencia, que el turno largo ocupa) y con tiempo corto.
-async function agenteMensaje(ws, tarea) {
-  let msg;
-  try {
-    if (!/^[A-Za-z0-9_-]{1,64}$/.test(String(tarea.chat_id))) throw new Error("chat_id no válido");
-    const r = await fetch(IA_URL + "/v1/agente/chats/" + tarea.chat_id + "/mensajes", {
-      method: "POST", headers: { "content-type": "application/json", ...(IA_KEY ? { authorization: "Bearer " + IA_KEY } : {}) },
-      body: JSON.stringify({ mensaje: tarea.mensaje, archivos: tarea.archivos ?? [] }), signal: AbortSignal.timeout(15000),
-    });
-    const j = await r.json().catch(() => ({}));
-    msg = { type: "resultado", id: tarea.id, codigo: r.status, ...(typeof j?.estado === "string" ? { estado: j.estado } : {}), ...(Number.isFinite(j?.pendientes) ? { pendientes: j.pendientes } : {}) };
-    log("agente mensaje", tarea.id.slice(0, 8), r.status, j?.estado ?? "");
-  } catch (e) {
-    log("agente mensaje error", tarea.id.slice(0, 8), e.message);
-    msg = { type: "resultado", id: tarea.id, error: "Agente del servidor: " + String(e.message).slice(0, 200) };
-  }
-  try { ws.send(JSON.stringify(msg)); } catch { /* conexión caída */ }
+  // El turno terminó: se deja un momento para que llegue el último evento y se libera el chat para el siguiente turno.
+  if (propia) { turnos.delete(chat); setTimeout(() => sub.abort(), 4000); }
+  enviar(ws, msg);
 }
 
 let espera = 1000;
@@ -162,7 +151,7 @@ function conectar() {
   let ping;
   ws.addEventListener("open", () => { log("conectado", db ? "(SQL local activo)" : "(sin base local: el Worker usará D1)"); ws.send(JSON.stringify({ type: "hola", sql: !!db, imagenes: true, agente: true })); espera = 1000; ping = setInterval(() => { try { ws.send('{"type":"ping"}'); } catch {} }, 25000); });
   ws.addEventListener("message", (ev) => {
-    try { const m = JSON.parse(String(ev.data)); if (m.type === "job") lanzar(ws, m); else if (m.type === "agente") lanzar(ws, m, agente); else if (m.type === "agente_mensaje") agenteMensaje(ws, m); else if (m.type === "sql") consultar(ws, m); } catch { /* ignorar */ }
+    try { const m = JSON.parse(String(ev.data)); if (m.type === "job") lanzar(ws, m); else if (m.type === "agente") agente(ws, m); else if (m.type === "sql") consultar(ws, m); } catch { /* ignorar */ }
   });
   ws.addEventListener("close", (ev) => { clearInterval(ping); log("desconectado", ev.code); setTimeout(conectar, espera); espera = Math.min(espera * 2, 30000); });
   ws.addEventListener("error", () => { /* 'close' se dispara después y reconecta */ });

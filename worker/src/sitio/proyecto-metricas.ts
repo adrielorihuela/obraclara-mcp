@@ -77,7 +77,7 @@ ${fig(rm, "Tiempo de respuesta por herramienta", ley(["--accent", "Mediana: la m
 ${que2("el servidor no cambia ni inventa cifras: lo que muestra es igual a lo que hay en la base, en los 30 casos de detalle, los 10 resúmenes y las 14 consultas de alertas probadas.")}
 <h3>5. Pruebas de software</h3>
 <div class="kpis rv">${kpi(`${M.pruebas.pasan} de ${M.pruebas.total}`, `pruebas automáticas que pasan, en ${M.pruebas.archivos} archivos`)}${kpi(p1(M.pruebas.coberturaLineas), "de las líneas de código se ejecutan al probar")}${kpi(p1(M.pruebas.coberturaLogica), "en la lógica del servidor (sin las páginas)")}</div>
-${que2("una prueba automática es un pequeño programa que verifica que otro funciona; las 104 pasan. «Cobertura» es qué parte del código se ejecutó durante las pruebas: cerca de cuatro quintos.")}
+${que2("una prueba automática es un pequeño programa que verifica que otro funciona; las 115 pasan. «Cobertura» es qué parte del código se ejecutó durante las pruebas: cerca de cuatro quintos.")}
 <h3>6. Asistente del sitio</h3>
 ${fig(asi, "Tiempo de respuesta del asistente", ley(["--accent", "Tiempo medio"], ["--mut", "Tiempo máximo"]), "el asistente responde en unos 7 a 10 segundos; es una muestra pequeña (5 y 2 preguntas) y sirve solo como orden de magnitud. Funciona sobre un servicio compartido que puede hacer cola.")}
 <p class="small mut">Cómo se generan: <code>node metricas/exportar_sitio.mjs</code> escribe <code>worker/src/sitio/metricas-datos.ts</code> a partir de <code>metricas/resultados/</code>. Detalle de cada medición en <a href="https://github.com/adrielorihuela/obraclara-mcp/blob/main/metricas/LEEME.md">metricas/LEEME.md</a>.</p>`;

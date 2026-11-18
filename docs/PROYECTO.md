@@ -137,16 +137,18 @@ Cifras al corte del 10/11/2026 (API pública `/api/alertas` y `/salud`): **16 50
 
 ```mermaid
 flowchart LR
-  U[Usuario] --> P[Panel web /asistente]
+  U[Usuario] --> P[Panel web /asistente<br/>cliente de la API del agente]
   P -->|/api/chat, /api/agente| W
   C[Cliente MCP / LLM] <-->|Streamable HTTP /mcp| W[Cloudflare Worker<br/>servidor MCP]
   W --> T{{4 herramientas}}
   T --> DB[(SQLite local<br/>respaldo: D1)]
   CSV[CSV MEF] --> ETL[ETL Python] --> DB
   K[Conector saliente] <-->|WebSocket /conector/ws| W
-  K --- IA[API de IA privada del grupo<br/>compatible con OpenAI]
+  K --- IA[API del agente del grupo]
   K --- DB
 ```
+
+**ObraClara es cliente de la API del agente.** En sencillo: el sitio es la ventanilla; quien trabaja es el agente de la API del grupo. Toda la lógica agéntica vive allá: turnos, cola de mensajes, lectura y creación de archivos (PDF, Word, Excel, PowerPoint, ZIP), bandeja, conexión con el servidor MCP, reintentos y limpieza de la respuesta. El sitio solo muestra el chat, le añade el servidor MCP de ObraClara y reenvía el mensaje tal cual. Si el visitante escribe mientras el agente trabaja, el mensaje va por el mismo camino y la API responde «entregado» (202); la respuesta final llega en el envío original. El progreso en vivo («Leyendo informe.pdf», «Consultando datos del MEF») viene de los eventos de la API: el conector los sigue y el Worker los guarda en memoria (sin escribir en D1). Si la API no está disponible, el sitio responde en **modo de emergencia**: solo texto, sin archivos ni agente, con el aviso visible; ahí el navegador conserva el pequeño bucle de herramientas MCP porque es la única forma de consultar los datos oficiales sin el agente. Con una API propia (Configuración) el chat es simple: texto e imágenes.
 
 Las siete etapas de una consulta:
 
@@ -368,7 +370,7 @@ Se llamó 20 veces a cada herramienta y 10 veces a la lista de herramientas y al
 
 ### Pruebas de software
 
-**104 de 104** pruebas automáticas pasan, en 9 archivos. Cobertura de código: 81,5 % de las líneas (79,0 % en la lógica del servidor, sin las páginas).
+**115 de 115** pruebas automáticas pasan, en 10 archivos. Cobertura de código: 84,0 % de las líneas (81,4 % en la lógica del servidor, sin las páginas).
 
 **Qué significa:** una prueba automática es un programa que revisa que otro funciona; «cobertura» es la parte del código que se ejecutó al probar.
 
@@ -383,15 +385,16 @@ Se llamó 20 veces a cada herramienta y 10 veces a la lista de herramientas y al
 
 ## 11. Pruebas
 
-**104 pruebas en 9 archivos** (`cd worker && npx vitest run`), todas pasan; además `npx tsc --noEmit` y `npx wrangler deploy --dry-run`.
+**115 pruebas en 10 archivos** (`cd worker && npx vitest run`), todas pasan; además `npx tsc --noEmit` y `npx wrangler deploy --dry-run`.
 
 | Archivo | Pruebas | Qué cubre |
 |---|---|---|
-| `adjuntos` | 27 | ZIP, texto frente a binario, documentos |
-| `agente` | 32 | llamadas JSON a herramientas, SSE y protocolo del chat |
+| `adjuntos` | 16 | ZIP y .docx para la vista previa, texto frente a binario |
+| `agente` | 42 | llamadas JSON a herramientas, SSE, vista previa de .xlsx/.csv y panel como cliente de la API |
+| `compartir` | 14 | chats compartidos |
 | `queries` | 14 | normalización, buscar, detalle, alertas y resumen sobre D1 simulada |
 | `cadena` | 13 | cadena de proveedores de IA y validación con imágenes |
-| `agenteapi` | 4 | validación de la API del modo agente |
+| `agenteapi` | 2 | forma de la petición a la API del agente |
 | `remotedb` | 4 | usa el conector y cae a D1 si no responde |
 | `mcp` | 3 | 4 herramientas, respuesta con datos, fuente, URL y fecha, sin resultados |
 | `gptjobs` | 2 | validación de mensajes |

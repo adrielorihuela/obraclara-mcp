@@ -1,6 +1,6 @@
 // GENERADO por metricas/exportar_sitio.mjs a partir de metricas/resultados/. No editar a mano: vuelve a ejecutar `node metricas/exportar_sitio.mjs`.
 export const METRICAS = {
- "generado": "2026-11-18T15:04:46+00:00",
+ "generado": "2026-11-18T16:49:20+00:00",
  "corte": {
   "total_inversiones": "150574",
   "alertas_sobrecosto": "26387",
@@ -399,12 +399,12 @@ export const METRICAS = {
   "detalles": 30
  },
  "pruebas": {
-  "total": 104,
-  "pasan": 104,
+  "total": 115,
+  "pasan": 115,
   "fallan": 0,
-  "archivos": 9,
-  "coberturaLineas": 81.47,
-  "coberturaLogica": 79
+  "archivos": 10,
+  "coberturaLineas": 83.95,
+  "coberturaLogica": 81.37
  },
  "asistente": [
   {

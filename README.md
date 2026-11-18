@@ -42,7 +42,7 @@ Servidor MCP público (Model Context Protocol) que permite a un asistente de IA 
 
 ```mermaid
 flowchart LR
-  U[Usuario] --> P[Panel web /asistente<br/>MCP on/off, modo agente, adjuntos]
+  U[Usuario] --> P[Panel web /asistente<br/>cliente de la API del agente]
   P -->|/api/chat, /api/agente| W
   C[Cliente MCP / LLM<br/>Claude, Inspector, etc.] <-->|Streamable HTTP /mcp| W[Cloudflare Worker<br/>servidor MCP]
   W --> T{{4 herramientas<br/>buscar_inversiones<br/>detalle_inversion<br/>alertas_inversion<br/>resumen_inversiones}}
@@ -52,8 +52,9 @@ flowchart LR
   SQ --> DB
   ETL -->|SQL, manual| DB
   K[Conector saliente<br/>conector/conector.mjs] <-->|WebSocket /conector/ws| W
-  K --- IA[API de IA privada del grupo<br/>compatible con OpenAI]
+  K --- IA[API del agente del grupo<br/>turnos, archivos, MCP, mensajes]
   K --- DB
+  IA -.->|MCP /mcp| W
 ```
 
 Flujo:
@@ -62,9 +63,9 @@ Flujo:
 2. `etl/inversiones.py` limpia el CSV, calcula los indicadores y alertas con código determinista y genera SQL por lotes. El modelo de lenguaje **no calcula nada**.
 3. Ese SQL se carga en una base **SQLite local** del grupo (`etl/cargar_sqlite.py`) y, de forma manual, en la base **D1 `obraclara`** de Cloudflare (respaldo, porque recargarla entera supera las escrituras diarias del plan gratuito).
 4. El Worker (`worker/src/index.ts`) expone el servidor MCP en `/mcp`. Las cuatro herramientas consultan con SQL parametrizado: primero la SQLite local a través del conector y, si este no está conectado, D1 (`src/lib/remotedb.ts`). Límite de 60 solicitudes por minuto por cliente.
-5. El **conector saliente** (`conector/`) abre un WebSocket hacia el Worker (no abre puertos), ejecuta los SELECT sobre la SQLite local y responde las preguntas del chat con la API de IA privada del grupo, compatible con OpenAI. Su dirección no está en el repositorio: se lee de la variable de entorno `IA_URL`.
-6. El **panel web** (`/asistente`) ofrece un chat con interruptor **MCP activado/desactivado** (con MCP el modelo llama a las herramientas; sin MCP responde solo con su conocimiento), **modo agente** (`POST /api/agente`, tareas que pueden devolver archivos) y **adjuntos** (imágenes, documentos y proyectos; su texto se envía al modelo como «[Adjunto: ...]»). También permite configurar conexiones de IA propias.
-7. Respaldo de emergencia del chat: si el conector no está disponible, el Worker responde con Workers AI y luego Groq (etiqueta «respaldo de ObraClara · modelo»).
+5. El **conector saliente** (`conector/`) abre un WebSocket hacia el Worker (no abre puertos), ejecuta los SELECT sobre la SQLite local y **reenvía** las peticiones del chat a la API de IA privada del grupo. Su dirección no está en el repositorio: se lee de la variable de entorno `IA_URL`.
+6. **ObraClara es un cliente de la API del agente.** Toda la lógica agéntica vive en esa API: turnos, cola de mensajes durante un turno, lectura y creación de archivos (PDF, Word, Excel, PowerPoint, ZIP…), bandeja, conexión con el servidor MCP, reintentos y limpieza de la respuesta. El panel (`/asistente`) solo muestra el chat, añade el servidor MCP de ObraClara (interruptor **MCP activado/desactivado**) y reenvía el mensaje tal cual por `POST /api/agente` → conector → `POST /v1/agente`. Los archivos van crudos en base64 (hasta unos 25 MB), sin extraer texto en el navegador. Si el visitante escribe mientras el agente trabaja, el mensaje se envía por el mismo camino: la API lo guarda en su bandeja y responde 202 («Entregado al agente»); la respuesta final llega en el `POST` original. El progreso en vivo («Leyendo informe.pdf», «Consultando datos del MEF», «Creando resumen.docx») sale de los eventos de la API: el conector los sigue (SSE) y los guarda en memoria del Durable Object, y el navegador los consulta cada segundo en `GET /api/agente/eventos?chat_id=…&desde=N` (sin escrituras en D1). El panel de adjuntos es solo una vista de lo que entrega la API.
+7. **Modo de emergencia** (solo texto): si la API del agente no está disponible (`/api/ia-estado` sin agente, error de red o 5xx), el panel responde por `/api/chat` (IA del grupo y, si falla, Workers AI y luego Groq) con el aviso «modo de emergencia: sin archivos ni agente». En ese modo el navegador conserva el pequeño bucle de herramientas MCP (el modelo pide `{"tool": …}` y el navegador llama a `/mcp`), porque es la única forma de consultar los datos oficiales sin el agente. Con «Configuración» (API propia del visitante) el chat es simple —texto e imágenes, sin archivos ni agente—; la clave nunca llega al servidor.
 
 ## Herramientas MCP
 
@@ -124,18 +125,14 @@ Descripciones de parámetros: `entidad` «Nombre o parte del nombre de la entida
 
 Aviso que acompaña a las alertas: «Las alertas son indicios técnicos, no prueban irregularidades. La posible paralización usa el avance físico y el último mes con gasto devengado, como aproximación de la Ley 31589.»
 
-### 3. Prompt de sistema del chat del panel (`worker/src/lib/agente.ts`, `buildSystemPrompt`)
+### 3. Prompt de sistema del modo simple (`worker/src/lib/agente.ts`, `buildSystemPrompt`)
 
-Fragmento común a ambos modos (constante `archivos`):
-
-````text
-Si el usuario pide un archivo o documento (Word, PDF, código, texto, un proyecto), escríbelo completo en un bloque de código cuya línea de apertura sea ```archivo:ruta/nombre.ext (por ejemplo ```archivo:informe.md o ```archivo:src/app.py), un bloque por archivo; si el contenido lleva bloques de código propios, abre y cierra el bloque archivo con cuatro acentos graves. Para Word o PDF escribe el contenido en Markdown simple dentro de ```archivo:nombre.docx o ```archivo:nombre.pdf: el sitio ofrece botones de descarga. Añade una frase que diga qué contiene cada archivo.
-````
+Solo se usa en el modo de emergencia y con una API propia; el agente del servidor trae su propio prompt. Ya no hay protocolo de archivos en el navegador.
 
 **Sin MCP** (`mcpOn = false`):
 
 ```text
-Responde en español. Si la pregunta trata de datos oficiales del Perú, cita la fuente y no inventes cifras. Si el usuario adjunta una imagen, descríbela con lo que se ve. Si adjunta documentos o proyectos, su texto viene en el mensaje bajo «[Adjunto: ...]»: úsalo como contexto. <archivos>
+Responde en español. Si la pregunta trata de datos oficiales del Perú, cita la fuente y no inventes cifras. Si el usuario adjunta una imagen, descríbela con lo que se ve. No puedes crear ni leer archivos en este modo.
 ```
 
 **Con MCP** (`mcpOn = true`; `<lista de herramientas>` se genera a partir de lo que devuelve `tools/list` del servidor, con una línea `- nombre: descripción` y otra `Parámetros: nombre (tipo, obligatorio): descripción; ...` por herramienta):
@@ -209,12 +206,12 @@ Lee `eval/resultados/resultados.csv` (generado por `score_eval.mjs`) y escribe e
 ```bash
 cd worker
 npm ci
-npx vitest run            # 104 pruebas en 9 archivos, todas pasan
+npx vitest run            # 115 pruebas en 10 archivos, todas pasan
 npx tsc --noEmit          # verificación de tipos, sin errores
 npx wrangler deploy --dry-run   # empaqueta el Worker sin desplegar
 ```
 
-Cobertura de las 104 pruebas (`worker/test/`): `adjuntos` (27: lectura de ZIP, texto frente a binario, documentos), `agente` (32: análisis de las llamadas JSON a herramientas, flujo SSE y protocolo del chat), `queries` (14: normalización, `buscar`, `detalle`, `alertas`, `resumen` sobre una D1 simulada), `cadena` (13: cadena de proveedores de IA y validación con imágenes), `agenteapi` (4), `remotedb` (4: la consulta usa el conector y cae a D1 si no responde), `mcp` (3: lista exactamente las 4 herramientas, cada respuesta trae datos, fuente, URL y fecha, y se informa cuando no hay resultados) `gptjobs` (2: validación de mensajes) y `sitio` (5: la página `/proyecto` y que el sitio no exponga datos internos).
+Cobertura de las 115 pruebas (`worker/test/`): `adjuntos` (16: lectura de ZIP y .docx para la vista previa, texto frente a binario), `agente` (42: llamadas JSON a herramientas, flujo SSE, vista previa de .xlsx/.csv y que el panel es un cliente de la API), `compartir` (14: chats compartidos), `queries` (14: normalización, `buscar`, `detalle`, `alertas`, `resumen` sobre una D1 simulada), `cadena` (13: cadena de proveedores de IA y validación con imágenes), `agenteapi` (2: forma de la petición), `remotedb` (4: la consulta usa el conector y cae a D1 si no responde), `mcp` (3: lista exactamente las 4 herramientas, cada respuesta trae datos, fuente, URL y fecha, y se informa cuando no hay resultados) `gptjobs` (2: validación de mensajes) y `sitio` (5: la página `/proyecto` y que el sitio no exponga datos internos).
 
 Prueba manual contra el servidor público con MCP Inspector:
 

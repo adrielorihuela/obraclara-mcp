@@ -107,11 +107,12 @@ const REFERENCIAS: string[] = [
 ];
 
 const PRUEBAS: [string, number, string][] = [
-  ["adjuntos", 27, "lectura de ZIP, texto frente a binario, documentos"],
-  ["agente", 32, "análisis de llamadas JSON a herramientas, flujo SSE y protocolo del chat"],
+  ["adjuntos", 16, "lectura de ZIP y .docx para la vista previa, texto frente a binario"],
+  ["agente", 42, "llamadas JSON a herramientas, flujo SSE, vista previa de .xlsx y .csv, y que el panel es un cliente de la API del agente"],
+  ["compartir", 14, "chats compartidos: guardar, leer, borrar con token y página pública"],
   ["queries", 14, "normalización, <code>buscar</code>, <code>detalle</code>, <code>alertas</code> y <code>resumen</code> sobre una D1 simulada"],
   ["cadena", 13, "cadena de proveedores de IA y validación con imágenes"],
-  ["agenteapi", 4, "validación de la API del modo agente"],
+  ["agenteapi", 2, "forma de la petición a la API del agente"],
   ["remotedb", 4, "la consulta usa el conector y cae a D1 si no responde"],
   ["mcp", 3, "lista exactamente las 4 herramientas; cada respuesta trae datos, fuente, URL y fecha; se informa cuando no hay resultados"],
   ["gptjobs", 2, "validación de mensajes"],

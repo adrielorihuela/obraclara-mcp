@@ -104,7 +104,7 @@ El sitio sigue funcionando: la búsqueda directa de `/datos` no usa IA. Si se ap
 Nada: usamos el plan gratuito de Cloudflare y un computador del grupo. Es la razón por la que hay límites de uso y por la que el asistente gratuito puede estar ocupado.
 
 **17. ¿Qué hizo la IA y qué hizo el grupo?**
-La IA ayudó a escribir el código, y está declarado. El grupo lo revisó y probó: 104 pruebas automáticas pasan y se evaluó contra los datos oficiales. La redacción del informe, el workflow, los gráficos del informe y el póster los hizo el grupo sin IA; el PPT puede llevar ayuda de IA declarada.
+La IA ayudó a escribir el código, y está declarado. El grupo lo revisó y probó: 115 pruebas automáticas pasan y se evaluó contra los datos oficiales. La redacción del informe, el workflow, los gráficos del informe y el póster los hizo el grupo sin IA; el PPT puede llevar ayuda de IA declarada.
 
 **18. ¿Cuáles son las limitaciones?**
 Los datos tienen fecha de corte; las alertas son aproximaciones; la evaluación fue de una sola corrida y puntuada por un programa; el asistente gratuito es compartido y puede tardar o estar apagado.
