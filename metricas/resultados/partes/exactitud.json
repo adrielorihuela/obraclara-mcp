@@ -1,0 +1,381 @@
+{
+  "generado": "2026-11-18T14:59:07+00:00",
+  "semilla_detalle": 2026,
+  "resumen": [
+    {
+      "prueba": "detalle_inversion (30 códigos)",
+      "casos": 30,
+      "coinciden": 30,
+      "pct_casos": 100.0,
+      "campos_comparados": 810,
+      "campos_iguales": 810,
+      "pct_campos": 100.0,
+      "pct_campos_numericos": 100.0
+    },
+    {
+      "prueba": "resumen_inversiones (10 filtros)",
+      "casos": 10,
+      "coinciden": 10,
+      "pct_casos": 100.0,
+      "campos_comparados": 60,
+      "campos_iguales": 60,
+      "pct_campos": 100.0,
+      "pct_campos_numericos": ""
+    }
+  ],
+  "detalle": [
+    {
+      "codigo_unico": "2447506",
+      "campos_comparados": 27,
+      "campos_iguales": 27,
+      "numericos_iguales": true,
+      "coincide_100pct": true,
+      "campos_distintos": ""
+    },
+    {
+      "codigo_unico": "2617298",
+      "campos_comparados": 27,
+      "campos_iguales": 27,
+      "numericos_iguales": true,
+      "coincide_100pct": true,
+      "campos_distintos": ""
+    },
+    {
+      "codigo_unico": "2715707",
+      "campos_comparados": 27,
+      "campos_iguales": 27,
+      "numericos_iguales": true,
+      "coincide_100pct": true,
+      "campos_distintos": ""
+    },
+    {
+      "codigo_unico": "2719136",
+      "campos_comparados": 27,
+      "campos_iguales": 27,
+      "numericos_iguales": true,
+      "coincide_100pct": true,
+      "campos_distintos": ""
+    },
+    {
+      "codigo_unico": "2425506",
+      "campos_comparados": 27,
+      "campos_iguales": 27,
+      "numericos_iguales": true,
+      "coincide_100pct": true,
+      "campos_distintos": ""
+    },
+    {
+      "codigo_unico": "2547146",
+      "campos_comparados": 27,
+      "campos_iguales": 27,
+      "numericos_iguales": true,
+      "coincide_100pct": true,
+      "campos_distintos": ""
+    },
+    {
+      "codigo_unico": "2736515",
+      "campos_comparados": 27,
+      "campos_iguales": 27,
+      "numericos_iguales": true,
+      "coincide_100pct": true,
+      "campos_distintos": ""
+    },
+    {
+      "codigo_unico": "2672635",
+      "campos_comparados": 27,
+      "campos_iguales": 27,
+      "numericos_iguales": true,
+      "coincide_100pct": true,
+      "campos_distintos": ""
+    },
+    {
+      "codigo_unico": "2743004",
+      "campos_comparados": 27,
+      "campos_iguales": 27,
+      "numericos_iguales": true,
+      "coincide_100pct": true,
+      "campos_distintos": ""
+    },
+    {
+      "codigo_unico": "2733189",
+      "campos_comparados": 27,
+      "campos_iguales": 27,
+      "numericos_iguales": true,
+      "coincide_100pct": true,
+      "campos_distintos": ""
+    },
+    {
+      "codigo_unico": "2711249",
+      "campos_comparados": 27,
+      "campos_iguales": 27,
+      "numericos_iguales": true,
+      "coincide_100pct": true,
+      "campos_distintos": ""
+    },
+    {
+      "codigo_unico": "2685756",
+      "campos_comparados": 27,
+      "campos_iguales": 27,
+      "numericos_iguales": true,
+      "coincide_100pct": true,
+      "campos_distintos": ""
+    },
+    {
+      "codigo_unico": "2562132",
+      "campos_comparados": 27,
+      "campos_iguales": 27,
+      "numericos_iguales": true,
+      "coincide_100pct": true,
+      "campos_distintos": ""
+    },
+    {
+      "codigo_unico": "2047096",
+      "campos_comparados": 27,
+      "campos_iguales": 27,
+      "numericos_iguales": true,
+      "coincide_100pct": true,
+      "campos_distintos": ""
+    },
+    {
+      "codigo_unico": "2341491",
+      "campos_comparados": 27,
+      "campos_iguales": 27,
+      "numericos_iguales": true,
+      "coincide_100pct": true,
+      "campos_distintos": ""
+    },
+    {
+      "codigo_unico": "2436859",
+      "campos_comparados": 27,
+      "campos_iguales": 27,
+      "numericos_iguales": true,
+      "coincide_100pct": true,
+      "campos_distintos": ""
+    },
+    {
+      "codigo_unico": "2598164",
+      "campos_comparados": 27,
+      "campos_iguales": 27,
+      "numericos_iguales": true,
+      "coincide_100pct": true,
+      "campos_distintos": ""
+    },
+    {
+      "codigo_unico": "2415417",
+      "campos_comparados": 27,
+      "campos_iguales": 27,
+      "numericos_iguales": true,
+      "coincide_100pct": true,
+      "campos_distintos": ""
+    },
+    {
+      "codigo_unico": "2690722",
+      "campos_comparados": 27,
+      "campos_iguales": 27,
+      "numericos_iguales": true,
+      "coincide_100pct": true,
+      "campos_distintos": ""
+    },
+    {
+      "codigo_unico": "2108568",
+      "campos_comparados": 27,
+      "campos_iguales": 27,
+      "numericos_iguales": true,
+      "coincide_100pct": true,
+      "campos_distintos": ""
+    },
+    {
+      "codigo_unico": "2711025",
+      "campos_comparados": 27,
+      "campos_iguales": 27,
+      "numericos_iguales": true,
+      "coincide_100pct": true,
+      "campos_distintos": ""
+    },
+    {
+      "codigo_unico": "2614318",
+      "campos_comparados": 27,
+      "campos_iguales": 27,
+      "numericos_iguales": true,
+      "coincide_100pct": true,
+      "campos_distintos": ""
+    },
+    {
+      "codigo_unico": "2535026",
+      "campos_comparados": 27,
+      "campos_iguales": 27,
+      "numericos_iguales": true,
+      "coincide_100pct": true,
+      "campos_distintos": ""
+    },
+    {
+      "codigo_unico": "2660376",
+      "campos_comparados": 27,
+      "campos_iguales": 27,
+      "numericos_iguales": true,
+      "coincide_100pct": true,
+      "campos_distintos": ""
+    },
+    {
+      "codigo_unico": "2569099",
+      "campos_comparados": 27,
+      "campos_iguales": 27,
+      "numericos_iguales": true,
+      "coincide_100pct": true,
+      "campos_distintos": ""
+    },
+    {
+      "codigo_unico": "2631995",
+      "campos_comparados": 27,
+      "campos_iguales": 27,
+      "numericos_iguales": true,
+      "coincide_100pct": true,
+      "campos_distintos": ""
+    },
+    {
+      "codigo_unico": "2637949",
+      "campos_comparados": 27,
+      "campos_iguales": 27,
+      "numericos_iguales": true,
+      "coincide_100pct": true,
+      "campos_distintos": ""
+    },
+    {
+      "codigo_unico": "2650238",
+      "campos_comparados": 27,
+      "campos_iguales": 27,
+      "numericos_iguales": true,
+      "coincide_100pct": true,
+      "campos_distintos": ""
+    },
+    {
+      "codigo_unico": "2719893",
+      "campos_comparados": 27,
+      "campos_iguales": 27,
+      "numericos_iguales": true,
+      "coincide_100pct": true,
+      "campos_distintos": ""
+    },
+    {
+      "codigo_unico": "2333245",
+      "campos_comparados": 27,
+      "campos_iguales": 27,
+      "numericos_iguales": true,
+      "coincide_100pct": true,
+      "campos_distintos": ""
+    }
+  ],
+  "resumenes": [
+    {
+      "filtro": "departamento",
+      "valor": "TACNA",
+      "inversiones_mcp": 2197,
+      "inversiones_sql": 2197,
+      "costo_mcp": 20804038203.07,
+      "costo_sql": 20804038203.07,
+      "campos_distintos": "",
+      "coincide_100pct": true,
+      "inversiones_sql_nombre_exacto": null
+    },
+    {
+      "filtro": "departamento",
+      "valor": "HUANUCO",
+      "inversiones_mcp": 5353,
+      "inversiones_sql": 5353,
+      "costo_mcp": 38894214930.91,
+      "costo_sql": 38894214930.91,
+      "campos_distintos": "",
+      "coincide_100pct": true,
+      "inversiones_sql_nombre_exacto": null
+    },
+    {
+      "filtro": "departamento",
+      "valor": "ANCASH",
+      "inversiones_mcp": 12935,
+      "inversiones_sql": 12935,
+      "costo_mcp": 84140225802.87,
+      "costo_sql": 84140225802.87,
+      "campos_distintos": "",
+      "coincide_100pct": true,
+      "inversiones_sql_nombre_exacto": null
+    },
+    {
+      "filtro": "departamento",
+      "valor": "MADRE DE DIOS",
+      "inversiones_mcp": 792,
+      "inversiones_sql": 792,
+      "costo_mcp": 10068245953.82,
+      "costo_sql": 10068245953.82,
+      "campos_distintos": "",
+      "coincide_100pct": true,
+      "inversiones_sql_nombre_exacto": null
+    },
+    {
+      "filtro": "departamento",
+      "valor": "HUANCAVELICA",
+      "inversiones_mcp": 6173,
+      "inversiones_sql": 6173,
+      "costo_mcp": 29026430941.95,
+      "costo_sql": 29026430941.95,
+      "campos_distintos": "",
+      "coincide_100pct": true,
+      "inversiones_sql_nombre_exacto": null
+    },
+    {
+      "filtro": "entidad",
+      "valor": "MUNICIPALIDAD DISTRITAL DE MACARI",
+      "inversiones_mcp": 44,
+      "inversiones_sql": 44,
+      "costo_mcp": 151043198.13,
+      "costo_sql": 151043198.13,
+      "campos_distintos": "",
+      "coincide_100pct": true,
+      "inversiones_sql_nombre_exacto": 44
+    },
+    {
+      "filtro": "entidad",
+      "valor": "MUNICIPALIDAD DISTRITAL DE SAN JUAN - ANCASH",
+      "inversiones_mcp": 114,
+      "inversiones_sql": 114,
+      "costo_mcp": 262673049.28,
+      "costo_sql": 262673049.28,
+      "campos_distintos": "",
+      "coincide_100pct": true,
+      "inversiones_sql_nombre_exacto": 114
+    },
+    {
+      "filtro": "entidad",
+      "valor": "MUNICIPALIDAD DISTRITAL DE CIUDAD NUEVA",
+      "inversiones_mcp": 72,
+      "inversiones_sql": 72,
+      "costo_mcp": 420201402.04,
+      "costo_sql": 420201402.04,
+      "campos_distintos": "",
+      "coincide_100pct": true,
+      "inversiones_sql_nombre_exacto": 72
+    },
+    {
+      "filtro": "entidad",
+      "valor": "MUNICIPALIDAD PROVINCIAL DE LORETO",
+      "inversiones_mcp": 479,
+      "inversiones_sql": 479,
+      "costo_mcp": 2916864660.53,
+      "costo_sql": 2916864660.53,
+      "campos_distintos": "",
+      "coincide_100pct": true,
+      "inversiones_sql_nombre_exacto": 479
+    },
+    {
+      "filtro": "entidad",
+      "valor": "MUNICIPALIDAD DISTRITAL DE YANAHUARA",
+      "inversiones_mcp": 65,
+      "inversiones_sql": 65,
+      "costo_mcp": 100506498.12,
+      "costo_sql": 100506498.12,
+      "campos_distintos": "",
+      "coincide_100pct": true,
+      "inversiones_sql_nombre_exacto": 65
+    }
+  ],
+  "criterio": "Numéricos iguales con tolerancia 0,005 (montos redondeados a 2 decimales); texto y fechas, igualdad exacta. Resúmenes por departamento: departamento_n igual al normalizado; por entidad: misma regla de palabras que el servidor (todas deben aparecer)."
+}

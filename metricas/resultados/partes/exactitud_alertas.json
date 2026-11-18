@@ -1,0 +1,120 @@
+{
+  "generado": "2026-11-18T15:00:49+00:00",
+  "casos": 14,
+  "coinciden": 14,
+  "pct": 100.0,
+  "detalle": [
+    {
+      "tipo": "sobrecosto",
+      "filtro": "(ninguno)",
+      "total_sql": 26387,
+      "total_tool_mcp": 26387,
+      "total_api_alertas": 26387,
+      "coincide": true
+    },
+    {
+      "tipo": "paralizacion",
+      "filtro": "(ninguno)",
+      "total_sql": 16502,
+      "total_tool_mcp": 16502,
+      "total_api_alertas": 16502,
+      "coincide": true
+    },
+    {
+      "tipo": "sobrecosto",
+      "filtro": "{\"nivel\": \"local\"}",
+      "total_sql": 20607,
+      "total_tool_mcp": 20607,
+      "total_api_alertas": 20607,
+      "coincide": true
+    },
+    {
+      "tipo": "paralizacion",
+      "filtro": "{\"nivel\": \"local\"}",
+      "total_sql": 14489,
+      "total_tool_mcp": 14489,
+      "total_api_alertas": 14489,
+      "coincide": true
+    },
+    {
+      "tipo": "sobrecosto",
+      "filtro": "{\"nivel\": \"regional\"}",
+      "total_sql": 3062,
+      "total_tool_mcp": 3062,
+      "total_api_alertas": 3062,
+      "coincide": true
+    },
+    {
+      "tipo": "paralizacion",
+      "filtro": "{\"nivel\": \"regional\"}",
+      "total_sql": 1004,
+      "total_tool_mcp": 1004,
+      "total_api_alertas": 1004,
+      "coincide": true
+    },
+    {
+      "tipo": "sobrecosto",
+      "filtro": "{\"nivel\": \"nacional\"}",
+      "total_sql": 2718,
+      "total_tool_mcp": 2718,
+      "total_api_alertas": 2718,
+      "coincide": true
+    },
+    {
+      "tipo": "paralizacion",
+      "filtro": "{\"nivel\": \"nacional\"}",
+      "total_sql": 1009,
+      "total_tool_mcp": 1009,
+      "total_api_alertas": 1009,
+      "coincide": true
+    },
+    {
+      "tipo": "sobrecosto",
+      "filtro": "{\"departamento\": \"Lima\"}",
+      "total_sql": 2275,
+      "total_tool_mcp": 2275,
+      "total_api_alertas": 2275,
+      "coincide": true
+    },
+    {
+      "tipo": "paralizacion",
+      "filtro": "{\"departamento\": \"Lima\"}",
+      "total_sql": 2275,
+      "total_tool_mcp": 2275,
+      "total_api_alertas": 2275,
+      "coincide": true
+    },
+    {
+      "tipo": "sobrecosto",
+      "filtro": "{\"departamento\": \"Cusco\"}",
+      "total_sql": 2782,
+      "total_tool_mcp": 2782,
+      "total_api_alertas": 2782,
+      "coincide": true
+    },
+    {
+      "tipo": "paralizacion",
+      "filtro": "{\"departamento\": \"Cusco\"}",
+      "total_sql": 1484,
+      "total_tool_mcp": 1484,
+      "total_api_alertas": 1484,
+      "coincide": true
+    },
+    {
+      "tipo": "sobrecosto",
+      "filtro": "{\"departamento\": \"Piura\"}",
+      "total_sql": 1312,
+      "total_tool_mcp": 1312,
+      "total_api_alertas": 1312,
+      "coincide": true
+    },
+    {
+      "tipo": "paralizacion",
+      "filtro": "{\"departamento\": \"Piura\"}",
+      "total_sql": 705,
+      "total_tool_mcp": 705,
+      "total_api_alertas": 705,
+      "coincide": true
+    }
+  ]
+}

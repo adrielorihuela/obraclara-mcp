@@ -1,0 +1,106 @@
+{
+  "copiado": "2026-11-18T15:04:46+00:00",
+  "origen": "eval/resultados/graficos_*.csv (40 preguntas, con y sin MCP); texto completo en eval/resultados/resumen.md",
+  "global": [
+    {
+      "condicion": "sin_mcp",
+      "exactitud_pct": "8",
+      "citacion_pct": "10",
+      "inventada_pct": "53",
+      "ejecutadas": "40",
+      "preguntas": "40"
+    },
+    {
+      "condicion": "con_mcp",
+      "exactitud_pct": "100",
+      "citacion_pct": "100",
+      "inventada_pct": "0",
+      "ejecutadas": "40",
+      "preguntas": "40"
+    }
+  ],
+  "latencia": [
+    {
+      "condicion": "sin_mcp",
+      "latencia_media_s": "22.1"
+    },
+    {
+      "condicion": "con_mcp",
+      "latencia_media_s": "99.9"
+    }
+  ],
+  "por_tipo": [
+    {
+      "tipo": "busqueda",
+      "condicion": "sin_mcp",
+      "exactitud_pct": "0",
+      "citacion_pct": "0",
+      "inventada_pct": "80",
+      "ejecutadas": "10",
+      "preguntas": "10"
+    },
+    {
+      "tipo": "busqueda",
+      "condicion": "con_mcp",
+      "exactitud_pct": "100",
+      "citacion_pct": "100",
+      "inventada_pct": "0",
+      "ejecutadas": "10",
+      "preguntas": "10"
+    },
+    {
+      "tipo": "detalle",
+      "condicion": "sin_mcp",
+      "exactitud_pct": "20",
+      "citacion_pct": "30",
+      "inventada_pct": "20",
+      "ejecutadas": "10",
+      "preguntas": "10"
+    },
+    {
+      "tipo": "detalle",
+      "condicion": "con_mcp",
+      "exactitud_pct": "100",
+      "citacion_pct": "100",
+      "inventada_pct": "0",
+      "ejecutadas": "10",
+      "preguntas": "10"
+    },
+    {
+      "tipo": "alertas",
+      "condicion": "sin_mcp",
+      "exactitud_pct": "0",
+      "citacion_pct": "0",
+      "inventada_pct": "70",
+      "ejecutadas": "10",
+      "preguntas": "10"
+    },
+    {
+      "tipo": "alertas",
+      "condicion": "con_mcp",
+      "exactitud_pct": "100",
+      "citacion_pct": "100",
+      "inventada_pct": "0",
+      "ejecutadas": "10",
+      "preguntas": "10"
+    },
+    {
+      "tipo": "resumen",
+      "condicion": "sin_mcp",
+      "exactitud_pct": "10",
+      "citacion_pct": "10",
+      "inventada_pct": "40",
+      "ejecutadas": "10",
+      "preguntas": "10"
+    },
+    {
+      "tipo": "resumen",
+      "condicion": "con_mcp",
+      "exactitud_pct": "100",
+      "citacion_pct": "100",
+      "inventada_pct": "0",
+      "ejecutadas": "10",
+      "preguntas": "10"
+    }
+  ]
+}

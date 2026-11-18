@@ -1,0 +1,9 @@
+﻿tramo,inversiones,pct
+< 0 % (costo menor al viable),26363,17.54
+0 a 10 %,69919,46.51
+10 a 25 %,13413,8.92
+25 a 50 %,14247,9.48
+50 a 100 % (alerta),12965,8.62
+100 a 200 % (alerta),8327,5.54
+200 % o más (alerta),5095,3.39
+sin dato (monto viable vacío o 0),245,0.16

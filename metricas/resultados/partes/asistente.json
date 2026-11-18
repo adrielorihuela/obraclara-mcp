@@ -1,0 +1,108 @@
+{
+  "generado": "2026-11-18T15:04:12+00:00",
+  "estado_servicio": {
+    "conectado": true,
+    "sql": true,
+    "imagenes": true,
+    "agente": true,
+    "pendientes": 0
+  },
+  "resumen": [
+    {
+      "modo": "chat",
+      "preguntas": 5,
+      "exitosas": 5,
+      "media_s": 7.21,
+      "p50_s": 7.25,
+      "max_s": 10.01
+    },
+    {
+      "modo": "agente",
+      "preguntas": 2,
+      "exitosas": 2,
+      "media_s": 9.2,
+      "p50_s": 9.2,
+      "max_s": 9.48
+    }
+  ],
+  "detalle": [
+    {
+      "modo": "chat",
+      "pregunta": "¿Qué es una inversión pública?",
+      "estado_http": 200,
+      "exito": true,
+      "segundos": 10.01,
+      "segundos_intento": 10.01,
+      "bytes": 2305,
+      "modelo": "IA del servidor",
+      "error": ""
+    },
+    {
+      "modo": "chat",
+      "pregunta": "¿Qué significa «posible paralización»?",
+      "estado_http": 200,
+      "exito": true,
+      "segundos": 7.25,
+      "segundos_intento": 7.25,
+      "bytes": 825,
+      "modelo": "IA del servidor",
+      "error": ""
+    },
+    {
+      "modo": "chat",
+      "pregunta": "¿De dónde vienen los datos de ObraClara?",
+      "estado_http": 200,
+      "exito": true,
+      "segundos": 6.35,
+      "segundos_intento": 6.35,
+      "bytes": 843,
+      "modelo": "IA del servidor",
+      "error": ""
+    },
+    {
+      "modo": "chat",
+      "pregunta": "Explica en una frase qué es el sobrecosto.",
+      "estado_http": 200,
+      "exito": true,
+      "segundos": 4.96,
+      "segundos_intento": 4.96,
+      "bytes": 180,
+      "modelo": "IA del servidor",
+      "error": ""
+    },
+    {
+      "modo": "chat",
+      "pregunta": "¿Qué es el devengado?",
+      "estado_http": 200,
+      "exito": true,
+      "segundos": 7.48,
+      "segundos_intento": 7.48,
+      "bytes": 1506,
+      "modelo": "IA del servidor",
+      "error": ""
+    },
+    {
+      "modo": "agente",
+      "pregunta": "¿Cuántas inversiones con alerta de sobrecosto hay en Tacna?",
+      "estado_http": 200,
+      "exito": true,
+      "segundos": 9.48,
+      "segundos_intento": 9.48,
+      "bytes": 242,
+      "modelo": "",
+      "error": ""
+    },
+    {
+      "modo": "agente",
+      "pregunta": "¿Cuántas inversiones hay en Moquegua?",
+      "estado_http": 200,
+      "exito": true,
+      "segundos": 8.92,
+      "segundos_intento": 8.92,
+      "bytes": 587,
+      "modelo": "",
+      "error": ""
+    }
+  ],
+  "nota": "Mide el tiempo de punta a punta desde Lima. Incluye la cola de la IA del servidor, que puede esperar hasta 60 s; es un servicio compartido, no un servidor dedicado. «no medido» = la llamada falló o expiró."
+}

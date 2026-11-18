@@ -1,0 +1,2007 @@
+{
+  "generado": "2026-11-18T15:04:46+00:00",
+  "corte_datos": {
+    "total_inversiones": "150574",
+    "alertas_sobrecosto": "26387",
+    "alertas_paralizacion": "16502"
+  },
+  "bloques": {
+    "asistente": {
+      "generado": "2026-11-18T15:04:12+00:00",
+      "estado_servicio": {
+        "conectado": true,
+        "sql": true,
+        "imagenes": true,
+        "agente": true,
+        "pendientes": 0
+      },
+      "resumen": [
+        {
+          "modo": "chat",
+          "preguntas": 5,
+          "exitosas": 5,
+          "media_s": 7.21,
+          "p50_s": 7.25,
+          "max_s": 10.01
+        },
+        {
+          "modo": "agente",
+          "preguntas": 2,
+          "exitosas": 2,
+          "media_s": 9.2,
+          "p50_s": 9.2,
+          "max_s": 9.48
+        }
+      ],
+      "detalle": [
+        {
+          "modo": "chat",
+          "pregunta": "¿Qué es una inversión pública?",
+          "estado_http": 200,
+          "exito": true,
+          "segundos": 10.01,
+          "segundos_intento": 10.01,
+          "bytes": 2305,
+          "modelo": "IA del servidor",
+          "error": ""
+        },
+        {
+          "modo": "chat",
+          "pregunta": "¿Qué significa «posible paralización»?",
+          "estado_http": 200,
+          "exito": true,
+          "segundos": 7.25,
+          "segundos_intento": 7.25,
+          "bytes": 825,
+          "modelo": "IA del servidor",
+          "error": ""
+        },
+        {
+          "modo": "chat",
+          "pregunta": "¿De dónde vienen los datos de ObraClara?",
+          "estado_http": 200,
+          "exito": true,
+          "segundos": 6.35,
+          "segundos_intento": 6.35,
+          "bytes": 843,
+          "modelo": "IA del servidor",
+          "error": ""
+        },
+        {
+          "modo": "chat",
+          "pregunta": "Explica en una frase qué es el sobrecosto.",
+          "estado_http": 200,
+          "exito": true,
+          "segundos": 4.96,
+          "segundos_intento": 4.96,
+          "bytes": 180,
+          "modelo": "IA del servidor",
+          "error": ""
+        },
+        {
+          "modo": "chat",
+          "pregunta": "¿Qué es el devengado?",
+          "estado_http": 200,
+          "exito": true,
+          "segundos": 7.48,
+          "segundos_intento": 7.48,
+          "bytes": 1506,
+          "modelo": "IA del servidor",
+          "error": ""
+        },
+        {
+          "modo": "agente",
+          "pregunta": "¿Cuántas inversiones con alerta de sobrecosto hay en Tacna?",
+          "estado_http": 200,
+          "exito": true,
+          "segundos": 9.48,
+          "segundos_intento": 9.48,
+          "bytes": 242,
+          "modelo": "",
+          "error": ""
+        },
+        {
+          "modo": "agente",
+          "pregunta": "¿Cuántas inversiones hay en Moquegua?",
+          "estado_http": 200,
+          "exito": true,
+          "segundos": 8.92,
+          "segundos_intento": 8.92,
+          "bytes": 587,
+          "modelo": "",
+          "error": ""
+        }
+      ],
+      "nota": "Mide el tiempo de punta a punta desde Lima. Incluye la cola de la IA del servidor, que puede esperar hasta 60 s; es un servicio compartido, no un servidor dedicado. «no medido» = la llamada falló o expiró."
+    },
+    "calidad": {
+      "generado": "2026-11-18T15:04:44+00:00",
+      "base": "{'fecha_descarga': '2026-11-10', 'total_inversiones': '150574', 'alertas_sobrecosto': '26387', 'alertas_paralizacion': '16502', 'fuente': 'Ministerio de Economía y Finanzas, Información de inversiones públicas 2001-2026', 'url': 'https://www.datosabiertos.gob.pe/dataset/informaci%C3%B3n-de-inversiones-p%C3%BAblicas-2001%E2%80%932026-mef'}",
+      "filas_totales": 150574,
+      "columnas_tabla": 31,
+      "columnas_de_datos_MEF": 25,
+      "columnas_calculadas_por_etl": [
+        "sobrecosto_pct",
+        "meses_sin_devengado",
+        "alerta_sobrecosto",
+        "alerta_paralizacion"
+      ],
+      "duplicados_codigo_unico_en_base": 0,
+      "duplicados_eliminados_en_etl": null,
+      "duplicados_nota": "El ETL descarta los códigos únicos repetidos (queda el primero) y solo lo imprime al ejecutarse; el CSV original del MEF no está en este equipo, por eso la cifra no se puede reconstruir aquí. En la base hay 0 duplicados (clave primaria).",
+      "nulos_por_columna": [
+        {
+          "columna": "codigo_unico",
+          "nulos": 1,
+          "pct_nulos": 0.0,
+          "completos": 150573,
+          "pct_completos": 100.0
+        },
+        {
+          "columna": "nombre",
+          "nulos": 2,
+          "pct_nulos": 0.0,
+          "completos": 150572,
+          "pct_completos": 100.0
+        },
+        {
+          "columna": "entidad",
+          "nulos": 0,
+          "pct_nulos": 0.0,
+          "completos": 150574,
+          "pct_completos": 100.0
+        },
+        {
+          "columna": "nivel",
+          "nulos": 0,
+          "pct_nulos": 0.0,
+          "completos": 150574,
+          "pct_completos": 100.0
+        },
+        {
+          "columna": "sector",
+          "nulos": 0,
+          "pct_nulos": 0.0,
+          "completos": 150574,
+          "pct_completos": 100.0
+        },
+        {
+          "columna": "funcion",
+          "nulos": 11,
+          "pct_nulos": 0.01,
+          "completos": 150563,
+          "pct_completos": 99.99
+        },
+        {
+          "columna": "departamento",
+          "nulos": 13,
+          "pct_nulos": 0.01,
+          "completos": 150561,
+          "pct_completos": 99.99
+        },
+        {
+          "columna": "provincia",
+          "nulos": 19,
+          "pct_nulos": 0.01,
+          "completos": 150555,
+          "pct_completos": 99.99
+        },
+        {
+          "columna": "distrito",
+          "nulos": 30,
+          "pct_nulos": 0.02,
+          "completos": 150544,
+          "pct_completos": 99.98
+        },
+        {
+          "columna": "ubigeo",
+          "nulos": 166,
+          "pct_nulos": 0.11,
+          "completos": 150408,
+          "pct_completos": 99.89
+        },
+        {
+          "columna": "monto_viable",
+          "nulos": 243,
+          "pct_nulos": 0.16,
+          "completos": 150331,
+          "pct_completos": 99.84
+        },
+        {
+          "columna": "costo_actualizado",
+          "nulos": 0,
+          "pct_nulos": 0.0,
+          "completos": 150574,
+          "pct_completos": 100.0
+        },
+        {
+          "columna": "pim_anio",
+          "nulos": 0,
+          "pct_nulos": 0.0,
+          "completos": 150574,
+          "pct_completos": 100.0
+        },
+        {
+          "columna": "dev_anio",
+          "nulos": 0,
+          "pct_nulos": 0.0,
+          "completos": 150574,
+          "pct_completos": 100.0
+        },
+        {
+          "columna": "saldo_ejecutar",
+          "nulos": 0,
+          "pct_nulos": 0.0,
+          "completos": 150574,
+          "pct_completos": 100.0
+        },
+        {
+          "columna": "monto_laudo",
+          "nulos": 0,
+          "pct_nulos": 0.0,
+          "completos": 150574,
+          "pct_completos": 100.0
+        },
+        {
+          "columna": "avance_fisico",
+          "nulos": 86301,
+          "pct_nulos": 57.31,
+          "completos": 64273,
+          "pct_completos": 42.69
+        },
+        {
+          "columna": "avance_ejecucion",
+          "nulos": 37699,
+          "pct_nulos": 25.04,
+          "completos": 112875,
+          "pct_completos": 74.96
+        },
+        {
+          "columna": "ultimo_devengado",
+          "nulos": 54898,
+          "pct_nulos": 36.46,
+          "completos": 95676,
+          "pct_completos": 63.54
+        },
+        {
+          "columna": "fec_ini_ejecucion",
+          "nulos": 11606,
+          "pct_nulos": 7.71,
+          "completos": 138968,
+          "pct_completos": 92.29
+        },
+        {
+          "columna": "fec_fin_ejecucion",
+          "nulos": 11594,
+          "pct_nulos": 7.7,
+          "completos": 138980,
+          "pct_completos": 92.3
+        },
+        {
+          "columna": "situacion",
+          "nulos": 0,
+          "pct_nulos": 0.0,
+          "completos": 150574,
+          "pct_completos": 100.0
+        },
+        {
+          "columna": "habitantes",
+          "nulos": 46278,
+          "pct_nulos": 30.73,
+          "completos": 104296,
+          "pct_completos": 69.27
+        },
+        {
+          "columna": "sobrecosto_pct",
+          "nulos": 245,
+          "pct_nulos": 0.16,
+          "completos": 150329,
+          "pct_completos": 99.84
+        },
+        {
+          "columna": "meses_sin_devengado",
+          "nulos": 54898,
+          "pct_nulos": 36.46,
+          "completos": 95676,
+          "pct_completos": 63.54
+        },
+        {
+          "columna": "alerta_sobrecosto",
+          "nulos": 0,
+          "pct_nulos": 0.0,
+          "completos": 150574,
+          "pct_completos": 100.0
+        },
+        {
+          "columna": "alerta_paralizacion",
+          "nulos": 0,
+          "pct_nulos": 0.0,
+          "completos": 150574,
+          "pct_completos": 100.0
+        }
+      ],
+      "ceros": [
+        {
+          "columna": "monto_viable",
+          "ceros": 2,
+          "pct_ceros": 0.0
+        },
+        {
+          "columna": "costo_actualizado",
+          "ceros": 232,
+          "pct_ceros": 0.15
+        },
+        {
+          "columna": "pim_anio",
+          "ceros": 104102,
+          "pct_ceros": 69.14
+        },
+        {
+          "columna": "dev_anio",
+          "ceros": 115206,
+          "pct_ceros": 76.51
+        },
+        {
+          "columna": "saldo_ejecutar",
+          "ceros": 6559,
+          "pct_ceros": 4.36
+        },
+        {
+          "columna": "avance_fisico",
+          "ceros": 6673,
+          "pct_ceros": 4.43
+        },
+        {
+          "columna": "avance_ejecucion",
+          "ceros": 40523,
+          "pct_ceros": 26.91
+        }
+      ],
+      "por_nivel": [
+        {
+          "nivel": "GL",
+          "inversiones": 124181,
+          "pct": 82.47,
+          "costo_actualizado": 440229604507.22,
+          "devengado_anio": 21314409600.66,
+          "saldo_ejecutar": 296192143249.91,
+          "alertas_sobrecosto": 20607,
+          "alertas_paralizacion": 14489
+        },
+        {
+          "nivel": "GR",
+          "inversiones": 13674,
+          "pct": 9.08,
+          "costo_actualizado": 312539022335.16,
+          "devengado_anio": 10819128009.45,
+          "saldo_ejecutar": 228354642135.79,
+          "alertas_sobrecosto": 3062,
+          "alertas_paralizacion": 1004
+        },
+        {
+          "nivel": "GN",
+          "inversiones": 12719,
+          "pct": 8.45,
+          "costo_actualizado": 620655639722.88,
+          "devengado_anio": 11557780114.39,
+          "saldo_ejecutar": 472411131756.54,
+          "alertas_sobrecosto": 2718,
+          "alertas_paralizacion": 1009
+        }
+      ],
+      "por_departamento_top10": [
+        {
+          "departamento": "LIMA",
+          "inversiones": 15904,
+          "pct": 10.56,
+          "costo_actualizado": 239472548905.24,
+          "devengado_anio": 4618419953.21,
+          "saldo_ejecutar": 190272338495.25,
+          "alertas_sobrecosto": 2275,
+          "alertas_paralizacion": 2275
+        },
+        {
+          "departamento": "ANCASH",
+          "inversiones": 12935,
+          "pct": 8.59,
+          "costo_actualizado": 84140225802.87,
+          "devengado_anio": 2742098464.99,
+          "saldo_ejecutar": 57481616492.78,
+          "alertas_sobrecosto": 2559,
+          "alertas_paralizacion": 1126
+        },
+        {
+          "departamento": "CUSCO",
+          "inversiones": 10604,
+          "pct": 7.04,
+          "costo_actualizado": 97592009485.29,
+          "devengado_anio": 3622328945.86,
+          "saldo_ejecutar": 67212303283.09,
+          "alertas_sobrecosto": 2782,
+          "alertas_paralizacion": 1484
+        },
+        {
+          "departamento": "JUNIN",
+          "inversiones": 8994,
+          "pct": 5.97,
+          "costo_actualizado": 79158500424.21,
+          "devengado_anio": 1833578907.91,
+          "saldo_ejecutar": 63120615763.06,
+          "alertas_sobrecosto": 1525,
+          "alertas_paralizacion": 1117
+        },
+        {
+          "departamento": "CAJAMARCA",
+          "inversiones": 8755,
+          "pct": 5.81,
+          "costo_actualizado": 65315884223.85,
+          "devengado_anio": 2688543065.09,
+          "saldo_ejecutar": 42572894508.59,
+          "alertas_sobrecosto": 1413,
+          "alertas_paralizacion": 687
+        },
+        {
+          "departamento": "PUNO",
+          "inversiones": 8425,
+          "pct": 5.6,
+          "costo_actualizado": 48305415556.75,
+          "devengado_anio": 1943327493.21,
+          "saldo_ejecutar": 32419567586.71,
+          "alertas_sobrecosto": 1095,
+          "alertas_paralizacion": 1179
+        },
+        {
+          "departamento": "LA LIBERTAD",
+          "inversiones": 7894,
+          "pct": 5.24,
+          "costo_actualizado": 57296361175.49,
+          "devengado_anio": 2200975733.87,
+          "saldo_ejecutar": 40407014219.28,
+          "alertas_sobrecosto": 986,
+          "alertas_paralizacion": 653
+        },
+        {
+          "departamento": "AYACUCHO",
+          "inversiones": 7844,
+          "pct": 5.21,
+          "costo_actualizado": 39175757935.73,
+          "devengado_anio": 1296220102.98,
+          "saldo_ejecutar": 26298295096.44,
+          "alertas_sobrecosto": 1003,
+          "alertas_paralizacion": 815
+        },
+        {
+          "departamento": "PIURA",
+          "inversiones": 7485,
+          "pct": 4.97,
+          "costo_actualizado": 82218485618.08,
+          "devengado_anio": 3359089433.48,
+          "saldo_ejecutar": 56512463204.11,
+          "alertas_sobrecosto": 1312,
+          "alertas_paralizacion": 705
+        },
+        {
+          "departamento": "AREQUIPA",
+          "inversiones": 7218,
+          "pct": 4.79,
+          "costo_actualizado": 57815908480.98,
+          "devengado_anio": 2653894614.37,
+          "saldo_ejecutar": 35595266701.64,
+          "alertas_sobrecosto": 1504,
+          "alertas_paralizacion": 968
+        }
+      ],
+      "por_funcion_top10": [
+        {
+          "funcion": "TRANSPORTE",
+          "inversiones": 36223,
+          "pct": 24.06,
+          "costo_actualizado": 550636102796.31,
+          "devengado_anio": 14214843091.91,
+          "saldo_ejecutar": 416685541430.99,
+          "alertas_sobrecosto": 6000,
+          "alertas_paralizacion": 4076
+        },
+        {
+          "funcion": "EDUCACIÓN",
+          "inversiones": 19751,
+          "pct": 13.12,
+          "costo_actualizado": 157560287342.8,
+          "devengado_anio": 6563886229.89,
+          "saldo_ejecutar": 102065265610.53,
+          "alertas_sobrecosto": 4344,
+          "alertas_paralizacion": 1754
+        },
+        {
+          "funcion": "SANEAMIENTO",
+          "inversiones": 19474,
+          "pct": 12.93,
+          "costo_actualizado": 165726316881.2,
+          "devengado_anio": 4390029317.77,
+          "saldo_ejecutar": 131716642852.24,
+          "alertas_sobrecosto": 3448,
+          "alertas_paralizacion": 2116
+        },
+        {
+          "funcion": "CULTURA Y DEPORTE",
+          "inversiones": 13284,
+          "pct": 8.82,
+          "costo_actualizado": 36200897921.05,
+          "devengado_anio": 2314654630.83,
+          "saldo_ejecutar": 21390876970.03,
+          "alertas_sobrecosto": 2564,
+          "alertas_paralizacion": 1643
+        },
+        {
+          "funcion": "PLANEAMIENTO, GESTIÓN Y RESERVA DE CONTINGENCIA",
+          "inversiones": 13079,
+          "pct": 8.69,
+          "costo_actualizado": 68448140863.72,
+          "devengado_anio": 2973507801.71,
+          "saldo_ejecutar": 47897168807.9,
+          "alertas_sobrecosto": 1941,
+          "alertas_paralizacion": 1780
+        },
+        {
+          "funcion": "AGROPECUARIA",
+          "inversiones": 11468,
+          "pct": 7.62,
+          "costo_actualizado": 79587420960.12,
+          "devengado_anio": 2073741748.92,
+          "saldo_ejecutar": 61168856127.5,
+          "alertas_sobrecosto": 1966,
+          "alertas_paralizacion": 1183
+        },
+        {
+          "funcion": "VIVIENDA Y DESARROLLO URBANO",
+          "inversiones": 9555,
+          "pct": 6.35,
+          "costo_actualizado": 16218136740.24,
+          "devengado_anio": 1023605358.25,
+          "saldo_ejecutar": 9713211442.51,
+          "alertas_sobrecosto": 1538,
+          "alertas_paralizacion": 893
+        },
+        {
+          "funcion": "SALUD",
+          "inversiones": 8046,
+          "pct": 5.34,
+          "costo_actualizado": 114777139328.1,
+          "devengado_anio": 3999046714.84,
+          "saldo_ejecutar": 87093691740.43,
+          "alertas_sobrecosto": 1137,
+          "alertas_paralizacion": 584
+        },
+        {
+          "funcion": "ORDEN PÚBLICO Y SEGURIDAD",
+          "inversiones": 5076,
+          "pct": 3.37,
+          "costo_actualizado": 59088608175.44,
+          "devengado_anio": 2773916740.06,
+          "saldo_ejecutar": 38687690403.9,
+          "alertas_sobrecosto": 858,
+          "alertas_paralizacion": 559
+        },
+        {
+          "funcion": "AMBIENTE",
+          "inversiones": 4951,
+          "pct": 3.29,
+          "costo_actualizado": 22603094652.85,
+          "devengado_anio": 979638202.67,
+          "saldo_ejecutar": 16129181243.94,
+          "alertas_sobrecosto": 720,
+          "alertas_paralizacion": 668
+        }
+      ],
+      "rango_fechas": {
+        "fec_ini_ejecucion": [
+          "2001-05-01",
+          "2069-12-31"
+        ],
+        "fec_fin_ejecucion": [
+          "2002-11-29",
+          "2070-08-06"
+        ],
+        "ultimo_devengado": [
+          "200403",
+          "202611"
+        ]
+      },
+      "montos_totales": {
+        "costo_actualizado_total": 1373424266565.26,
+        "devengado_anio_total": 43691317724.5,
+        "saldo_por_ejecutar_total": 996957917142.24,
+        "monto_viable_total": 1101241320190.99,
+        "pim_anio_total": 68120359780.0
+      },
+      "alertas": {
+        "totales": [
+          {
+            "alerta": "sobrecosto",
+            "inversiones": 26387,
+            "pct_del_total": 17.52
+          },
+          {
+            "alerta": "posible_paralizacion",
+            "inversiones": 16502,
+            "pct_del_total": 10.96
+          },
+          {
+            "alerta": "ambas",
+            "inversiones": 4205,
+            "pct_del_total": 2.79
+          },
+          {
+            "alerta": "ninguna",
+            "inversiones": 111890,
+            "pct_del_total": 74.31
+          }
+        ],
+        "por_nivel": [
+          {
+            "nivel": "GL",
+            "inversiones": 124181,
+            "sobrecosto": 20607,
+            "pct_sobrecosto": 16.59,
+            "paralizacion": 14489,
+            "pct_paralizacion": 11.67,
+            "costo_en_sobrecosto": 127801872769.98,
+            "costo_en_paralizacion": 31322240645.16
+          },
+          {
+            "nivel": "GR",
+            "inversiones": 13674,
+            "sobrecosto": 3062,
+            "pct_sobrecosto": 22.39,
+            "paralizacion": 1004,
+            "pct_paralizacion": 7.34,
+            "costo_en_sobrecosto": 120269339413.12,
+            "costo_en_paralizacion": 10968719231.64
+          },
+          {
+            "nivel": "GN",
+            "inversiones": 12719,
+            "sobrecosto": 2718,
+            "pct_sobrecosto": 21.37,
+            "paralizacion": 1009,
+            "pct_paralizacion": 7.93,
+            "costo_en_sobrecosto": 196125528288.04,
+            "costo_en_paralizacion": 17682664019.5
+          }
+        ],
+        "por_departamento_top10": [
+          {
+            "departamento": "LIMA",
+            "inversiones": 15904,
+            "sobrecosto": 2275,
+            "pct_sobrecosto": 14.3,
+            "paralizacion": 2275,
+            "pct_paralizacion": 14.3,
+            "costo_en_sobrecosto": 53736702591.45,
+            "costo_en_paralizacion": 11022414356.05
+          },
+          {
+            "departamento": "CUSCO",
+            "inversiones": 10604,
+            "sobrecosto": 2782,
+            "pct_sobrecosto": 26.24,
+            "paralizacion": 1484,
+            "pct_paralizacion": 13.99,
+            "costo_en_sobrecosto": 35755854877.54,
+            "costo_en_paralizacion": 4590315018.59
+          },
+          {
+            "departamento": "ANCASH",
+            "inversiones": 12935,
+            "sobrecosto": 2559,
+            "pct_sobrecosto": 19.78,
+            "paralizacion": 1126,
+            "pct_paralizacion": 8.71,
+            "costo_en_sobrecosto": 26058754709.49,
+            "costo_en_paralizacion": 3210631898.55
+          },
+          {
+            "departamento": "JUNIN",
+            "inversiones": 8994,
+            "sobrecosto": 1525,
+            "pct_sobrecosto": 16.96,
+            "paralizacion": 1117,
+            "pct_paralizacion": 12.42,
+            "costo_en_sobrecosto": 19215999217.67,
+            "costo_en_paralizacion": 2936196625.65
+          },
+          {
+            "departamento": "AREQUIPA",
+            "inversiones": 7218,
+            "sobrecosto": 1504,
+            "pct_sobrecosto": 20.84,
+            "paralizacion": 968,
+            "pct_paralizacion": 13.41,
+            "costo_en_sobrecosto": 25343229923.46,
+            "costo_en_paralizacion": 3193440945.51
+          },
+          {
+            "departamento": "PUNO",
+            "inversiones": 8425,
+            "sobrecosto": 1095,
+            "pct_sobrecosto": 13.0,
+            "paralizacion": 1179,
+            "pct_paralizacion": 13.99,
+            "costo_en_sobrecosto": 17750996183.81,
+            "costo_en_paralizacion": 3646014844.44
+          },
+          {
+            "departamento": "CAJAMARCA",
+            "inversiones": 8755,
+            "sobrecosto": 1413,
+            "pct_sobrecosto": 16.14,
+            "paralizacion": 687,
+            "pct_paralizacion": 7.85,
+            "costo_en_sobrecosto": 28673907848.15,
+            "costo_en_paralizacion": 2322723565.69
+          },
+          {
+            "departamento": "PIURA",
+            "inversiones": 7485,
+            "sobrecosto": 1312,
+            "pct_sobrecosto": 17.53,
+            "paralizacion": 705,
+            "pct_paralizacion": 9.42,
+            "costo_en_sobrecosto": 27215129047.0,
+            "costo_en_paralizacion": 2788552357.67
+          },
+          {
+            "departamento": "AYACUCHO",
+            "inversiones": 7844,
+            "sobrecosto": 1003,
+            "pct_sobrecosto": 12.79,
+            "paralizacion": 815,
+            "pct_paralizacion": 10.39,
+            "costo_en_sobrecosto": 14072743012.99,
+            "costo_en_paralizacion": 2529422209.57
+          },
+          {
+            "departamento": "ICA",
+            "inversiones": 5439,
+            "sobrecosto": 955,
+            "pct_sobrecosto": 17.56,
+            "paralizacion": 706,
+            "pct_paralizacion": 12.98,
+            "costo_en_sobrecosto": 9993223768.56,
+            "costo_en_paralizacion": 1903115471.47
+          }
+        ],
+        "hist_sobrecosto_pct": [
+          {
+            "tramo": "< 0 % (costo menor al viable)",
+            "inversiones": 26363,
+            "pct": 17.54
+          },
+          {
+            "tramo": "0 a 10 %",
+            "inversiones": 69919,
+            "pct": 46.51
+          },
+          {
+            "tramo": "10 a 25 %",
+            "inversiones": 13413,
+            "pct": 8.92
+          },
+          {
+            "tramo": "25 a 50 %",
+            "inversiones": 14247,
+            "pct": 9.48
+          },
+          {
+            "tramo": "50 a 100 % (alerta)",
+            "inversiones": 12965,
+            "pct": 8.62
+          },
+          {
+            "tramo": "100 a 200 % (alerta)",
+            "inversiones": 8327,
+            "pct": 5.54
+          },
+          {
+            "tramo": "200 % o más (alerta)",
+            "inversiones": 5095,
+            "pct": 3.39
+          },
+          {
+            "tramo": "sin dato (monto viable vacío o 0)",
+            "inversiones": 245,
+            "pct": 0.16
+          }
+        ],
+        "hist_meses_sin_devengado": [
+          {
+            "tramo": "sin dato (sin devengado registrado)",
+            "inversiones": 54898,
+            "pct": 36.46
+          },
+          {
+            "tramo": "0 a 2 meses",
+            "inversiones": 20774,
+            "pct": 13.8
+          },
+          {
+            "tramo": "3 a 5 meses",
+            "inversiones": 8437,
+            "pct": 5.6
+          },
+          {
+            "tramo": "6 a 11 meses (alerta si avance 40-99 %)",
+            "inversiones": 12375,
+            "pct": 8.22
+          },
+          {
+            "tramo": "12 a 23 meses",
+            "inversiones": 13159,
+            "pct": 8.74
+          },
+          {
+            "tramo": "24 a 59 meses",
+            "inversiones": 24502,
+            "pct": 16.27
+          },
+          {
+            "tramo": "60 meses o más",
+            "inversiones": 16429,
+            "pct": 10.91
+          }
+        ],
+        "stats_sobrecosto_pct_en_alerta": {
+          "n": 26387,
+          "min": 50.0,
+          "mediana": 101.25,
+          "p90": 295.09,
+          "max": 171833.14,
+          "media": 211.76
+        },
+        "stats_meses_sin_devengado_en_alerta": {
+          "n": 16502,
+          "min": 6,
+          "mediana": 35,
+          "p90": 68,
+          "max": 229,
+          "media": 37.1
+        },
+        "cifras_meta_en_base": {
+          "total_inversiones": "150574",
+          "alertas_sobrecosto": "26387",
+          "alertas_paralizacion": "16502"
+        }
+      }
+    },
+    "evaluacion": {
+      "copiado": "2026-11-18T15:04:46+00:00",
+      "origen": "eval/resultados/graficos_*.csv (40 preguntas, con y sin MCP); texto completo en eval/resultados/resumen.md",
+      "global": [
+        {
+          "condicion": "sin_mcp",
+          "exactitud_pct": "8",
+          "citacion_pct": "10",
+          "inventada_pct": "53",
+          "ejecutadas": "40",
+          "preguntas": "40"
+        },
+        {
+          "condicion": "con_mcp",
+          "exactitud_pct": "100",
+          "citacion_pct": "100",
+          "inventada_pct": "0",
+          "ejecutadas": "40",
+          "preguntas": "40"
+        }
+      ],
+      "latencia": [
+        {
+          "condicion": "sin_mcp",
+          "latencia_media_s": "22.1"
+        },
+        {
+          "condicion": "con_mcp",
+          "latencia_media_s": "99.9"
+        }
+      ],
+      "por_tipo": [
+        {
+          "tipo": "busqueda",
+          "condicion": "sin_mcp",
+          "exactitud_pct": "0",
+          "citacion_pct": "0",
+          "inventada_pct": "80",
+          "ejecutadas": "10",
+          "preguntas": "10"
+        },
+        {
+          "tipo": "busqueda",
+          "condicion": "con_mcp",
+          "exactitud_pct": "100",
+          "citacion_pct": "100",
+          "inventada_pct": "0",
+          "ejecutadas": "10",
+          "preguntas": "10"
+        },
+        {
+          "tipo": "detalle",
+          "condicion": "sin_mcp",
+          "exactitud_pct": "20",
+          "citacion_pct": "30",
+          "inventada_pct": "20",
+          "ejecutadas": "10",
+          "preguntas": "10"
+        },
+        {
+          "tipo": "detalle",
+          "condicion": "con_mcp",
+          "exactitud_pct": "100",
+          "citacion_pct": "100",
+          "inventada_pct": "0",
+          "ejecutadas": "10",
+          "preguntas": "10"
+        },
+        {
+          "tipo": "alertas",
+          "condicion": "sin_mcp",
+          "exactitud_pct": "0",
+          "citacion_pct": "0",
+          "inventada_pct": "70",
+          "ejecutadas": "10",
+          "preguntas": "10"
+        },
+        {
+          "tipo": "alertas",
+          "condicion": "con_mcp",
+          "exactitud_pct": "100",
+          "citacion_pct": "100",
+          "inventada_pct": "0",
+          "ejecutadas": "10",
+          "preguntas": "10"
+        },
+        {
+          "tipo": "resumen",
+          "condicion": "sin_mcp",
+          "exactitud_pct": "10",
+          "citacion_pct": "10",
+          "inventada_pct": "40",
+          "ejecutadas": "10",
+          "preguntas": "10"
+        },
+        {
+          "tipo": "resumen",
+          "condicion": "con_mcp",
+          "exactitud_pct": "100",
+          "citacion_pct": "100",
+          "inventada_pct": "0",
+          "ejecutadas": "10",
+          "preguntas": "10"
+        }
+      ]
+    },
+    "exactitud": {
+      "generado": "2026-11-18T14:59:07+00:00",
+      "semilla_detalle": 2026,
+      "resumen": [
+        {
+          "prueba": "detalle_inversion (30 códigos)",
+          "casos": 30,
+          "coinciden": 30,
+          "pct_casos": 100.0,
+          "campos_comparados": 810,
+          "campos_iguales": 810,
+          "pct_campos": 100.0,
+          "pct_campos_numericos": 100.0
+        },
+        {
+          "prueba": "resumen_inversiones (10 filtros)",
+          "casos": 10,
+          "coinciden": 10,
+          "pct_casos": 100.0,
+          "campos_comparados": 60,
+          "campos_iguales": 60,
+          "pct_campos": 100.0,
+          "pct_campos_numericos": ""
+        }
+      ],
+      "detalle": [
+        {
+          "codigo_unico": "2447506",
+          "campos_comparados": 27,
+          "campos_iguales": 27,
+          "numericos_iguales": true,
+          "coincide_100pct": true,
+          "campos_distintos": ""
+        },
+        {
+          "codigo_unico": "2617298",
+          "campos_comparados": 27,
+          "campos_iguales": 27,
+          "numericos_iguales": true,
+          "coincide_100pct": true,
+          "campos_distintos": ""
+        },
+        {
+          "codigo_unico": "2715707",
+          "campos_comparados": 27,
+          "campos_iguales": 27,
+          "numericos_iguales": true,
+          "coincide_100pct": true,
+          "campos_distintos": ""
+        },
+        {
+          "codigo_unico": "2719136",
+          "campos_comparados": 27,
+          "campos_iguales": 27,
+          "numericos_iguales": true,
+          "coincide_100pct": true,
+          "campos_distintos": ""
+        },
+        {
+          "codigo_unico": "2425506",
+          "campos_comparados": 27,
+          "campos_iguales": 27,
+          "numericos_iguales": true,
+          "coincide_100pct": true,
+          "campos_distintos": ""
+        },
+        {
+          "codigo_unico": "2547146",
+          "campos_comparados": 27,
+          "campos_iguales": 27,
+          "numericos_iguales": true,
+          "coincide_100pct": true,
+          "campos_distintos": ""
+        },
+        {
+          "codigo_unico": "2736515",
+          "campos_comparados": 27,
+          "campos_iguales": 27,
+          "numericos_iguales": true,
+          "coincide_100pct": true,
+          "campos_distintos": ""
+        },
+        {
+          "codigo_unico": "2672635",
+          "campos_comparados": 27,
+          "campos_iguales": 27,
+          "numericos_iguales": true,
+          "coincide_100pct": true,
+          "campos_distintos": ""
+        },
+        {
+          "codigo_unico": "2743004",
+          "campos_comparados": 27,
+          "campos_iguales": 27,
+          "numericos_iguales": true,
+          "coincide_100pct": true,
+          "campos_distintos": ""
+        },
+        {
+          "codigo_unico": "2733189",
+          "campos_comparados": 27,
+          "campos_iguales": 27,
+          "numericos_iguales": true,
+          "coincide_100pct": true,
+          "campos_distintos": ""
+        },
+        {
+          "codigo_unico": "2711249",
+          "campos_comparados": 27,
+          "campos_iguales": 27,
+          "numericos_iguales": true,
+          "coincide_100pct": true,
+          "campos_distintos": ""
+        },
+        {
+          "codigo_unico": "2685756",
+          "campos_comparados": 27,
+          "campos_iguales": 27,
+          "numericos_iguales": true,
+          "coincide_100pct": true,
+          "campos_distintos": ""
+        },
+        {
+          "codigo_unico": "2562132",
+          "campos_comparados": 27,
+          "campos_iguales": 27,
+          "numericos_iguales": true,
+          "coincide_100pct": true,
+          "campos_distintos": ""
+        },
+        {
+          "codigo_unico": "2047096",
+          "campos_comparados": 27,
+          "campos_iguales": 27,
+          "numericos_iguales": true,
+          "coincide_100pct": true,
+          "campos_distintos": ""
+        },
+        {
+          "codigo_unico": "2341491",
+          "campos_comparados": 27,
+          "campos_iguales": 27,
+          "numericos_iguales": true,
+          "coincide_100pct": true,
+          "campos_distintos": ""
+        },
+        {
+          "codigo_unico": "2436859",
+          "campos_comparados": 27,
+          "campos_iguales": 27,
+          "numericos_iguales": true,
+          "coincide_100pct": true,
+          "campos_distintos": ""
+        },
+        {
+          "codigo_unico": "2598164",
+          "campos_comparados": 27,
+          "campos_iguales": 27,
+          "numericos_iguales": true,
+          "coincide_100pct": true,
+          "campos_distintos": ""
+        },
+        {
+          "codigo_unico": "2415417",
+          "campos_comparados": 27,
+          "campos_iguales": 27,
+          "numericos_iguales": true,
+          "coincide_100pct": true,
+          "campos_distintos": ""
+        },
+        {
+          "codigo_unico": "2690722",
+          "campos_comparados": 27,
+          "campos_iguales": 27,
+          "numericos_iguales": true,
+          "coincide_100pct": true,
+          "campos_distintos": ""
+        },
+        {
+          "codigo_unico": "2108568",
+          "campos_comparados": 27,
+          "campos_iguales": 27,
+          "numericos_iguales": true,
+          "coincide_100pct": true,
+          "campos_distintos": ""
+        },
+        {
+          "codigo_unico": "2711025",
+          "campos_comparados": 27,
+          "campos_iguales": 27,
+          "numericos_iguales": true,
+          "coincide_100pct": true,
+          "campos_distintos": ""
+        },
+        {
+          "codigo_unico": "2614318",
+          "campos_comparados": 27,
+          "campos_iguales": 27,
+          "numericos_iguales": true,
+          "coincide_100pct": true,
+          "campos_distintos": ""
+        },
+        {
+          "codigo_unico": "2535026",
+          "campos_comparados": 27,
+          "campos_iguales": 27,
+          "numericos_iguales": true,
+          "coincide_100pct": true,
+          "campos_distintos": ""
+        },
+        {
+          "codigo_unico": "2660376",
+          "campos_comparados": 27,
+          "campos_iguales": 27,
+          "numericos_iguales": true,
+          "coincide_100pct": true,
+          "campos_distintos": ""
+        },
+        {
+          "codigo_unico": "2569099",
+          "campos_comparados": 27,
+          "campos_iguales": 27,
+          "numericos_iguales": true,
+          "coincide_100pct": true,
+          "campos_distintos": ""
+        },
+        {
+          "codigo_unico": "2631995",
+          "campos_comparados": 27,
+          "campos_iguales": 27,
+          "numericos_iguales": true,
+          "coincide_100pct": true,
+          "campos_distintos": ""
+        },
+        {
+          "codigo_unico": "2637949",
+          "campos_comparados": 27,
+          "campos_iguales": 27,
+          "numericos_iguales": true,
+          "coincide_100pct": true,
+          "campos_distintos": ""
+        },
+        {
+          "codigo_unico": "2650238",
+          "campos_comparados": 27,
+          "campos_iguales": 27,
+          "numericos_iguales": true,
+          "coincide_100pct": true,
+          "campos_distintos": ""
+        },
+        {
+          "codigo_unico": "2719893",
+          "campos_comparados": 27,
+          "campos_iguales": 27,
+          "numericos_iguales": true,
+          "coincide_100pct": true,
+          "campos_distintos": ""
+        },
+        {
+          "codigo_unico": "2333245",
+          "campos_comparados": 27,
+          "campos_iguales": 27,
+          "numericos_iguales": true,
+          "coincide_100pct": true,
+          "campos_distintos": ""
+        }
+      ],
+      "resumenes": [
+        {
+          "filtro": "departamento",
+          "valor": "TACNA",
+          "inversiones_mcp": 2197,
+          "inversiones_sql": 2197,
+          "costo_mcp": 20804038203.07,
+          "costo_sql": 20804038203.07,
+          "campos_distintos": "",
+          "coincide_100pct": true,
+          "inversiones_sql_nombre_exacto": null
+        },
+        {
+          "filtro": "departamento",
+          "valor": "HUANUCO",
+          "inversiones_mcp": 5353,
+          "inversiones_sql": 5353,
+          "costo_mcp": 38894214930.91,
+          "costo_sql": 38894214930.91,
+          "campos_distintos": "",
+          "coincide_100pct": true,
+          "inversiones_sql_nombre_exacto": null
+        },
+        {
+          "filtro": "departamento",
+          "valor": "ANCASH",
+          "inversiones_mcp": 12935,
+          "inversiones_sql": 12935,
+          "costo_mcp": 84140225802.87,
+          "costo_sql": 84140225802.87,
+          "campos_distintos": "",
+          "coincide_100pct": true,
+          "inversiones_sql_nombre_exacto": null
+        },
+        {
+          "filtro": "departamento",
+          "valor": "MADRE DE DIOS",
+          "inversiones_mcp": 792,
+          "inversiones_sql": 792,
+          "costo_mcp": 10068245953.82,
+          "costo_sql": 10068245953.82,
+          "campos_distintos": "",
+          "coincide_100pct": true,
+          "inversiones_sql_nombre_exacto": null
+        },
+        {
+          "filtro": "departamento",
+          "valor": "HUANCAVELICA",
+          "inversiones_mcp": 6173,
+          "inversiones_sql": 6173,
+          "costo_mcp": 29026430941.95,
+          "costo_sql": 29026430941.95,
+          "campos_distintos": "",
+          "coincide_100pct": true,
+          "inversiones_sql_nombre_exacto": null
+        },
+        {
+          "filtro": "entidad",
+          "valor": "MUNICIPALIDAD DISTRITAL DE MACARI",
+          "inversiones_mcp": 44,
+          "inversiones_sql": 44,
+          "costo_mcp": 151043198.13,
+          "costo_sql": 151043198.13,
+          "campos_distintos": "",
+          "coincide_100pct": true,
+          "inversiones_sql_nombre_exacto": 44
+        },
+        {
+          "filtro": "entidad",
+          "valor": "MUNICIPALIDAD DISTRITAL DE SAN JUAN - ANCASH",
+          "inversiones_mcp": 114,
+          "inversiones_sql": 114,
+          "costo_mcp": 262673049.28,
+          "costo_sql": 262673049.28,
+          "campos_distintos": "",
+          "coincide_100pct": true,
+          "inversiones_sql_nombre_exacto": 114
+        },
+        {
+          "filtro": "entidad",
+          "valor": "MUNICIPALIDAD DISTRITAL DE CIUDAD NUEVA",
+          "inversiones_mcp": 72,
+          "inversiones_sql": 72,
+          "costo_mcp": 420201402.04,
+          "costo_sql": 420201402.04,
+          "campos_distintos": "",
+          "coincide_100pct": true,
+          "inversiones_sql_nombre_exacto": 72
+        },
+        {
+          "filtro": "entidad",
+          "valor": "MUNICIPALIDAD PROVINCIAL DE LORETO",
+          "inversiones_mcp": 479,
+          "inversiones_sql": 479,
+          "costo_mcp": 2916864660.53,
+          "costo_sql": 2916864660.53,
+          "campos_distintos": "",
+          "coincide_100pct": true,
+          "inversiones_sql_nombre_exacto": 479
+        },
+        {
+          "filtro": "entidad",
+          "valor": "MUNICIPALIDAD DISTRITAL DE YANAHUARA",
+          "inversiones_mcp": 65,
+          "inversiones_sql": 65,
+          "costo_mcp": 100506498.12,
+          "costo_sql": 100506498.12,
+          "campos_distintos": "",
+          "coincide_100pct": true,
+          "inversiones_sql_nombre_exacto": 65
+        }
+      ],
+      "criterio": "Numéricos iguales con tolerancia 0,005 (montos redondeados a 2 decimales); texto y fechas, igualdad exacta. Resúmenes por departamento: departamento_n igual al normalizado; por entidad: misma regla de palabras que el servidor (todas deben aparecer)."
+    },
+    "exactitud_alertas": {
+      "generado": "2026-11-18T15:00:49+00:00",
+      "casos": 14,
+      "coinciden": 14,
+      "pct": 100.0,
+      "detalle": [
+        {
+          "tipo": "sobrecosto",
+          "filtro": "(ninguno)",
+          "total_sql": 26387,
+          "total_tool_mcp": 26387,
+          "total_api_alertas": 26387,
+          "coincide": true
+        },
+        {
+          "tipo": "paralizacion",
+          "filtro": "(ninguno)",
+          "total_sql": 16502,
+          "total_tool_mcp": 16502,
+          "total_api_alertas": 16502,
+          "coincide": true
+        },
+        {
+          "tipo": "sobrecosto",
+          "filtro": "{\"nivel\": \"local\"}",
+          "total_sql": 20607,
+          "total_tool_mcp": 20607,
+          "total_api_alertas": 20607,
+          "coincide": true
+        },
+        {
+          "tipo": "paralizacion",
+          "filtro": "{\"nivel\": \"local\"}",
+          "total_sql": 14489,
+          "total_tool_mcp": 14489,
+          "total_api_alertas": 14489,
+          "coincide": true
+        },
+        {
+          "tipo": "sobrecosto",
+          "filtro": "{\"nivel\": \"regional\"}",
+          "total_sql": 3062,
+          "total_tool_mcp": 3062,
+          "total_api_alertas": 3062,
+          "coincide": true
+        },
+        {
+          "tipo": "paralizacion",
+          "filtro": "{\"nivel\": \"regional\"}",
+          "total_sql": 1004,
+          "total_tool_mcp": 1004,
+          "total_api_alertas": 1004,
+          "coincide": true
+        },
+        {
+          "tipo": "sobrecosto",
+          "filtro": "{\"nivel\": \"nacional\"}",
+          "total_sql": 2718,
+          "total_tool_mcp": 2718,
+          "total_api_alertas": 2718,
+          "coincide": true
+        },
+        {
+          "tipo": "paralizacion",
+          "filtro": "{\"nivel\": \"nacional\"}",
+          "total_sql": 1009,
+          "total_tool_mcp": 1009,
+          "total_api_alertas": 1009,
+          "coincide": true
+        },
+        {
+          "tipo": "sobrecosto",
+          "filtro": "{\"departamento\": \"Lima\"}",
+          "total_sql": 2275,
+          "total_tool_mcp": 2275,
+          "total_api_alertas": 2275,
+          "coincide": true
+        },
+        {
+          "tipo": "paralizacion",
+          "filtro": "{\"departamento\": \"Lima\"}",
+          "total_sql": 2275,
+          "total_tool_mcp": 2275,
+          "total_api_alertas": 2275,
+          "coincide": true
+        },
+        {
+          "tipo": "sobrecosto",
+          "filtro": "{\"departamento\": \"Cusco\"}",
+          "total_sql": 2782,
+          "total_tool_mcp": 2782,
+          "total_api_alertas": 2782,
+          "coincide": true
+        },
+        {
+          "tipo": "paralizacion",
+          "filtro": "{\"departamento\": \"Cusco\"}",
+          "total_sql": 1484,
+          "total_tool_mcp": 1484,
+          "total_api_alertas": 1484,
+          "coincide": true
+        },
+        {
+          "tipo": "sobrecosto",
+          "filtro": "{\"departamento\": \"Piura\"}",
+          "total_sql": 1312,
+          "total_tool_mcp": 1312,
+          "total_api_alertas": 1312,
+          "coincide": true
+        },
+        {
+          "tipo": "paralizacion",
+          "filtro": "{\"departamento\": \"Piura\"}",
+          "total_sql": 705,
+          "total_tool_mcp": 705,
+          "total_api_alertas": 705,
+          "coincide": true
+        }
+      ]
+    },
+    "pruebas": {
+      "generado": "2026-11-18T15:04:46+00:00",
+      "comando": "cd worker && npx vitest run --coverage",
+      "exito": true,
+      "pruebas_total": 104,
+      "pasan": 104,
+      "fallan": 0,
+      "archivos": 9,
+      "suites_describe": 39,
+      "duracion_suite_ms": 520.8,
+      "duracion_pared_con_cobertura_s": 1.3,
+      "por_archivo": [
+        {
+          "archivo": "adjuntos.test.ts",
+          "pruebas": 27,
+          "pasan": 27,
+          "fallan": 0,
+          "duracion_ms": 230.8
+        },
+        {
+          "archivo": "agente.test.ts",
+          "pruebas": 32,
+          "pasan": 32,
+          "fallan": 0,
+          "duracion_ms": 56.8
+        },
+        {
+          "archivo": "agenteapi.test.ts",
+          "pruebas": 4,
+          "pasan": 4,
+          "fallan": 0,
+          "duracion_ms": 176.6
+        },
+        {
+          "archivo": "cadena.test.ts",
+          "pruebas": 13,
+          "pasan": 13,
+          "fallan": 0,
+          "duracion_ms": 52.7
+        },
+        {
+          "archivo": "gptjobs.test.ts",
+          "pruebas": 2,
+          "pasan": 2,
+          "fallan": 0,
+          "duracion_ms": 10.5
+        },
+        {
+          "archivo": "mcp.test.ts",
+          "pruebas": 3,
+          "pasan": 3,
+          "fallan": 0,
+          "duracion_ms": 68.3
+        },
+        {
+          "archivo": "queries.test.ts",
+          "pruebas": 14,
+          "pasan": 14,
+          "fallan": 0,
+          "duracion_ms": 17.4
+        },
+        {
+          "archivo": "remotedb.test.ts",
+          "pruebas": 4,
+          "pasan": 4,
+          "fallan": 0,
+          "duracion_ms": 46.3
+        },
+        {
+          "archivo": "sitio.test.ts",
+          "pruebas": 5,
+          "pasan": 5,
+          "fallan": 0,
+          "duracion_ms": 9.8
+        }
+      ],
+      "cobertura_total": {
+        "lines": {
+          "total": 961,
+          "covered": 783,
+          "skipped": 0,
+          "pct": 81.47
+        },
+        "statements": {
+          "total": 1350,
+          "covered": 1071,
+          "skipped": 0,
+          "pct": 79.33
+        },
+        "functions": {
+          "total": 241,
+          "covered": 202,
+          "skipped": 0,
+          "pct": 83.81
+        },
+        "branches": {
+          "total": 1013,
+          "covered": 679,
+          "skipped": 0,
+          "pct": 67.02
+        },
+        "branchesTrue": {
+          "total": 0,
+          "covered": 0,
+          "skipped": 0,
+          "pct": 100
+        }
+      },
+      "cobertura_solo_logica_pct": {
+        "lines": 79.0,
+        "statements": 76.49,
+        "functions": 81.82,
+        "branches": 67.91
+      },
+      "cobertura_por_archivo": [
+        {
+          "archivo": "src/cola.ts",
+          "lineas_pct": 0,
+          "sentencias_pct": 0,
+          "funciones_pct": 0,
+          "ramas_pct": 0,
+          "lineas_cubiertas": 0,
+          "lineas_totales": 69
+        },
+        {
+          "archivo": "src/demo.ts",
+          "lineas_pct": 100,
+          "sentencias_pct": 100,
+          "funciones_pct": 100,
+          "ramas_pct": 100,
+          "lineas_cubiertas": 10,
+          "lineas_totales": 10
+        },
+        {
+          "archivo": "src/index.ts",
+          "lineas_pct": 0,
+          "sentencias_pct": 0,
+          "funciones_pct": 0,
+          "ramas_pct": 0,
+          "lineas_cubiertas": 0,
+          "lineas_totales": 64
+        },
+        {
+          "archivo": "src/lib/agente.ts",
+          "lineas_pct": 99.32,
+          "sentencias_pct": 96.74,
+          "funciones_pct": 95.74,
+          "ramas_pct": 84.68,
+          "lineas_cubiertas": 444,
+          "lineas_totales": 447
+        },
+        {
+          "archivo": "src/lib/agenteapi.ts",
+          "lineas_pct": 100,
+          "sentencias_pct": 94.28,
+          "funciones_pct": 100,
+          "ramas_pct": 95,
+          "lineas_cubiertas": 25,
+          "lineas_totales": 25
+        },
+        {
+          "archivo": "src/lib/cadena.ts",
+          "lineas_pct": 83.05,
+          "sentencias_pct": 76.47,
+          "funciones_pct": 76.47,
+          "ramas_pct": 74.19,
+          "lineas_cubiertas": 49,
+          "lineas_totales": 59
+        },
+        {
+          "archivo": "src/lib/gptjobs.ts",
+          "lineas_pct": 100,
+          "sentencias_pct": 100,
+          "funciones_pct": 100,
+          "ramas_pct": 100,
+          "lineas_cubiertas": 1,
+          "lineas_totales": 1
+        },
+        {
+          "archivo": "src/lib/queries.ts",
+          "lineas_pct": 97.29,
+          "sentencias_pct": 98.03,
+          "funciones_pct": 91.66,
+          "ramas_pct": 85.71,
+          "lineas_cubiertas": 36,
+          "lineas_totales": 37
+        },
+        {
+          "archivo": "src/lib/remotedb.ts",
+          "lineas_pct": 100,
+          "sentencias_pct": 100,
+          "funciones_pct": 100,
+          "ramas_pct": 85.71,
+          "lineas_cubiertas": 16,
+          "lineas_totales": 16
+        },
+        {
+          "archivo": "src/pagina.ts",
+          "lineas_pct": 83.33,
+          "sentencias_pct": 83.33,
+          "funciones_pct": 50,
+          "ramas_pct": 50,
+          "lineas_cubiertas": 5,
+          "lineas_totales": 6
+        },
+        {
+          "archivo": "src/server.ts",
+          "lineas_pct": 58.62,
+          "sentencias_pct": 58.06,
+          "funciones_pct": 42.85,
+          "ramas_pct": 62.5,
+          "lineas_cubiertas": 17,
+          "lineas_totales": 29
+        },
+        {
+          "archivo": "src/sitio/arquitectura.ts",
+          "lineas_pct": 100,
+          "sentencias_pct": 100,
+          "funciones_pct": 100,
+          "ramas_pct": 100,
+          "lineas_cubiertas": 14,
+          "lineas_totales": 14
+        },
+        {
+          "archivo": "src/sitio/conectar.ts",
+          "lineas_pct": 37.5,
+          "sentencias_pct": 37.5,
+          "funciones_pct": 0,
+          "ramas_pct": 0,
+          "lineas_cubiertas": 6,
+          "lineas_totales": 16
+        },
+        {
+          "archivo": "src/sitio/datos.ts",
+          "lineas_pct": 42.85,
+          "sentencias_pct": 30,
+          "funciones_pct": 0,
+          "ramas_pct": 0,
+          "lineas_cubiertas": 3,
+          "lineas_totales": 7
+        },
+        {
+          "archivo": "src/sitio/estilos.ts",
+          "lineas_pct": 100,
+          "sentencias_pct": 100,
+          "funciones_pct": 100,
+          "ramas_pct": 100,
+          "lineas_cubiertas": 1,
+          "lineas_totales": 1
+        },
+        {
+          "archivo": "src/sitio/evaluacion-datos.ts",
+          "lineas_pct": 100,
+          "sentencias_pct": 100,
+          "funciones_pct": 100,
+          "ramas_pct": 100,
+          "lineas_cubiertas": 1,
+          "lineas_totales": 1
+        },
+        {
+          "archivo": "src/sitio/inicio.ts",
+          "lineas_pct": 55.55,
+          "sentencias_pct": 45.45,
+          "funciones_pct": 0,
+          "ramas_pct": 0,
+          "lineas_cubiertas": 5,
+          "lineas_totales": 9
+        },
+        {
+          "archivo": "src/sitio/layout.ts",
+          "lineas_pct": 100,
+          "sentencias_pct": 92.85,
+          "funciones_pct": 87.5,
+          "ramas_pct": 50,
+          "lineas_cubiertas": 23,
+          "lineas_totales": 23
+        },
+        {
+          "archivo": "src/sitio/proyecto-diagramas.ts",
+          "lineas_pct": 100,
+          "sentencias_pct": 100,
+          "funciones_pct": 100,
+          "ramas_pct": 90.9,
+          "lineas_cubiertas": 83,
+          "lineas_totales": 83
+        },
+        {
+          "archivo": "src/sitio/proyecto.ts",
+          "lineas_pct": 100,
+          "sentencias_pct": 100,
+          "funciones_pct": 100,
+          "ramas_pct": 100,
+          "lineas_cubiertas": 44,
+          "lineas_totales": 44
+        },
+        {
+          "archivo": "TOTAL",
+          "lineas_pct": 81.47,
+          "sentencias_pct": 79.33,
+          "funciones_pct": 83.81,
+          "ramas_pct": 67.02,
+          "lineas_cubiertas": 783,
+          "lineas_totales": 961
+        },
+        {
+          "archivo": "TOTAL solo logica (sin sitio/ ni pagina.ts: HTML y CSS en cadenas)",
+          "lineas_pct": 79.0,
+          "sentencias_pct": 76.49,
+          "funciones_pct": 81.82,
+          "ramas_pct": 67.91,
+          "lineas_cubiertas": "",
+          "lineas_totales": ""
+        }
+      ],
+      "nota_cobertura": "Cobertura V8 con @vitest/coverage-v8 5.1.0 (devDependency añadida). El código de src/sitio y pagina.ts es HTML/CSS en cadenas y no tiene pruebas unitarias, por eso se reporta también la cobertura sin ese código. Además index.ts y cola.ts (entrada del Worker y Durable Object) se verifican solo contra producción, no con vitest."
+    },
+    "rendimiento": {
+      "inicio": "2026-11-18T14:52:40+00:00",
+      "fin": "2026-11-18T14:57:20+00:00",
+      "url": "https://obraclara.adrielorihuela.net",
+      "nota": "Latencia medida con Python urllib desde Lima (Perú) hacia Cloudflare; incluye DNS, TLS y red (cada llamada abre conexión nueva). Pausa de 1,2 s entre llamadas para respetar el límite de 60/min.",
+      "filas": [
+        {
+          "prueba": "buscar_inversiones",
+          "llamadas": 20,
+          "exitosas": 20,
+          "tasa_exito_pct": 100.0,
+          "lat_media_ms": 2109.5,
+          "lat_p50_ms": 2104.9,
+          "lat_p95_ms": 2602.8,
+          "lat_max_ms": 2792.8,
+          "lat_min_ms": 1679.6,
+          "tam_resp_medio_bytes": 7365,
+          "tam_resp_max_bytes": 13646
+        },
+        {
+          "prueba": "detalle_inversion",
+          "llamadas": 20,
+          "exitosas": 20,
+          "tasa_exito_pct": 100.0,
+          "lat_media_ms": 1435.0,
+          "lat_p50_ms": 1360.2,
+          "lat_p95_ms": 1774.8,
+          "lat_max_ms": 2063.9,
+          "lat_min_ms": 1285.6,
+          "tam_resp_medio_bytes": 1413,
+          "tam_resp_max_bytes": 1596
+        },
+        {
+          "prueba": "alertas_inversion",
+          "llamadas": 20,
+          "exitosas": 20,
+          "tasa_exito_pct": 100.0,
+          "lat_media_ms": 2116.8,
+          "lat_p50_ms": 2025.1,
+          "lat_p95_ms": 2707.0,
+          "lat_max_ms": 3096.2,
+          "lat_min_ms": 1690.8,
+          "tam_resp_medio_bytes": 6472,
+          "tam_resp_max_bytes": 13563
+        },
+        {
+          "prueba": "resumen_inversiones",
+          "llamadas": 20,
+          "exitosas": 20,
+          "tasa_exito_pct": 100.0,
+          "lat_media_ms": 1478.3,
+          "lat_p50_ms": 1366.6,
+          "lat_p95_ms": 1866.3,
+          "lat_max_ms": 2019.0,
+          "lat_min_ms": 1302.2,
+          "tam_resp_medio_bytes": 760,
+          "tam_resp_max_bytes": 770
+        },
+        {
+          "prueba": "tools/list",
+          "llamadas": 10,
+          "exitosas": 10,
+          "tasa_exito_pct": 100.0,
+          "lat_media_ms": 541.5,
+          "lat_p50_ms": 516.8,
+          "lat_p95_ms": 692.2,
+          "lat_max_ms": 696.0,
+          "lat_min_ms": 463.0,
+          "tam_resp_medio_bytes": 4029,
+          "tam_resp_max_bytes": 4029
+        },
+        {
+          "prueba": "GET /salud",
+          "llamadas": 10,
+          "exitosas": 10,
+          "tasa_exito_pct": 100.0,
+          "lat_media_ms": 969.9,
+          "lat_p50_ms": 964.9,
+          "lat_p95_ms": 1084.8,
+          "lat_max_ms": 1165.5,
+          "lat_min_ms": 890.7,
+          "tam_resp_medio_bytes": 346,
+          "tam_resp_max_bytes": 346
+        }
+      ],
+      "latencias_ms": {
+        "buscar_inversiones": [
+          1865.2,
+          1780.6,
+          2114.3,
+          2256.5,
+          1955.3,
+          2199.7,
+          2319.1,
+          1981.1,
+          2363.8,
+          1679.6,
+          2168.6,
+          1802.7,
+          2792.8,
+          1863.3,
+          2592.8,
+          2280.4,
+          2095.4,
+          2546.1,
+          1776.1,
+          1756.6
+        ],
+        "detalle_inversion": [
+          1337.5,
+          1430.5,
+          1365.0,
+          1339.9,
+          1375.7,
+          1482.9,
+          1346.2,
+          1404.3,
+          1328.3,
+          1312.4,
+          1285.6,
+          1335.1,
+          1355.5,
+          1287.3,
+          1290.2,
+          1676.9,
+          1473.7,
+          2063.9,
+          1450.4,
+          1759.5
+        ],
+        "alertas_inversion": [
+          2402.8,
+          2615.4,
+          1975.2,
+          2032.4,
+          1928.0,
+          2037.9,
+          2351.1,
+          2106.8,
+          1838.0,
+          1690.8,
+          1754.0,
+          1780.1,
+          2017.8,
+          2453.1,
+          1778.8,
+          2178.7,
+          1913.7,
+          3096.2,
+          2686.5,
+          1697.8
+        ],
+        "resumen_inversiones": [
+          1360.4,
+          1351.5,
+          1385.3,
+          1363.6,
+          2019.0,
+          1595.3,
+          1302.2,
+          1319.9,
+          1858.3,
+          1334.7,
+          1362.0,
+          1332.9,
+          1530.1,
+          1681.2,
+          1687.6,
+          1526.2,
+          1510.6,
+          1313.9,
+          1369.7,
+          1361.3
+        ],
+        "tools/list": [
+          463.0,
+          548.8,
+          534.1,
+          526.0,
+          687.5,
+          503.7,
+          470.4,
+          696.0,
+          477.8,
+          507.6
+        ],
+        "GET /salud": [
+          965.1,
+          964.8,
+          986.2,
+          957.9,
+          974.3,
+          980.7,
+          1165.5,
+          892.9,
+          890.7,
+          921.4
+        ]
+      }
+    }
+  },
+  "resumen_cifras": {
+    "inversiones": 150574,
+    "alertas_sobrecosto": 26387,
+    "alertas_paralizacion": 16502,
+    "pruebas": 104,
+    "cobertura_lineas_pct": 81.47
+  }
+}

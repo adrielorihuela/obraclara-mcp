@@ -1,0 +1,15 @@
+﻿tipo,filtro,total_sql,total_tool_mcp,total_api_alertas,coincide
+sobrecosto,(ninguno),26387,26387,26387,True
+paralizacion,(ninguno),16502,16502,16502,True
+sobrecosto,"{""nivel"": ""local""}",20607,20607,20607,True
+paralizacion,"{""nivel"": ""local""}",14489,14489,14489,True
+sobrecosto,"{""nivel"": ""regional""}",3062,3062,3062,True
+paralizacion,"{""nivel"": ""regional""}",1004,1004,1004,True
+sobrecosto,"{""nivel"": ""nacional""}",2718,2718,2718,True
+paralizacion,"{""nivel"": ""nacional""}",1009,1009,1009,True
+sobrecosto,"{""departamento"": ""Lima""}",2275,2275,2275,True
+paralizacion,"{""departamento"": ""Lima""}",2275,2275,2275,True
+sobrecosto,"{""departamento"": ""Cusco""}",2782,2782,2782,True
+paralizacion,"{""departamento"": ""Cusco""}",1484,1484,1484,True
+sobrecosto,"{""departamento"": ""Piura""}",1312,1312,1312,True
+paralizacion,"{""departamento"": ""Piura""}",705,705,705,True

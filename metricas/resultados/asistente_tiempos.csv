@@ -1,0 +1,8 @@
+﻿modo,pregunta,estado_http,exito,segundos,bytes,modelo,error
+chat,¿Qué es una inversión pública?,200,True,10.01,2305,IA del servidor,
+chat,¿Qué significa «posible paralización»?,200,True,7.25,825,IA del servidor,
+chat,¿De dónde vienen los datos de ObraClara?,200,True,6.35,843,IA del servidor,
+chat,Explica en una frase qué es el sobrecosto.,200,True,4.96,180,IA del servidor,
+chat,¿Qué es el devengado?,200,True,7.48,1506,IA del servidor,
+agente,¿Cuántas inversiones con alerta de sobrecosto hay en Tacna?,200,True,9.48,242,,
+agente,¿Cuántas inversiones hay en Moquegua?,200,True,8.92,587,,

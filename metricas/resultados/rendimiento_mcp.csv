@@ -1,0 +1,7 @@
+﻿prueba,llamadas,exitosas,tasa_exito_pct,lat_media_ms,lat_p50_ms,lat_p95_ms,lat_max_ms,lat_min_ms,tam_resp_medio_bytes,tam_resp_max_bytes
+buscar_inversiones,20,20,100.0,2109.5,2104.9,2602.8,2792.8,1679.6,7365,13646
+detalle_inversion,20,20,100.0,1435.0,1360.2,1774.8,2063.9,1285.6,1413,1596
+alertas_inversion,20,20,100.0,2116.8,2025.1,2707.0,3096.2,1690.8,6472,13563
+resumen_inversiones,20,20,100.0,1478.3,1366.6,1866.3,2019.0,1302.2,760,770
+tools/list,10,10,100.0,541.5,516.8,692.2,696.0,463.0,4029,4029
+GET /salud,10,10,100.0,969.9,964.9,1084.8,1165.5,890.7,346,346
