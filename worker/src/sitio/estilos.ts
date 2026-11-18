@@ -103,7 +103,7 @@ code,kbd,pre{font-family:var(--mono);font-size:.88em}
 :root[data-theme=dark] .tema .sol{display:block}:root[data-theme=dark] .tema .luna{display:none}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]) .tema .sol{display:block}:root:not([data-theme=light]) .tema .luna{display:none}}
 .panel-m{display:none}
-@media (max-width:1060px){
+@media (max-width:1140px){
  .links,.nav .btn,.nav .gh{display:none}
  .menu-b{display:inline-grid}
  .panel-m{position:fixed;inset:60px 0 auto 0;background:var(--bg);border-bottom:1px solid var(--line);padding:8px var(--gut) 20px;box-shadow:var(--shadow)}

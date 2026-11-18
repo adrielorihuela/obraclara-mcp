@@ -2,6 +2,7 @@ import { demoCss, demoHtml, demoScript } from "./demo";
 import { acerca, conectar, noEncontrada } from "./sitio/conectar";
 import { datos } from "./sitio/datos";
 import { inicio } from "./sitio/inicio";
+import { proyecto } from "./sitio/proyecto";
 import { shell, type Meta } from "./sitio/layout";
 
 export function asistente(m: Meta): string {
@@ -20,6 +21,7 @@ export function asistente(m: Meta): string {
 const PAGINAS: Record<string, (m: Meta) => string> = {
   "/": inicio,
   "/asistente": asistente,
+  "/proyecto": proyecto,
   "/datos": datos,
   "/conectar": conectar,
   "/acerca": acerca,

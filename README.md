@@ -2,7 +2,8 @@
 
 Servidor MCP público que permite a un asistente de IA consultar datos de inversión pública del Perú (MEF): buscar obras, ver su detalle, detectar alertas y resumir por entidad o región. Proyecto del Grupo 1, curso I.A. Aplicada (ULima). Este repositorio es el código fuente del Anexo 01 del informe.
 
-- **Sitio:** https://obraclara.adrielorihuela.net (inicio, `/datos`, `/asistente`, `/conectar`, `/acerca`; estado en `/salud`)
+- **Documentación completa del proyecto:** [`docs/PROYECTO.md`](docs/PROYECTO.md) (misma información que la página `/proyecto`)
+- **Sitio:** https://obraclara.adrielorihuela.net (inicio, `/proyecto`, `/datos`, `/asistente`, `/conectar`, `/acerca`; estado en `/salud`)
 - **Servidor MCP:** https://obraclara.adrielorihuela.net/mcp (Streamable HTTP, pública, sin login)
 - **Repositorio:** https://github.com/adrielorihuela/obraclara-mcp
 - **Fuente de datos:** MEF, *Detalle de inversiones* (datos abiertos)
@@ -14,7 +15,8 @@ Servidor MCP público que permite a un asistente de IA consultar datos de invers
 | `worker/` | Cloudflare Worker en TypeScript: servidor MCP (`src/server.ts`), consultas (`src/lib/queries.ts`), panel web y chat (`src/sitio/`, `src/demo.ts`, `src/lib/agente.ts`), pruebas (`test/`) |
 | `etl/` | ETL en Python: `inversiones.py` (CSV a SQL), `cargar_sqlite.py` (SQLite local), `schema.sql` |
 | `conector/` | Programa saliente que conecta el Worker con la IA y la base SQLite del grupo (`LEEME.md`) |
-| `eval/` | Banco de 40 preguntas, ejecutor, puntuador y resultados |
+| `eval/` | Banco de 40 preguntas, ejecutor, puntuador y resultados; `exportar_sitio.mjs` genera los datos de la página `/proyecto` |
+| `docs/` | `PROYECTO.md` (documentación completa) y capturas |
 | `.github/workflows/` | `deploy.yml` (pruebas y despliegue), `etl.yml` (carga manual a D1) |
 
 ## Arquitectura
@@ -177,6 +179,7 @@ Resultados: [`eval/resultados/resumen.md`](eval/resultados/resumen.md). Las resp
 ```bash
 cd eval
 node exportar_graficos.mjs
+node exportar_sitio.mjs      # actualiza worker/src/sitio/evaluacion-datos.ts (gráficos de /proyecto)
 ```
 
 Lee `eval/resultados/resultados.csv` (generado por `score_eval.mjs`) y escribe en `eval/resultados/`: `graficos_global.csv` (exactitud, citación, inventada y ejecutadas por condición), `graficos_por_tipo.csv` (lo mismo por tipo y condición) y `graficos_latencia.csv` (latencia media por condición). Los porcentajes usan el mismo criterio que `resumen.md` (sobre 40 preguntas por condición, 10 por tipo).
@@ -186,12 +189,12 @@ Lee `eval/resultados/resultados.csv` (generado por `score_eval.mjs`) y escribe e
 ```bash
 cd worker
 npm ci
-npx vitest run            # 99 pruebas en 8 archivos, todas pasan
+npx vitest run            # 104 pruebas en 9 archivos, todas pasan
 npx tsc --noEmit          # verificación de tipos, sin errores
 npx wrangler deploy --dry-run   # empaqueta el Worker sin desplegar
 ```
 
-Cobertura de las 99 pruebas (`worker/test/`): `adjuntos` (27: lectura de ZIP, texto frente a binario, documentos), `agente` (32: análisis de las llamadas JSON a herramientas, flujo SSE y protocolo del chat), `queries` (14: normalización, `buscar`, `detalle`, `alertas`, `resumen` sobre una D1 simulada), `cadena` (13: cadena de proveedores de IA y validación con imágenes), `agenteapi` (4), `remotedb` (4: la consulta usa el conector y cae a D1 si no responde), `mcp` (3: lista exactamente las 4 herramientas, cada respuesta trae datos, fuente, URL y fecha, y se informa cuando no hay resultados) y `gptjobs` (2: validación de mensajes).
+Cobertura de las 104 pruebas (`worker/test/`): `adjuntos` (27: lectura de ZIP, texto frente a binario, documentos), `agente` (32: análisis de las llamadas JSON a herramientas, flujo SSE y protocolo del chat), `queries` (14: normalización, `buscar`, `detalle`, `alertas`, `resumen` sobre una D1 simulada), `cadena` (13: cadena de proveedores de IA y validación con imágenes), `agenteapi` (4), `remotedb` (4: la consulta usa el conector y cae a D1 si no responde), `mcp` (3: lista exactamente las 4 herramientas, cada respuesta trae datos, fuente, URL y fecha, y se informa cuando no hay resultados) `gptjobs` (2: validación de mensajes) y `sitio` (5: la página `/proyecto` y que el sitio no exponga datos internos).
 
 Prueba manual contra el servidor público con MCP Inspector:
 
