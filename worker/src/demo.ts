@@ -4,7 +4,7 @@ import {
   tituloChat, grupoFecha, recortarChats, serializarChats, deserializarChats, sinImagenes, normalizarMensaje, normalizarChat,
   limitesAdjuntos, recortarTexto, nombreSeguro, rutaSegura, extensionArchivo, tipoAdjunto, validarDocumento, esTextoBytes, clasificarRuta,
   zipEntradas, zipExtraer, leerProyectoZip, docxATexto, leerDocx, textoPdfPagina, textoPdf, textoAdjunto, componerAdjuntos, metaAdjuntos, sinContexto,
-  largoContenido, acortarContenido, recortarMensajes, extraerArchivos, crc32, crearZip, xmlEscape, docxRuns, docxCuerpo, crearDocx, textoLatin1, mdALineasPdf,
+  largoContenido, acortarContenido, recortarMensajes, extraerArchivos, crc32, crearZip, xmlEscape, docxRuns, docxCuerpo, crearDocx, textoLatin1, mdALineasPdf, prepararCompartir,
 } from "./lib/agente";
 
 // Panel "Prueba el asistente" (página /asistente): HTML, CSS y script del navegador.
@@ -109,6 +109,12 @@ body.es-app main{flex:1;min-height:0}
 .tc .tc-b p{margin:0;padding:10px 14px 0;font:500 11px/1 var(--mono);color:var(--code-mut);letter-spacing:.04em;text-transform:uppercase}
 .tc pre{margin:0;padding:8px 14px 12px;white-space:pre-wrap;overflow-wrap:anywhere;font:400 12px/1.55 var(--mono);max-height:300px;overflow:auto}
 
+.conv-top{display:flex;justify-content:flex-end;padding:8px 20px;border-bottom:1px solid var(--line)}
+.conv-top[hidden]{display:none}
+.b-comp{display:inline-flex;align-items:center;gap:8px;min-height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink);font:500 13.5px/1 var(--sans);cursor:pointer}
+.b-comp:hover{border-color:var(--ink)}
+.b-comp svg{width:15px;height:15px;flex:none}
+.b-comp:focus-visible,#oc-sh button:focus-visible,#oc-sh input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .composer{padding:8px 24px 14px;background:linear-gradient(to bottom,transparent,var(--bg) 30%)}
 .composer .caja{max-width:780px;margin:0 auto;border:1px solid var(--line-2);border-radius:18px;background:var(--surface);box-shadow:var(--shadow);transition:border-color .15s}
 .composer .caja:focus-within{border-color:var(--ink-2)}
@@ -172,9 +178,29 @@ body.es-app main{flex:1;min-height:0}
 #oc-cfg .acc-c{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
 #oc-cest{font-size:13.5px;color:var(--ink-2);margin-top:12px;min-height:1.2em}
 #oc-cfg-x{margin-left:auto}
+#oc-sh{width:min(560px,calc(100vw - 32px));max-height:min(88vh,760px);padding:0;border:1px solid var(--line-2);border-radius:16px;background:var(--surface);color:var(--ink);box-shadow:0 30px 80px -20px rgba(0,0,0,.45);overflow:auto}
+#oc-sh::backdrop{background:rgba(10,12,13,.55);backdrop-filter:blur(2px)}
+#oc-sh .cfg-h{position:sticky;top:0;background:var(--surface);display:flex;align-items:center;gap:12px;padding:18px 22px;border-bottom:1px solid var(--line);z-index:1}
+#oc-sh .cfg-h h2{font-size:var(--s1);font-family:var(--sans);letter-spacing:-.01em}
+#oc-sh .cfg-in{padding:18px 22px 22px}
+#oc-sh .intro{font-size:14px;line-height:1.55;color:var(--ink-2);background:var(--surface-2);border-radius:10px;padding:12px 14px;margin:0}
+#oc-sh label.chk{display:flex;gap:10px;align-items:center;margin:16px 0 0;font-size:14px}
+#oc-sh label.chk[hidden]{display:none}
+#oc-sh label.chk input{width:18px;height:18px;accent-color:var(--accent)}
+#oc-sh .b{min-height:36px;padding:0 14px;border-radius:8px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink);font:500 13.5px/1 var(--sans);cursor:pointer}
+#oc-sh .b:hover{border-color:var(--ink)}
+#oc-sh .b-p{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+#oc-sh .b:disabled{opacity:.5;cursor:wait}
+#oc-sh-est{font-size:13.5px;color:var(--ink-2);margin:14px 0 0;min-height:1.2em}
+#oc-sh h3{font:500 12px/1 var(--mono);color:var(--mut);margin:22px 0 10px}
+#oc-sh h3[hidden]{display:none}
+#oc-sh-lista{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+#oc-sh-lista li{display:flex;flex-wrap:wrap;gap:8px;border:1px solid var(--line);border-radius:10px;padding:10px}
+#oc-sh-lista input{flex:1 1 100%;min-width:0;min-height:36px;padding:0 10px;border:1px solid var(--line-2);border-radius:8px;background:var(--bg);color:var(--ink);font:400 13px/1 var(--mono)}
 .sw:focus-visible,.chips button:focus-visible,#oc-cfg button:focus-visible,#oc-cfg input:focus-visible,#oc-cfg select:focus-visible,.tc summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
 @media (max-width:860px){
+ .conv-top{padding:6px 12px}
  .chat{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}
  .lado{border-right:0;border-bottom:1px solid var(--line);padding:10px 16px;gap:8px;display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;overflow:visible}
  .lado .b-sw{grid-column:1/-1;display:grid;gap:8px}.lado .b-sw .sw+p.ayuda+.sw{margin-top:0}
@@ -196,6 +222,7 @@ body.es-app main{flex:1;min-height:0}
 const icoMas = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>`;
 const icoEngranaje = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>`;
 const icoClip = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 11.5-8.6 8.6a5.5 5.5 0 0 1-7.8-7.8l8.6-8.6a3.7 3.7 0 0 1 5.2 5.2l-8.6 8.6a1.8 1.8 0 0 1-2.6-2.6l8-8"/></svg>`;
+const icoCompartir = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 10V2.5M5 5.2 8 2.5l3 2.7M3.5 9v3.5a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V9"/></svg>`;
 const icoEnviar = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 13V3M3.5 7.5 8 3l4.5 4.5"/></svg>`;
 
 export const demoHtml = String.raw`
@@ -214,6 +241,7 @@ export const demoHtml = String.raw`
 </aside>
 
 <section class="conv" aria-labelledby="oc-t">
+<div class="conv-top" id="oc-top" hidden><button type="button" id="oc-share" class="b-comp" aria-haspopup="dialog">${icoCompartir}<span>Compartir</span></button></div>
 <div class="scroll" id="oc-scroll"><div class="col">
 <div class="vacio" id="oc-vacio">
 <h1 id="oc-t">¿Qué quieres saber de la inversión pública?</h1>
@@ -232,6 +260,18 @@ export const demoHtml = String.raw`
 </form>
 </section>
 </div>
+
+<dialog id="oc-sh" aria-labelledby="oc-sh-t">
+<div class="cfg-h"><h2 id="oc-sh-t">Compartir chat</h2><button type="button" id="oc-sh-x" class="b" style="margin-left:auto">Cerrar</button></div>
+<div class="cfg-in">
+<p class="intro">Se creará un <strong>enlace público de solo lectura</strong> con una copia de este chat hasta este momento: los mensajes que escribas después no se comparten. Cualquier persona que tenga el enlace podrá verlo. No se incluyen claves de API, y de los documentos adjuntos solo se muestran el nombre y el tamaño, no su texto. Puedes eliminar el enlace cuando quieras.</p>
+<label class="chk" id="oc-sh-imgl" hidden><input type="checkbox" id="oc-sh-img"> Incluir las imágenes adjuntas (máximo 3, reducidas)</label>
+<p id="oc-sh-est" role="status" aria-live="polite"></p>
+<div class="acc-c" style="display:flex;gap:8px;margin-top:14px"><button type="button" id="oc-sh-crear" class="b b-p">Crear enlace</button></div>
+<h3 id="oc-sh-lt" hidden>Enlaces de este chat</h3>
+<ul id="oc-sh-lista"></ul>
+</div>
+</dialog>
 
 <dialog id="oc-cfg" aria-labelledby="oc-cfg-t">
 <div class="cfg-h"><h2 id="oc-cfg-t">Configuración de IA</h2><button type="button" id="oc-cfg-x" class="b">Cerrar</button></div>
@@ -266,15 +306,13 @@ const nombres = [
   tituloChat, grupoFecha, recortarChats, serializarChats, deserializarChats, sinImagenes, normalizarMensaje, normalizarChat,
   limitesAdjuntos, recortarTexto, nombreSeguro, rutaSegura, extensionArchivo, tipoAdjunto, validarDocumento, esTextoBytes, clasificarRuta,
   zipEntradas, zipExtraer, leerProyectoZip, docxATexto, leerDocx, textoPdfPagina, textoPdf, textoAdjunto, componerAdjuntos, metaAdjuntos, sinContexto,
-  largoContenido, acortarContenido, recortarMensajes, extraerArchivos, crc32, crearZip, xmlEscape, docxRuns, docxCuerpo, crearDocx, textoLatin1, mdALineasPdf,
+  largoContenido, acortarContenido, recortarMensajes, extraerArchivos, crc32, crearZip, xmlEscape, docxRuns, docxCuerpo, crearDocx, textoLatin1, mdALineasPdf, prepararCompartir,
 ].map((f) => f.toString()).join("\n");
 
-const app = String.raw`
-var ocMcp=true,ocHist=[],ocTools=null,ocBusy=false,ocConns=[],ocActiva='servidor',ocEdit='',ocHL='servidor',ocImgs=[],ocDocs=[],ocLeyendo=0,ocAvisoCtx=false,ocMsgs=[],ocChats=[],ocChatId='',ocRest=false,ocRen='',ocAg=false,ocAgOk=false,ocAgId='';
+// Piezas compartidas con la página pública /c/:id (renderizador de Markdown seguro, chips, Word/PDF).
+const appComun = String.raw`
 var OC_FENCE=new RegExp('^\\s*('+String.fromCharCode(96)+'{3,})\\s*(.*)$');
-var OC_ICO_TOOL='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4h12M2 8h8M2 12h5"/><path d="m11 10 2 2-2 2"/></svg>';
 function $(id){return document.getElementById(id)}
-function ocBajar(){var s=$('oc-scroll');if(s)s.scrollTop=s.scrollHeight}
 function ocInl(n,s){String(s).split(/(\*\*[^*]+\*\*|` + "`[^`]+`" + String.raw`)/).forEach(function(x){if(!x)return;
  if(x.length>4&&x.slice(0,2)==='**'&&x.slice(-2)==='**'){var b=document.createElement('strong');b.textContent=x.slice(2,-2);n.appendChild(b)}
  else if(x.length>2&&x.charAt(0)==='` + "`" + String.raw`'&&x.slice(-1)==='` + "`" + String.raw`'){var c=document.createElement('code');c.textContent=x.slice(1,-1);n.appendChild(c)}
@@ -292,7 +330,54 @@ function ocMd(el,txt){var lst=null,p=null,tb=null,cod=null;String(txt).replace(/
  if(/^#{1,4}\s/.test(t)){lst=null;p=null;var h=document.createElement('p');h.className='h';ocInl(h,t.replace(/^#+\s*/,''));el.appendChild(h);return}
  if(mm){var ord=/\d/.test(mm[1]);if(!lst||lst.ocOrd!==ord){lst=document.createElement(ord?'ol':'ul');lst.ocOrd=ord;el.appendChild(lst)}p=null;var li=document.createElement('li');ocInl(li,mm[2]);lst.appendChild(li);return}
  lst=null;if(!p){p=document.createElement('p');el.appendChild(p)}else p.appendChild(document.createElement('br'));ocInl(p,t)})}
-function ocRec(m){if(!ocRest)ocMsgs.push(m)}
+function ocTam(c){return c>=1000?(Math.round(c/100)/10)+' k car.':c+' car.'}
+function ocChip(m,leyendo,quitar){var w=document.createElement('div');w.className='th dchip';
+ var ic=document.createElement('span');ic.className='dic';ic.textContent={zip:'ZIP',pdf:'PDF',docx:'DOC',texto:'TXT',imagen:'IMG'}[m.t]||'DOC';
+ var nb=document.createElement('span');nb.className='dnm';nb.textContent=m.n;nb.title=m.n;
+ var sz=document.createElement('span');sz.className='dsz';sz.textContent=leyendo?'Leyendo…':(m.b?(m.b<1024?m.b+' B':Math.round(m.b/1024)+' KB'):(m.c?ocTam(m.c):''));
+ w.appendChild(ic);w.appendChild(nb);w.appendChild(sz);
+ if(quitar){var b=document.createElement('button');b.type='button';b.textContent='×';b.setAttribute('aria-label','Quitar '+m.n);b.addEventListener('click',quitar);w.appendChild(b)}
+ return w}
+var OC_PDF_URL='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',OC_PDF_WK='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',OC_JSPDF='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',ocLibs={};
+function ocScript(url){if(ocLibs[url])return ocLibs[url];
+ ocLibs[url]=new Promise(function(ok,no){var s=document.createElement('script');s.src=url;s.async=true;s.onload=function(){ok()};s.onerror=function(){delete ocLibs[url];no(new Error('No se pudo cargar una biblioteca externa (revisa tu conexión).'))};document.head.appendChild(s)});
+ return ocLibs[url]}
+var OC_MIME={docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',pdf:'application/pdf',zip:'application/zip'};
+function ocDescargar(nombre,datos,tipo){var u=URL.createObjectURL(new Blob([datos],{type:tipo||'application/octet-stream'})),a=document.createElement('a');
+ a.href=u;a.download=nombre;a.rel='noopener';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},4000)}
+async function ocPdfBytes(md){await ocScript(OC_JSPDF);var J=window.jspdf&&window.jspdf.jsPDF;if(!J)throw new Error('No se pudo cargar el generador de PDF.');
+ var doc=new J({unit:'pt',format:'a4'}),W=595.28,H=841.89,M=56,y=M;
+ mdALineasPdf(md).forEach(function(b){doc.setFont(b.mono?'courier':'helvetica',b.neg?'bold':'normal');doc.setFontSize(b.tam);
+  var lh=b.tam*1.35;doc.splitTextToSize(b.t,W-2*M-b.sangria).forEach(function(l){if(y+lh>H-M){doc.addPage();y=M}doc.text(l,M+b.sangria,y+b.tam*0.9);y+=lh});y+=b.despues});
+ return new Uint8Array(doc.output('arraybuffer'))}
+async function ocBytesArchivo(ruta,contenido){var e=extensionArchivo(ruta);
+ if(e==='docx')return crearDocx(contenido);if(e==='pdf')return await ocPdfBytes(contenido);return new TextEncoder().encode(contenido)}
+async function ocBajarArchivo(ruta,contenido){ocDescargar(ruta.split('/').pop(),await ocBytesArchivo(ruta,contenido),OC_MIME[extensionArchivo(ruta)]||'text/plain;charset=utf-8')}
+async function ocBajarZip(fs){var l=[];for(var i=0;i<fs.length;i++)l.push({ruta:fs[i].ruta,datos:await ocBytesArchivo(fs[i].ruta,fs[i].contenido)});ocDescargar('archivos-obraclara.zip',crearZip(l),'application/zip')}
+function ocAcciones(t,txt){var s=String(txt||'').trim();if(!s||s==='(sin respuesta)')return;
+ var fs=extraerArchivos(s),row=document.createElement('div');row.className='acc';row.setAttribute('role','group');row.setAttribute('aria-label','Descargar');
+ function bt(et,tit,fn){var b=document.createElement('button'),ant=et;b.type='button';b.textContent=et;b.title=tit;
+  b.addEventListener('click',async function(){b.disabled=true;b.textContent='…';try{await fn()}catch(e){ocLog('n','No se pudo generar la descarga: '+(e&&e.message?e.message:'error desconocido')+'.')}b.disabled=false;b.textContent=ant});row.appendChild(b)}
+ bt('Word','Descargar la respuesta como documento Word (.docx)',function(){return ocBajarArchivo('respuesta-obraclara.docx',s)});
+ bt('PDF','Descargar la respuesta como PDF',function(){return ocBajarArchivo('respuesta-obraclara.pdf',s)});
+ fs.forEach(function(f){bt(f.ruta.split('/').pop(),'Descargar '+f.ruta,function(){return ocBajarArchivo(f.ruta,f.contenido)})});
+ if(fs.length>=2)bt('Todo (.zip)','Descargar los '+fs.length+' archivos en un .zip',function(){return ocBajarZip(fs)});
+ t.appendChild(row)}
+function ocIdb(){return new Promise(function(ok,no){try{var r=indexedDB.open('obraclara',1);r.onupgradeneeded=function(){r.result.createObjectStore('kv')};r.onsuccess=function(){ok(r.result)};r.onerror=function(){no(r.error)}}catch(e){no(e)}})}
+async function ocAlmLeer(){var v=null;
+ try{if(typeof indexedDB!=='undefined'){var db=await ocIdb();v=await new Promise(function(ok,no){var q=db.transaction('kv','readonly').objectStore('kv').get('chats');q.onsuccess=function(){ok(q.result)};q.onerror=function(){no(q.error)}});db.close()}}catch(e){v=null}
+ if(typeof v==='string'&&v)return v;
+ try{return localStorage.getItem('oc_chats')}catch(e){return null}}
+async function ocAlmEscribir(txt){var fallo=null;
+ try{if(typeof indexedDB!=='undefined'){var db=await ocIdb();await new Promise(function(ok,no){var t=db.transaction('kv','readwrite');t.objectStore('kv').put(txt,'chats');t.oncomplete=function(){ok()};t.onerror=function(){no(t.error)};t.onabort=function(){no(t.error)}});db.close();return}}catch(e){fallo=e}
+ try{localStorage.setItem('oc_chats',txt)}catch(e2){throw (fallo&&fallo.name==='QuotaExceededError')||e2.name==='QuotaExceededError'?new Error('cuota'):new Error('bloqueado')}}
+`;
+
+const app = String.raw`
+var ocMcp=true,ocHist=[],ocTools=null,ocBusy=false,ocConns=[],ocActiva='servidor',ocEdit='',ocHL='servidor',ocImgs=[],ocDocs=[],ocLeyendo=0,ocAvisoCtx=false,ocMsgs=[],ocChats=[],ocChatId='',ocRest=false,ocRen='',ocAg=false,ocAgOk=false,ocAgId='';
+var OC_ICO_TOOL='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4h12M2 8h8M2 12h5"/><path d="m11 10 2 2-2 2"/></svg>';
+function ocBajar(){var s=$('oc-scroll');if(s)s.scrollTop=s.scrollHeight}
+function ocRec(m){if(!ocRest){ocMsgs.push(m);ocShareUi()}}
 function ocLog(cls,txt,extra,adj){if(cls==='u')ocRec({rol:'u',texto:txt+(extra&&extra.length?'\n'+extra.map(function(){return '[imagen adjunta]'}).join(' '):''),mcp:ocMcp&&!ocAgActivo(),adj:adj?adj.meta:undefined,ctx:adj?adj.ctx:undefined});
  if(cls==='a')ocRec({rol:'a',texto:txt,modelo:typeof extra==='string'?extra:'',mcp:ocMcp&&!ocAgActivo()});
 var d=document.createElement('div');d.className='msg '+cls;$('oc-vacio').hidden=true;
@@ -415,14 +500,6 @@ async function ocRun(q,urls){
   ocHist.push({role:'user',content:'Resultado de '+c.tool+':'+String.fromCharCode(10)+truncate(txt,6000)+String.fromCharCode(10)+'Continúa: llama otra herramienta o termina con {"respuesta":"..."}.'});
  }
  ocLog('n','Se alcanzó el máximo de 5 pasos sin respuesta final. Prueba con una pregunta más concreta.')}
-function ocIdb(){return new Promise(function(ok,no){try{var r=indexedDB.open('obraclara',1);r.onupgradeneeded=function(){r.result.createObjectStore('kv')};r.onsuccess=function(){ok(r.result)};r.onerror=function(){no(r.error)}}catch(e){no(e)}})}
-async function ocAlmLeer(){var v=null;
- try{if(typeof indexedDB!=='undefined'){var db=await ocIdb();v=await new Promise(function(ok,no){var q=db.transaction('kv','readonly').objectStore('kv').get('chats');q.onsuccess=function(){ok(q.result)};q.onerror=function(){no(q.error)}});db.close()}}catch(e){v=null}
- if(typeof v==='string'&&v)return v;
- try{return localStorage.getItem('oc_chats')}catch(e){return null}}
-async function ocAlmEscribir(txt){var fallo=null;
- try{if(typeof indexedDB!=='undefined'){var db=await ocIdb();await new Promise(function(ok,no){var t=db.transaction('kv','readwrite');t.objectStore('kv').put(txt,'chats');t.oncomplete=function(){ok()};t.onerror=function(){no(t.error)};t.onabort=function(){no(t.error)}});db.close();return}}catch(e){fallo=e}
- try{localStorage.setItem('oc_chats',txt)}catch(e2){throw (fallo&&fallo.name==='QuotaExceededError')||e2.name==='QuotaExceededError'?new Error('cuota'):new Error('bloqueado')}}
 function ocChatEst(m){var e=$('oc-chat-est');e.textContent=m||'';e.hidden=!m}
 async function ocPersistChats(){ocChats=recortarChats(ocChats);
  try{await ocAlmEscribir(serializarChats(ocChats));ocChatEst('')}
@@ -437,7 +514,7 @@ function ocGuardar(){var hay=false;ocMsgs.forEach(function(m){if(m.rol==='a')hay
   ocChatId='c'+ahora.toString(36)+Math.random().toString(36).slice(2,6);c={id:ocChatId,titulo:tituloChat(pu),creado:ahora,actualizado:ahora,mensajes:[]};ocChats.push(c)}
  c.mensajes=ocMsgs.slice();c.actualizado=ahora;if(ocAgId)c.agenteId=ocAgId;ocPersistChats()}
 async function ocCargarChats(){var t=await ocAlmLeer();ocChats=deserializarChats(t);ocRenderChats()}
-function ocLimpiar(){ocAgId='';ocHist=[];ocMsgs=[];ocChatId='';ocImgs=[];ocDocs=[];ocThumbs();$('oc-log').textContent='';$('oc-vacio').hidden=false}
+function ocLimpiar(){ocAgId='';ocHist=[];ocMsgs=[];ocChatId='';ocImgs=[];ocDocs=[];ocThumbs();$('oc-log').textContent='';$('oc-vacio').hidden=false;ocShareUi()}
 function ocAbrir(id){if(ocBusy)return;var c=null;ocChats.forEach(function(x){if(x.id===id)c=x});if(!c)return;
  ocLimpiar();ocChatId=c.id;ocAgId=c.agenteId||'';ocRest=true;
  if(ocAgOk&&ocActiva===ocHL){ocAg=!!c.agenteId;ocPrefs();ocAgUi()}
@@ -445,7 +522,7 @@ function ocAbrir(id){if(ocBusy)return;var c=null;ocChats.forEach(function(x){if(
   if(m.rol==='u'){var ad=m.adj&&m.adj.length?{meta:m.adj,ctx:m.ctx||''}:null;ocLog('u',m.texto,null,ad);ocHist.push({role:'user',content:m.ctx?m.texto+'\n\n'+m.ctx:ad?m.texto+'\n\n[Adjuntos de este mensaje no disponibles: '+m.adj.map(function(x){return x.n}).join(', ')+']':m.texto})}
   else if(m.rol==='a'){ocLog('a',m.texto,m.modelo||'');ocHist.push({role:'assistant',content:m.texto})}
   else if(m.rol==='t'&&m.herramienta)ocTool(m.herramienta.nombre,m.herramienta.args,m.herramienta.resultado)});
- ocRest=false;ocMsgs=c.mensajes.slice();ocRenderChats();ocBajar()}
+ ocRest=false;ocMsgs=c.mensajes.slice();ocShareUi();ocRenderChats();ocBajar()}
 function ocRenombrar(id,v){ocChats.forEach(function(x){if(x.id===id)x.titulo=tituloChat(v)});ocRen='';ocPersistChats()}
 function ocBorrar(id){var c=null;ocChats.forEach(function(x){if(x.id===id)c=x});if(!c||!confirm('¿Borrar el chat «'+c.titulo+'»?'))return;
  ocChats=ocChats.filter(function(x){return x.id!==id});if(ocChatId===id)ocLimpiar();ocPersistChats()}
@@ -463,8 +540,52 @@ function ocRenderChats(){var r=$('oc-chats');r.textContent='';if(!ocChats.length
   var b=document.createElement('button');b.type='button';b.className='ch-t';b.textContent=c.titulo;b.title=c.titulo;b.addEventListener('click',function(){ocAbrir(c.id)});
   var rn=document.createElement('button');rn.type='button';rn.className='ch-b';rn.textContent='✎';rn.setAttribute('aria-label','Renombrar chat «'+c.titulo+'»');rn.addEventListener('click',function(){ocRen=c.id;ocRenderChats()});
   var dl=document.createElement('button');dl.type='button';dl.className='ch-b';dl.textContent='×';dl.setAttribute('aria-label','Borrar chat «'+c.titulo+'»');dl.addEventListener('click',function(){ocBorrar(c.id)});
-  li.appendChild(b);li.appendChild(rn);li.appendChild(dl);ul.appendChild(li)});
+  var sh=document.createElement('button');sh.type='button';sh.className='ch-b';sh.textContent='↗';sh.title='Compartir';sh.setAttribute('aria-label','Compartir chat «'+c.titulo+'»');sh.addEventListener('click',function(){ocCompartir({id:c.id,titulo:c.titulo,mensajes:c.mensajes,imgs:c.id===ocChatId?ocImgsDe():null})});
+  li.appendChild(b);li.appendChild(sh);li.appendChild(rn);li.appendChild(dl);ul.appendChild(li)});
  var t=document.createElement('button');t.type='button';t.className='ch-todos';t.textContent='Borrar todos los chats';t.addEventListener('click',ocBorrarTodos);r.appendChild(t)}
+var ocShChat=null;
+function ocShareUi(){var h=false;ocMsgs.forEach(function(m){if(m.rol==='a')h=true});$('oc-top').hidden=!h}
+function ocImgsDe(){var r=[];Array.prototype.forEach.call(document.querySelectorAll('#oc-log .msg.u'),function(d){var a=[];Array.prototype.forEach.call(d.querySelectorAll('.ims img'),function(i){if(/^data:image\//.test(i.src))a.push(i.src)});r.push(a)});return r}
+function ocLinks(){var l=ocRead(localStorage,'oc_compartidos');return Array.isArray(l)?l:[]}
+function ocLinksGuardar(l){ocWrite(localStorage,'oc_compartidos',l.length?l:null)}
+function ocCopiar(txt,b){var o=b.textContent,ok=function(){b.textContent='Copiado';setTimeout(function(){b.textContent=o},1400)};
+ function plan(){var t=document.createElement('textarea');t.value=txt;t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();try{document.execCommand('copy');ok()}catch(e){}t.remove()}
+ if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(ok,plan);else plan()}
+async function ocReducirUrl(u){var im=await ocCargarImg(u),lados=[800,560,400],cal=[0.7,0.6,0.5],r=u;
+ for(var k=0;k<3;k++){var e=escalarImagen(im.naturalWidth||im.width,im.naturalHeight||im.height,lados[k]),cv=document.createElement('canvas');cv.width=e.w;cv.height=e.h;
+  var cx=cv.getContext('2d');cx.fillStyle='#fff';cx.fillRect(0,0,e.w,e.h);cx.drawImage(im,0,0,e.w,e.h);r=cv.toDataURL('image/jpeg',cal[k]);if(r.length<=300*1024-1024)return r}
+ return r}
+function ocCompartir(c){ocShChat=c;var hay=false;(c.imgs||[]).forEach(function(a){if(a.length)hay=true});
+ $('oc-sh-imgl').hidden=!hay;$('oc-sh-img').checked=false;$('oc-sh-est').textContent='';$('oc-sh-crear').disabled=false;ocShLista();
+ var d=$('oc-sh');if(d.showModal)d.showModal();else d.setAttribute('open','')}
+function ocShCerrar(){var d=$('oc-sh');if(d.close)d.close();else d.removeAttribute('open')}
+function ocShLista(){var u=$('oc-sh-lista'),c=ocShChat,id=(c&&c.id)||'',ls=ocLinks().filter(function(x){return (x.chat||'')===id}).reverse();
+ $('oc-sh-lt').hidden=!ls.length;u.textContent='';
+ ls.forEach(function(x){var li=document.createElement('li'),inp=document.createElement('input');
+  inp.readOnly=true;inp.value=x.url;inp.setAttribute('aria-label','Enlace público del chat');inp.addEventListener('focus',function(){inp.select()});li.appendChild(inp);
+  function bt(t,fn,cl){var b=document.createElement('button');b.type='button';b.className='b'+(cl?' '+cl:'');b.textContent=t;b.addEventListener('click',function(){fn(b)});li.appendChild(b)}
+  bt('Copiar',function(b){ocCopiar(x.url,b)});
+  if(navigator.share)bt('Compartir…',function(){navigator.share({title:x.titulo||'Chat de ObraClara',url:x.url}).catch(function(){})});
+  bt('Eliminar enlace',function(b){ocShBorrar(x,b)});u.appendChild(li)})}
+async function ocShCrear(){var c=ocShChat,st=$('oc-sh-est'),b=$('oc-sh-crear');if(!c)return;b.disabled=true;st.textContent='Creando el enlace…';
+ try{var inc=$('oc-sh-img').checked&&!$('oc-sh-imgl').hidden,imgs=null;
+  if(inc){imgs=[];var tot=0;for(var i=0;i<c.imgs.length;i++){var a=[];for(var j=0;j<c.imgs[i].length;j++){if(tot<3){a.push(await ocReducirUrl(c.imgs[i][j]));tot++}}imgs.push(a)}}
+  var ms=prepararCompartir(c.mensajes,imgs,inc),mcp=c.mensajes.some(function(m){return m.mcp===true}),r;
+  try{r=await fetch('/api/compartir',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({titulo:c.titulo.split('[imagen adjunta]').join('').trim()||'Conversación',mensajes:ms,mcp:mcp})})}catch(e){throw new Error('No se pudo conectar con el servidor.')}
+  var d=null;try{d=await r.json()}catch(e){}
+  if(r.status===429)throw new Error('Demasiados enlaces seguidos. Espera un minuto.');
+  if(!r.ok)throw new Error(d&&typeof d.error==='string'?d.error.slice(0,200):'El servidor respondió con error '+r.status+'.');
+  if(!d||typeof d.id!=='string'||typeof d.token!=='string'||typeof d.url!=='string')throw new Error('Respuesta del servidor no válida.');
+  var l=ocLinks();l.push({id:d.id,url:d.url,token:d.token,titulo:c.titulo,chat:c.id||'',creado:Date.now()});ocLinksGuardar(l.slice(-50));
+  st.textContent='Enlace creado. Cópialo o compártelo.';ocShLista();var f=document.querySelector('#oc-sh-lista input');if(f)f.focus()}
+ catch(e){st.textContent=e&&e.message?e.message:'No se pudo crear el enlace.'}
+ b.disabled=false}
+async function ocShBorrar(x,b){if(!confirm('¿Eliminar este enlace? Dejará de funcionar para todas las personas que lo tengan.'))return;
+ var st=$('oc-sh-est');b.disabled=true;st.textContent='Eliminando…';
+ try{var r=await fetch('/api/compartir/'+encodeURIComponent(x.id),{method:'DELETE',headers:{'x-token':x.token}});
+  if(r.ok||r.status===404){ocLinksGuardar(ocLinks().filter(function(y){return y.id!==x.id}));st.textContent='Enlace eliminado.';ocShLista();return}
+  var d=null;try{d=await r.json()}catch(e){}throw new Error(d&&typeof d.error==='string'?d.error:'No se pudo eliminar el enlace.')}
+ catch(e){st.textContent=e&&e.message?e.message:'No se pudo eliminar el enlace.';b.disabled=false}}
 function ocAlto(){var t=$('oc-in');t.style.height='auto';t.style.height=Math.min(t.scrollHeight,200)+'px'}
 function ocThumbs(){var g=$('oc-thumbs');g.textContent='';g.hidden=!(ocImgs.length||ocDocs.length);
  ocImgs.forEach(function(u,i){var w=document.createElement('div'),im=document.createElement('img'),b=document.createElement('button');
@@ -479,18 +600,6 @@ async function ocReducir(f){var L=limitesImagen(),src=await ocLeer(f),im=await o
  if(f.type==='image/png'){var pu=cv.toDataURL('image/png');if(pu.length<400000)return pu}
  cx.globalCompositeOperation='destination-over';cx.fillStyle='#fff';cx.fillRect(0,0,e.w,e.h);
  return cv.toDataURL('image/jpeg',L.calidad)}
-function ocTam(c){return c>=1000?(Math.round(c/100)/10)+' k car.':c+' car.'}
-function ocChip(m,leyendo,quitar){var w=document.createElement('div');w.className='th dchip';
- var ic=document.createElement('span');ic.className='dic';ic.textContent={zip:'ZIP',pdf:'PDF',docx:'DOC',texto:'TXT',imagen:'IMG'}[m.t]||'DOC';
- var nb=document.createElement('span');nb.className='dnm';nb.textContent=m.n;nb.title=m.n;
- var sz=document.createElement('span');sz.className='dsz';sz.textContent=leyendo?'Leyendo…':(m.b?(m.b<1024?m.b+' B':Math.round(m.b/1024)+' KB'):(m.c?ocTam(m.c):''));
- w.appendChild(ic);w.appendChild(nb);w.appendChild(sz);
- if(quitar){var b=document.createElement('button');b.type='button';b.textContent='×';b.setAttribute('aria-label','Quitar '+m.n);b.addEventListener('click',quitar);w.appendChild(b)}
- return w}
-var OC_PDF_URL='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',OC_PDF_WK='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',OC_JSPDF='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',ocLibs={};
-function ocScript(url){if(ocLibs[url])return ocLibs[url];
- ocLibs[url]=new Promise(function(ok,no){var s=document.createElement('script');s.src=url;s.async=true;s.onload=function(){ok()};s.onerror=function(){delete ocLibs[url];no(new Error('No se pudo cargar una biblioteca externa (revisa tu conexión).'))};document.head.appendChild(s)});
- return ocLibs[url]}
 async function ocLeerPdf(f){await ocScript(OC_PDF_URL);var lib=window.pdfjsLib;if(!lib)throw new Error('no se pudo cargar el lector de PDF.');
  lib.GlobalWorkerOptions.workerSrc=OC_PDF_WK;
  var doc=await lib.getDocument({data:new Uint8Array(await f.arrayBuffer())}).promise,L=limitesAdjuntos(),pags=[],tot=0;
@@ -561,27 +670,6 @@ function ocAgBotones(row,fs){var lista=[];
  if(lista.length>=2){var z=document.createElement('button');z.type='button';z.textContent='Todo (.zip)';z.title='Descargar los '+lista.length+' archivos en un .zip';
   z.addEventListener('click',function(){ocDescargar('archivos-agente.zip',crearZip(lista),'application/zip')});row.appendChild(z)}}
 async function ocAgEstado(){try{var r=await fetch('/api/ia-estado');var j=await r.json();ocAgOk=!!(j&&j.agente)}catch(e){ocAgOk=false}ocAgUi()}
-var OC_MIME={docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',pdf:'application/pdf',zip:'application/zip'};
-function ocDescargar(nombre,datos,tipo){var u=URL.createObjectURL(new Blob([datos],{type:tipo||'application/octet-stream'})),a=document.createElement('a');
- a.href=u;a.download=nombre;a.rel='noopener';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},4000)}
-async function ocPdfBytes(md){await ocScript(OC_JSPDF);var J=window.jspdf&&window.jspdf.jsPDF;if(!J)throw new Error('No se pudo cargar el generador de PDF.');
- var doc=new J({unit:'pt',format:'a4'}),W=595.28,H=841.89,M=56,y=M;
- mdALineasPdf(md).forEach(function(b){doc.setFont(b.mono?'courier':'helvetica',b.neg?'bold':'normal');doc.setFontSize(b.tam);
-  var lh=b.tam*1.35;doc.splitTextToSize(b.t,W-2*M-b.sangria).forEach(function(l){if(y+lh>H-M){doc.addPage();y=M}doc.text(l,M+b.sangria,y+b.tam*0.9);y+=lh});y+=b.despues});
- return new Uint8Array(doc.output('arraybuffer'))}
-async function ocBytesArchivo(ruta,contenido){var e=extensionArchivo(ruta);
- if(e==='docx')return crearDocx(contenido);if(e==='pdf')return await ocPdfBytes(contenido);return new TextEncoder().encode(contenido)}
-async function ocBajarArchivo(ruta,contenido){ocDescargar(ruta.split('/').pop(),await ocBytesArchivo(ruta,contenido),OC_MIME[extensionArchivo(ruta)]||'text/plain;charset=utf-8')}
-async function ocBajarZip(fs){var l=[];for(var i=0;i<fs.length;i++)l.push({ruta:fs[i].ruta,datos:await ocBytesArchivo(fs[i].ruta,fs[i].contenido)});ocDescargar('archivos-obraclara.zip',crearZip(l),'application/zip')}
-function ocAcciones(t,txt){var s=String(txt||'').trim();if(!s||s==='(sin respuesta)')return;
- var fs=extraerArchivos(s),row=document.createElement('div');row.className='acc';row.setAttribute('role','group');row.setAttribute('aria-label','Descargar');
- function bt(et,tit,fn){var b=document.createElement('button'),ant=et;b.type='button';b.textContent=et;b.title=tit;
-  b.addEventListener('click',async function(){b.disabled=true;b.textContent='…';try{await fn()}catch(e){ocLog('n','No se pudo generar la descarga: '+(e&&e.message?e.message:'error desconocido')+'.')}b.disabled=false;b.textContent=ant});row.appendChild(b)}
- bt('Word','Descargar la respuesta como documento Word (.docx)',function(){return ocBajarArchivo('respuesta-obraclara.docx',s)});
- bt('PDF','Descargar la respuesta como PDF',function(){return ocBajarArchivo('respuesta-obraclara.pdf',s)});
- fs.forEach(function(f){bt(f.ruta.split('/').pop(),'Descargar '+f.ruta,function(){return ocBajarArchivo(f.ruta,f.contenido)})});
- if(fs.length>=2)bt('Todo (.zip)','Descargar los '+fs.length+' archivos en un .zip',function(){return ocBajarZip(fs)});
- t.appendChild(row)}
 $('oc-adj').addEventListener('click',function(){$('oc-file').click()});
 $('oc-file').addEventListener('change',function(){var fs=Array.prototype.slice.call($('oc-file').files||[]);$('oc-file').value='';ocAdjuntar(fs)});
 $('oc-in').addEventListener('paste',function(e){var cd=e.clipboardData,fs=[];if(cd&&cd.files)for(var i=0;i<cd.files.length;i++)if(cd.files[i].type&&cd.files[i].type.indexOf('image/')===0)fs.push(cd.files[i]);if(fs.length){e.preventDefault();ocAdjuntar(fs)}});
@@ -605,7 +693,14 @@ $('oc-in').addEventListener('input',ocAlto);
 $('oc-chips').addEventListener('click',function(e){var t=e.target&&e.target.closest?e.target.closest('button'):null;if(t)ocSend(t.textContent)});
 $('oc-nueva').addEventListener('click',function(){if(ocBusy)return;ocLimpiar();ocRenderChats();$('oc-in').focus()});
 var ocPf=ocRead(localStorage,'oc_prefs');if(ocPf&&typeof ocPf==='object'){ocMcp=ocPf.mcp!==false;ocAg=ocPf.ag===true}
-ocLoad();ocUi();ocSwitchText();ocAgEstado();ocCargarChats().catch(function(){});
+$('oc-share').addEventListener('click',function(){var pu='';ocMsgs.forEach(function(m){if(!pu&&m.rol==='u')pu=m.texto});ocCompartir({id:ocChatId,titulo:tituloChat(pu),mensajes:ocMsgs.slice(),imgs:ocImgsDe()})});
+$('oc-sh-x').addEventListener('click',ocShCerrar);
+$('oc-sh').addEventListener('click',function(e){if(e.target===$('oc-sh'))ocShCerrar()});
+$('oc-sh-crear').addEventListener('click',ocShCrear);
+ocLoad();ocUi();ocSwitchText();ocAgEstado();
+ocCargarChats().then(function(){var m=/[?&]abrir=([A-Za-z0-9_-]+)/.exec(location.search);if(m){ocAbrir(m[1]);try{history.replaceState(null,'','/asistente')}catch(e){}}}).catch(function(){});
 `;
 
-export const demoScript = nombres + "\n" + app;
+/** Funciones puras + renderizador seguro compartidos por /asistente y /c/:id. */
+export const demoComun = nombres + "\n" + appComun;
+export const demoScript = demoComun + "\n" + app;

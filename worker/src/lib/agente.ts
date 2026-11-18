@@ -853,3 +853,37 @@ export function mdALineasPdf(md: string): LineaPdf[] {
   });
   return out;
 }
+
+/**
+ * Arma los mensajes para compartir un chat (lo que se envía a /api/compartir): solo roles u/a/t, textos de hasta
+ * 20 000 caracteres, adjuntos como chips (nombre, tipo, tamaño; nunca su texto) y, si se pide, hasta 3 imágenes.
+ * `imgs[i]` son las imágenes del i-ésimo mensaje del usuario (o null si no se conservan).
+ */
+export function prepararCompartir(ms: any[], imgs: string[][] | null, incluirImg: boolean): any[] {
+  const out: any[] = [];
+  let ui = -1, usadas = 0;
+  for (let i = 0; i < ms.length; i++) {
+    const m = ms[i];
+    if (!m || typeof m !== "object") continue;
+    if (m.rol === "t") { const n = m.herramienta && m.herramienta.nombre; if (n) out.push({ rol: "t", texto: String(n).slice(0, 80) }); continue; }
+    if (m.rol !== "u" && m.rol !== "a") continue;
+    const marcas = String(typeof m.texto === "string" ? m.texto : "").split("[imagen adjunta]").length - 1;
+    const o: any = { rol: m.rol, texto: sinImagenes(m.texto).split("[imagen adjunta]").join("").trim().slice(0, 20000) };
+    if (m.rol === "a" && typeof m.modelo === "string" && m.modelo) o.modelo = m.modelo.slice(0, 120);
+    if (m.rol === "u") {
+      ui++;
+      const adj: any[] = [];
+      (Array.isArray(m.adj) ? m.adj : []).slice(0, 10).forEach((x: any) => { adj.push({ nombre: String((x && x.n) || "archivo").slice(0, 100), tipo: String((x && x.t) || "texto"), tamano: Number(x && x.c) || 0 }); });
+      let tomadas = 0;
+      if (incluirImg && imgs && imgs[ui]) {
+        const im: string[] = [];
+        imgs[ui].forEach((u) => { if (usadas < 3 && u.length <= 300 * 1024) { im.push(u); usadas++; tomadas++; } });
+        if (im.length) o.imagenes = im;
+      }
+      for (let k = tomadas; k < marcas && adj.length < 10; k++) adj.push({ nombre: "Imagen adjunta", tipo: "imagen", tamano: 0 });
+      if (adj.length) o.adjuntos = adj;
+    }
+    out.push(o);
+  }
+  return out.slice(-60);
+}

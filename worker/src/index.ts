@@ -5,6 +5,8 @@ import { alertas, buscar, meta, type Db, type Filtros } from "./lib/queries";
 import { CF_TEXTO, CF_VISION, ETIQUETA_RESPALDO, ErrorProveedor, GROQ_TEXTO, GROQ_VISION, Pausas, cadena, groq, tieneImagenes, validarMensajes, workersAI, type Msg, type Proveedor } from "./lib/cadena";
 import { AGENTE_MAX_CUERPO, validarAgente } from "./lib/agenteapi";
 import { RespaldoDb } from "./lib/remotedb";
+import { COMP_MAX_CUERPO, borrarCompartido, guardarCompartido, leerCompartido, validarCompartir, type DbComp } from "./lib/compartir";
+import { CABECERAS_COMPARTIDO, compartidoNoEncontrado, paginaCompartida } from "./compartido";
 export { ColaIA } from "./cola";
 
 interface Env {
@@ -73,6 +75,43 @@ export default {
       if (!v.ok) return json({ error: v.error }, 400);
       const r = await cola.fetch("https://cola/agente", { method: "POST", body: JSON.stringify(v.valor) });
       return new Response(r.body, { status: r.status, headers: { "content-type": "application/json; charset=utf-8", "access-control-allow-origin": "*" } });
+    }
+    if (url.pathname === "/api/compartir" && req.method === "POST") {
+      const origen = req.headers.get("origin");
+      if (origen && origen !== SITIO && origen !== url.origin) return json({ error: "Origen no permitido" }, 403);
+      if (!(await env.CHAT_LIMITER.limit({ key: "compartir:" + clave })).success) return json({ error: "Demasiados enlaces seguidos. Espera un minuto." }, 429);
+      if (Number(req.headers.get("content-length") ?? 0) > COMP_MAX_CUERPO) return json({ error: "El chat es demasiado grande para compartirlo." }, 413);
+      let cuerpo: unknown;
+      try { const t = await req.text(); if (t.length > COMP_MAX_CUERPO) return json({ error: "El chat es demasiado grande para compartirlo." }, 413); cuerpo = JSON.parse(t); } catch { return json({ error: "JSON inválido" }, 400); }
+      const v = validarCompartir(cuerpo);
+      if (!v.ok) return json({ error: v.error }, 400);
+      try {
+        const { id, token } = await guardarCompartido(env.DB as unknown as DbComp, v.valor);
+        return json({ id, url: `${url.origin}/c/${id}`, token });
+      } catch { return json({ error: "No se pudo crear el enlace. Inténtalo de nuevo." }, 500); }
+    }
+    const mc = /^\/api\/compartir\/([^/]+)$/.exec(url.pathname);
+    if (mc) {
+      const id = mc[1];
+      if (req.method === "GET") {
+        const c = await leerCompartido(env.DB as unknown as DbComp, id);
+        return c ? json({ id: c.id, creado: c.creado, titulo: c.titulo, mcp: c.mcp, mensajes: c.mensajes }) : json({ error: "No existe o fue eliminado." }, 404);
+      }
+      if (req.method === "DELETE") {
+        const origen = req.headers.get("origin");
+        if (origen && origen !== SITIO && origen !== url.origin) return json({ error: "Origen no permitido" }, 403);
+        if (!(await env.CHAT_LIMITER.limit({ key: "compartir:" + clave })).success) return json({ error: "Demasiadas solicitudes. Espera un minuto." }, 429);
+        const r = await borrarCompartido(env.DB as unknown as DbComp, id, req.headers.get("x-token") ?? "");
+        return r === "ok" ? json({ ok: true }) : r === "token" ? json({ error: "Token incorrecto." }, 403) : json({ error: "No existe o ya fue eliminado." }, 404);
+      }
+    }
+    const pc = /^\/c\/([^/]+)\/?$/.exec(url.pathname);
+    if (pc && (req.method === "GET" || req.method === "HEAD")) {
+      if (!(await env.LIMITER.limit({ key: clave })).success) return new Response("Demasiadas solicitudes, intenta en un minuto.", { status: 429, headers: { "content-type": "text/plain; charset=utf-8" } });
+      const c = await leerCompartido(env.DB as unknown as DbComp, pc[1]);
+      const m = await meta(db);
+      return c ? new Response(paginaCompartida(c, m, url.origin), { headers: CABECERAS_COMPARTIDO })
+        : new Response(compartidoNoEncontrado(m), { status: 404, headers: { ...CABECERAS_COMPARTIDO, "cache-control": "no-store" } });
     }
     // Conector de la máquina del grupo: se conecta por WebSocket (llamada saliente) con la contraseña como subprotocolo.
     if (url.pathname === "/conector/ws") {
