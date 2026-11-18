@@ -24,8 +24,10 @@ body.es-app main{flex:1;min-height:0}
 .nueva:hover{border-color:var(--ink)}
 .nueva svg,.cfg-b svg{width:16px;height:16px;flex:none}
 
-.b-chats{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;min-height:0;min-width:0;max-width:100%}
-#oc-chats{min-width:0;max-width:100%;overflow:hidden}
+.lado>*{flex:none}
+.lado>.b-chats{flex:1 1 auto;min-height:140px}
+.b-chats{display:flex;flex-direction:column;gap:6px;min-width:0;max-width:100%}
+#oc-chats{flex:1 1 auto;min-height:0;min-width:0;max-width:100%;overflow-x:hidden;overflow-y:auto}
 .b-chats h4{font:500 11px/1 var(--mono);color:var(--mut);margin:10px 0 2px;letter-spacing:.04em;text-transform:uppercase}
 .b-chats ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:minmax(0,1fr);gap:2px;min-width:0}
 .b-chats li{display:flex;align-items:center;gap:2px;min-width:0;border-radius:8px;border:1px solid transparent}
@@ -40,12 +42,19 @@ body.es-app main{flex:1;min-height:0}
 .b-chats button:focus-visible,.b-chats input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .sw{display:flex;align-items:center;gap:14px;width:100%;padding:14px 14px 14px 16px;border-radius:12px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink);cursor:pointer;text-align:left;font:inherit;transition:border-color .2s,background .2s,box-shadow .2s}
 .sw .sw-t{flex:1;min-width:0;display:grid;gap:3px}
-.sw #oc-swt{font:700 15px/1.2 var(--mono);letter-spacing:.01em}
+.sw .sw-n{font:700 14px/1.2 var(--mono);letter-spacing:0;overflow-wrap:anywhere}
 .sw small{font-size:12.5px;color:var(--mut)}
 .sw .pista{width:52px;height:30px;border-radius:15px;background:var(--line-2);position:relative;flex:none;transition:background .2s}
 .sw .pista::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .2s cubic-bezier(.3,.7,.3,1)}
 .sw[aria-checked=true]{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 14%,transparent)}
-.sw[aria-checked=true] #oc-swt{color:var(--accent)}
+.sw[aria-checked=true] .sw-n{color:var(--accent)}
+.sw[aria-disabled=true]{opacity:.6;cursor:not-allowed;background:var(--bg-2);box-shadow:none;border-color:var(--line)}
+.sw[aria-disabled=true] .sw-n{color:var(--mut)}
+.sw[aria-disabled=true] .pista{background:var(--line-2)}
+.sw[aria-disabled=true] .pista::after{transform:none}
+.b-sw .sw+p.ayuda{margin-top:10px}
+.b-sw .sw+p.ayuda+.sw{margin-top:14px}
+.sw[hidden],.ayuda[hidden]{display:none}
 .sw[aria-checked=true] .pista{background:var(--accent)}
 .sw[aria-checked=true] .pista::after{transform:translateX(22px)}
 .cfg-b{display:flex;align-items:center;gap:8px;margin-top:8px;min-height:38px;padding:0 12px;border-radius:10px;border:1px solid transparent;background:transparent;color:var(--ink-2);font:500 14px/1 var(--sans);cursor:pointer;width:100%}
@@ -58,6 +67,7 @@ body.es-app main{flex:1;min-height:0}
 .vacio h1{font-size:var(--s3);max-width:18ch}
 .vacio p{color:var(--ink-2);margin-top:14px;max-width:56ch}
 .chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:28px}
+.chips[hidden]{display:none}
 .chips button{text-align:left;padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);font:inherit;font-size:14.5px;line-height:1.45;cursor:pointer;transition:border-color .15s,transform .15s}
 .chips button:hover{border-color:var(--ink-2);transform:translateY(-1px)}
 #oc-log{display:flex;flex-direction:column;gap:18px;padding:24px 0 32px}
@@ -167,9 +177,9 @@ body.es-app main{flex:1;min-height:0}
 @media (max-width:860px){
  .chat{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}
  .lado{border-right:0;border-bottom:1px solid var(--line);padding:10px 16px;gap:8px;display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;overflow:visible}
- .lado .b-sw{grid-column:1/-1}
+ .lado .b-sw{grid-column:1/-1;display:grid;gap:8px}.lado .b-sw .sw+p.ayuda+.sw{margin-top:0}
  .lado .lbl,.lado p.ayuda,.lado .pie-l,.lado .b-chats{display:none}
- .sw{padding:8px 10px 8px 14px}.sw small{display:none}.sw #oc-swt{font-size:14px}
+ .sw{padding:8px 10px 8px 14px}.sw small{display:none}.sw .sw-n{font-size:14px}
  .sw .pista{width:44px;height:26px}.sw .pista::after{width:20px;height:20px}.sw[aria-checked=true] .pista::after{transform:translateX(18px)}
  .lado .b-mod{display:contents}
  .cfg-b{margin:0;width:42px;height:42px;padding:0;justify-content:center;border-color:var(--line-2);background:var(--surface)}
@@ -194,9 +204,9 @@ export const demoHtml = String.raw`
 <div class="b-nueva"><button type="button" id="oc-nueva" class="nueva" aria-label="Nueva conversación">${icoMas}<span>Nueva conversación</span></button></div>
 <nav class="b-chats" aria-label="Chats guardados"><p class="ch-est" id="oc-chat-est" role="status" hidden></p><div id="oc-chats"></div></nav>
 <div class="b-sw"><span class="lbl" id="oc-swl">Herramientas</span>
-<button type="button" id="oc-sw" class="sw" role="switch" aria-checked="true" aria-describedby="oc-swd"><span class="sw-t"><span id="oc-swt">MCP: ACTIVADO</span><small>obraclara · 4 herramientas</small></span><span class="pista" aria-hidden="true"></span></button>
+<button type="button" id="oc-sw" class="sw" role="switch" aria-checked="true" aria-describedby="oc-swd"><span class="sw-t"><span class="sw-n" id="oc-swt">MCP: ACTIVADO</span><small id="oc-sws">obraclara · 4 herramientas</small></span><span class="pista" aria-hidden="true"></span></button>
 <p class="ayuda" id="oc-swd"></p>
-<button type="button" id="oc-ag" class="sw" role="switch" aria-checked="false" aria-describedby="oc-agd" hidden style="margin-top:10px"><span class="sw-t"><span id="oc-agt">AGENTE: DESACTIVADO</span><small>archivos y tareas</small></span><span class="pista" aria-hidden="true"></span></button>
+<button type="button" id="oc-ag" class="sw" role="switch" aria-checked="false" aria-describedby="oc-agd" hidden><span class="sw-t"><span class="sw-n" id="oc-agt">AGENTE: DESACTIVADO</span><small>archivos y tareas</small></span><span class="pista" aria-hidden="true"></span></button>
 <p class="ayuda" id="oc-agd" hidden>El agente del servidor puede leer tus archivos adjuntos y crear archivos para descargar. No tiene las herramientas MCP de datos de inversión pública.</p></div>
 <div class="b-mod"><p class="ayuda" id="oc-info" style="margin:0 0 8px"></p>
 <button type="button" id="oc-gear" class="cfg-b" aria-haspopup="dialog" aria-label="Configuración de IA">${icoEngranaje}<span>Configuración</span></button></div>
@@ -207,7 +217,7 @@ export const demoHtml = String.raw`
 <div class="scroll" id="oc-scroll"><div class="col">
 <div class="vacio" id="oc-vacio">
 <h1 id="oc-t">¿Qué quieres saber de la inversión pública?</h1>
-<p>Pregunta por una obra, una entidad o una región. Con el MCP activado, el modelo consulta los datos del MEF y te muestra qué herramienta usó.</p>
+<p id="oc-vp">Pregunta por una obra, una entidad o una región. Con el MCP activado, el modelo consulta los datos del MEF y te muestra qué herramienta usó.</p>
 <div class="chips" id="oc-chips">
 <button type="button">¿Qué obras de salud en Cusco llevan 6 meses sin gasto?</button>
 <button type="button">Resume las inversiones de la Municipalidad Provincial de Piura</button>
@@ -283,8 +293,8 @@ function ocMd(el,txt){var lst=null,p=null,tb=null,cod=null;String(txt).replace(/
  if(mm){var ord=/\d/.test(mm[1]);if(!lst||lst.ocOrd!==ord){lst=document.createElement(ord?'ol':'ul');lst.ocOrd=ord;el.appendChild(lst)}p=null;var li=document.createElement('li');ocInl(li,mm[2]);lst.appendChild(li);return}
  lst=null;if(!p){p=document.createElement('p');el.appendChild(p)}else p.appendChild(document.createElement('br'));ocInl(p,t)})}
 function ocRec(m){if(!ocRest)ocMsgs.push(m)}
-function ocLog(cls,txt,extra,adj){if(cls==='u')ocRec({rol:'u',texto:txt+(extra&&extra.length?'\n'+extra.map(function(){return '[imagen adjunta]'}).join(' '):''),mcp:ocMcp,adj:adj?adj.meta:undefined,ctx:adj?adj.ctx:undefined});
- if(cls==='a')ocRec({rol:'a',texto:txt,modelo:typeof extra==='string'?extra:'',mcp:ocMcp});
+function ocLog(cls,txt,extra,adj){if(cls==='u')ocRec({rol:'u',texto:txt+(extra&&extra.length?'\n'+extra.map(function(){return '[imagen adjunta]'}).join(' '):''),mcp:ocMcp&&!ocAgActivo(),adj:adj?adj.meta:undefined,ctx:adj?adj.ctx:undefined});
+ if(cls==='a')ocRec({rol:'a',texto:txt,modelo:typeof extra==='string'?extra:'',mcp:ocMcp&&!ocAgActivo()});
 var d=document.createElement('div');d.className='msg '+cls;$('oc-vacio').hidden=true;
  if(cls==='a'){var t=document.createElement('div');t.className='t';ocMd(t,txt);
   if(typeof extra==='string'&&extra){var m=document.createElement('p');m.className='mod';m.textContent='Respondió: '+extra;t.appendChild(m)}
@@ -307,9 +317,13 @@ function ocTool(name,args,res){ocRec({rol:'t',texto:'',herramienta:{nombre:name,
  d.appendChild(s);d.appendChild(b);$('oc-vacio').hidden=true;$('oc-log').appendChild(d);ocBajar()}
 function ocRead(st,k){try{return JSON.parse(st.getItem(k)||'null')}catch(e){return null}}
 function ocWrite(st,k,v){try{if(v===null)st.removeItem(k);else st.setItem(k,JSON.stringify(v))}catch(e){}}
-function ocSwitchText(){var sw=$('oc-sw');sw.setAttribute('aria-checked',String(ocMcp));$('oc-swt').textContent=ocMcp?'MCP: ACTIVADO':'MCP: DESACTIVADO';
- $('oc-swd').textContent=ocMcp?'Con MCP: el modelo puede consultar los datos oficiales del MEF mediante las herramientas de este servidor.':'Sin MCP: chat normal con el mismo modelo, sin acceso a los datos; puede equivocarse o inventar.';
- var ind=$('oc-ind');ind.className='ind'+(ocMcp?' on':'');ind.lastChild.textContent=ocMcp?'MCP activado':'MCP desactivado · sin datos'}
+function ocSwitchText(){var sw=$('oc-sw'),ag=ocAgActivo();sw.setAttribute('aria-checked',String(ocMcp&&!ag));sw.setAttribute('aria-disabled',String(ag));
+ $('oc-swt').textContent=ag?'MCP: NO APLICA':(ocMcp?'MCP: ACTIVADO':'MCP: DESACTIVADO');$('oc-sws').textContent=ag?'el agente no usa estas herramientas':'obraclara · 4 herramientas';
+ $('oc-swd').textContent=ag?'El modo agente no consulta los datos del MEF mediante MCP. Desactiva el agente para volver a usar el MCP.':(ocMcp?'Con MCP: el modelo puede consultar los datos oficiales del MEF mediante las herramientas de este servidor.':'Sin MCP: chat normal con el mismo modelo, sin acceso a los datos; puede equivocarse o inventar.');
+ var ind=$('oc-ind');ind.className='ind'+(ag||ocMcp?' on':'');ind.lastChild.textContent=ag?'Agente activado · sin MCP':(ocMcp?'MCP activado':'MCP desactivado · sin datos');
+ $('oc-in').placeholder=ag?'Dile al agente qué hacer (puedes adjuntar archivos)':'Escribe tu pregunta';$('oc-chips').hidden=ag;
+ $('oc-vp').textContent=ag?'Modo agente: el agente del servidor lee tus archivos adjuntos y puede crear archivos para descargar. No consulta los datos del MEF.':'Pregunta por una obra, una entidad o una región. Con el MCP activado, el modelo consulta los datos del MEF y te muestra qué herramienta usó.'}
+function ocPrefs(){ocWrite(localStorage,'oc_prefs',{mcp:ocMcp,ag:ocAg})}
 function ocConnById(id){for(var i=0;i<ocConns.length;i++)if(ocConns[i].id===id)return ocConns[i];return null}
 function ocPersist(){var s=[],l=[];ocConns.forEach(function(c){(c.recordar?l:s).push(c)});
  ocWrite(sessionStorage,'oc_conns',s.length?s:null);ocWrite(localStorage,'oc_conns',l.length?l:null);ocWrite(localStorage,'oc_activa',ocActiva)}
@@ -323,7 +337,7 @@ function ocLoad(){var a=ocRead(sessionStorage,'oc_conns')||[],b=ocRead(localStor
 function ocUi(){if(ocActiva!==ocHL&&!ocConnById(ocActiva))ocActiva=ocHL;
  $('oc-info').textContent=ocActiva===ocHL?'Por defecto la respuesta viene del servidor de ObraClara, que prueba primero la IA del grupo, luego Workers AI y luego Groq. En «Configuración» puedes usar tu propia IA con tu clave: nunca llega a nuestro servidor.':'Usando tu conexión «'+ocConnById(ocActiva).nombre+'»: las solicitudes van directo desde tu navegador al proveedor; la clave nunca llega a nuestro servidor.'}
 function ocAgActivo(){return ocAg&&ocAgOk&&ocActiva===ocHL}
-function ocAgUi(){var v=ocAgOk&&ocActiva===ocHL;$('oc-ag').hidden=!v;$('oc-agd').hidden=!v;$('oc-ag').setAttribute('aria-checked',String(ocAgActivo()));$('oc-agt').textContent=ocAgActivo()?'AGENTE: ACTIVADO':'AGENTE: DESACTIVADO'}
+function ocAgUi(){var v=ocAgOk&&ocActiva===ocHL;$('oc-ag').hidden=!v;$('oc-agd').hidden=!v;$('oc-ag').setAttribute('aria-checked',String(ocAgActivo()));$('oc-agt').textContent=ocAgActivo()?'AGENTE: ACTIVADO':'AGENTE: DESACTIVADO';ocSwitchText()}
 function ocElegir(id){ocActiva=id;ocPersist();ocUi();ocAgUi();ocRenderLista()}
 function ocRenderLista(){var u=$('oc-lista');u.textContent='';
  function fila(id,txt,extras){var li=document.createElement('li'),sp=document.createElement('span'),lb=document.createElement('label'),r=document.createElement('input');
@@ -426,6 +440,7 @@ async function ocCargarChats(){var t=await ocAlmLeer();ocChats=deserializarChats
 function ocLimpiar(){ocAgId='';ocHist=[];ocMsgs=[];ocChatId='';ocImgs=[];ocDocs=[];ocThumbs();$('oc-log').textContent='';$('oc-vacio').hidden=false}
 function ocAbrir(id){if(ocBusy)return;var c=null;ocChats.forEach(function(x){if(x.id===id)c=x});if(!c)return;
  ocLimpiar();ocChatId=c.id;ocAgId=c.agenteId||'';ocRest=true;
+ if(ocAgOk&&ocActiva===ocHL){ocAg=!!c.agenteId;ocPrefs();ocAgUi()}
  c.mensajes.forEach(function(m){
   if(m.rol==='u'){var ad=m.adj&&m.adj.length?{meta:m.adj,ctx:m.ctx||''}:null;ocLog('u',m.texto,null,ad);ocHist.push({role:'user',content:m.ctx?m.texto+'\n\n'+m.ctx:ad?m.texto+'\n\n[Adjuntos de este mensaje no disponibles: '+m.adj.map(function(x){return x.n}).join(', ')+']':m.texto})}
   else if(m.rol==='a'){ocLog('a',m.texto,m.modelo||'');ocHist.push({role:'assistant',content:m.texto})}
@@ -468,7 +483,7 @@ function ocTam(c){return c>=1000?(Math.round(c/100)/10)+' k car.':c+' car.'}
 function ocChip(m,leyendo,quitar){var w=document.createElement('div');w.className='th dchip';
  var ic=document.createElement('span');ic.className='dic';ic.textContent={zip:'ZIP',pdf:'PDF',docx:'DOC',texto:'TXT',imagen:'IMG'}[m.t]||'DOC';
  var nb=document.createElement('span');nb.className='dnm';nb.textContent=m.n;nb.title=m.n;
- var sz=document.createElement('span');sz.className='dsz';sz.textContent=leyendo?'Leyendo…':(m.b?Math.round(m.b/1024)+' KB':ocTam(m.c));
+ var sz=document.createElement('span');sz.className='dsz';sz.textContent=leyendo?'Leyendo…':(m.b?(m.b<1024?m.b+' B':Math.round(m.b/1024)+' KB'):(m.c?ocTam(m.c):''));
  w.appendChild(ic);w.appendChild(nb);w.appendChild(sz);
  if(quitar){var b=document.createElement('button');b.type='button';b.textContent='×';b.setAttribute('aria-label','Quitar '+m.n);b.addEventListener('click',quitar);w.appendChild(b)}
  return w}
@@ -575,7 +590,8 @@ function ocHayArchivos(e){var d=e.dataTransfer;return !!d&&Array.prototype.index
 ocZona.addEventListener('dragover',function(e){if(!ocHayArchivos(e))return;e.preventDefault();$('oc-form').firstElementChild.classList.add('arrastre')});
 ocZona.addEventListener('dragleave',function(e){if(!e.relatedTarget||!ocZona.contains(e.relatedTarget))$('oc-form').firstElementChild.classList.remove('arrastre')});
 ocZona.addEventListener('drop',function(e){if(!ocHayArchivos(e))return;e.preventDefault();$('oc-form').firstElementChild.classList.remove('arrastre');var d=e.dataTransfer;if(d&&d.files&&d.files.length)ocAdjuntar(Array.prototype.slice.call(d.files))});
-$('oc-ag').addEventListener('click',function(){if(ocBusy)return;ocAg=!ocAg;ocDocs=[];ocImgs=[];ocThumbs();ocAgUi()});
+$('oc-sw').addEventListener('click',function(){if(ocBusy||ocAgActivo())return;ocMcp=!ocMcp;ocPrefs();ocSwitchText()});
+$('oc-ag').addEventListener('click',function(){if(ocBusy)return;ocAg=!ocAg;ocDocs=[];ocImgs=[];ocThumbs();ocPrefs();ocAgUi()});
 $('oc-gear').addEventListener('click',ocOpen);
 $('oc-cfg-x').addEventListener('click',ocClose);
 $('oc-cfg').addEventListener('click',function(e){if(e.target===$('oc-cfg'))ocClose()});
@@ -588,6 +604,7 @@ $('oc-in').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKe
 $('oc-in').addEventListener('input',ocAlto);
 $('oc-chips').addEventListener('click',function(e){var t=e.target&&e.target.closest?e.target.closest('button'):null;if(t)ocSend(t.textContent)});
 $('oc-nueva').addEventListener('click',function(){if(ocBusy)return;ocLimpiar();ocRenderChats();$('oc-in').focus()});
+var ocPf=ocRead(localStorage,'oc_prefs');if(ocPf&&typeof ocPf==='object'){ocMcp=ocPf.mcp!==false;ocAg=ocPf.ag===true}
 ocLoad();ocUi();ocSwitchText();ocAgEstado();ocCargarChats().catch(function(){});
 `;
 
