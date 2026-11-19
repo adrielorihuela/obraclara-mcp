@@ -9,7 +9,7 @@ const AQUI = path.dirname(fileURLToPath(import.meta.url));
 const RES = path.join(AQUI, 'resultados');
 const SALIDA = path.join(AQUI, '..', 'worker', 'src', 'sitio', 'demo-datos.ts');
 // Un caso por herramienta, con contraste claro entre «IA sola» y «IA + MCP».
-const CASOS = [['B02', 'buscar_inversiones'], ['D04', 'detalle_inversion'], ['A07', 'alertas_inversion'], ['R03', 'resumen_inversiones']];
+const CASOS = [['B02', 'buscar_inversiones'], ['D05', 'detalle_inversion'], ['A07', 'alertas_inversion'], ['R03', 'resumen_inversiones']];
 const CAMPOS_LISTA = ['codigo_unico', 'nombre', 'entidad', 'nivel', 'costo_actualizado', 'monto_viable', 'sobrecosto_pct', 'meses_sin_devengado', 'avance_fisico'];
 
 function csv(texto) {

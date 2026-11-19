@@ -15,8 +15,8 @@ describe("datos de /demo (generados desde la evaluación)", () => {
       expect(c.sin.exacta).toBe(false);
       expect(c.sin.corta).not.toMatch(/<[A-Za-z]/);
     }
-    const detalle = CASOS_DEMO.find((c) => c.id === "D04")!;
-    expect(detalle.datos).toMatchObject({ codigo_unico: "2226075", monto_viable: 7033676, costo_actualizado: 47715860.89 });
+    const detalle = CASOS_DEMO.find((c) => c.id === "D05")!;
+    expect(detalle.datos).toMatchObject({ codigo_unico: "2110581" });
     const alertas = CASOS_DEMO.find((c) => c.id === "A07")!;
     expect(((alertas.datos as { inversiones: unknown[] }).inversiones).length).toBeLessThanOrEqual(8);
   });

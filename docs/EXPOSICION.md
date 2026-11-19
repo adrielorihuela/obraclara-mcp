@@ -46,7 +46,7 @@ Abrir https://obraclara.adrielorihuela.net/asistente. Hacer **la misma pregunta 
 La página `/demo` lleva los casos ya grabados (aparecen al instante) y no depende de que la IA conteste. Abrir antes https://obraclara.adrielorihuela.net/demo y probar el botón una vez.
 
 1. **Arriba (20 s).** Señalar los 4 pasos: pregunta, la IA elige una herramienta, el servidor consulta los datos oficiales del MEF, respuesta con fuente.
-2. **Caso 2, detalle de la obra 2226075 (50 s).** Leer la pregunta. Izquierda, «IA sola»: ✗ no exacta ni cita la fuente. Derecha, «IA + MCP»: ✓ exacta y con fuente; compararla con la respuesta oficial. Bajar al gráfico: la barra roja (costo hoy) es mucho más larga que la gris (lo aprobado). Decir «Qué significa»: es una señal para revisar, no una acusación.
+2. **Caso 2, detalle de la carretera San Marcos–Cajabamba–Sausacocha, código 2110581 (50 s).** Leer la pregunta («¿cuánto falta ejecutar?»). Izquierda, «IA sola»: ✗ da una cifra que no está en la fuente. Derecha, «IA + MCP»: ✓ el saldo exacto y con fuente; compararlo con la respuesta oficial. Bajar al gráfico y leer «Qué significa».
 3. **Caso 3, alertas de Tacna (40 s).** Mostrar el gráfico de obras con más meses sin gasto y pulsar **Probar en vivo**: el servidor MCP responde en 1 a 2 s y el gráfico se redibuja con los datos de hoy. Mostrar la línea `tools/call` que se ejecutó.
 4. **Cierre en `/evaluacion` (30 s).** Abrir «Ver la evaluación completa»: con la conexión la IA acertó 40 de 40 preguntas; sola, 3 de 40.
 
