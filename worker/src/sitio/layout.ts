@@ -5,6 +5,17 @@ export const MCP_URL = "https://obraclara.adrielorihuela.net/mcp";
 
 export type Meta = Record<string, string>;
 
+// La hoja de estilos común se sirve aparte (/sitio.css) con caché larga: así cada página pesa ~18 KB menos
+// y el navegador la reutiliza al pasar de una página a otra. El parámetro v cambia cuando cambia el CSS.
+function huella(t: string): string {
+  let h = 2166136261;
+  for (let i = 0; i < t.length; i++) h = Math.imul(h ^ t.charCodeAt(i), 16777619);
+  return (h >>> 0).toString(36);
+}
+export const CSS_RUTA = "/sitio.css";
+export const CSS_HOJA = css;
+const CSS_URL = `${CSS_RUTA}?v=${huella(css)}`;
+
 export const esc = (t: unknown) =>
   String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
@@ -36,8 +47,13 @@ const RUTAS: [string, string][] = [
   ["/acerca", "Acerca"],
 ];
 
-// Antes de pintar: tema guardado y clase js (evita parpadeo).
-const scriptHead = String.raw`(function(){var d=document.documentElement;d.classList.add('js');try{var t=localStorage.getItem('oc_tema');if(t==='dark'||t==='light')d.setAttribute('data-theme',t)}catch(e){}})();`;
+// En escritorio, estas páginas van dentro del menú «Proyecto ▾» para que la barra no se amontone.
+const GRUPO = ["/proyecto", "/evaluacion", "/demo", "/acerca"];
+const icoBaja = `<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5"/></svg>`;
+
+// Antes de pintar: tema guardado, clase js y pantalla de carga solo en la primera página de la sesión.
+const scriptHead = String.raw`(function(){var d=document.documentElement;d.classList.add('js');try{var t=localStorage.getItem('oc_tema');if(t==='dark'||t==='light')d.setAttribute('data-theme',t)}catch(e){}
+try{if(!sessionStorage.getItem('oc_ses')){sessionStorage.setItem('oc_ses','1');if(!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches))d.classList.add('con-carga')}}catch(e){}})();`;
 
 // Comportamiento común: barra al desplazarse, menú móvil, tema, apariciones, conteos y botones de copiar.
 const scriptSitio = String.raw`(function(){
@@ -48,14 +64,41 @@ var mb=d.querySelector('.menu-b'),pm=d.getElementById('menu-m');
 if(mb&&pm){mb.addEventListener('click',function(){var a=mb.getAttribute('aria-expanded')!=='true';mb.setAttribute('aria-expanded',String(a));pm.classList.toggle('abierto',a)});
  pm.addEventListener('click',function(e){if(e.target.tagName==='A'){mb.setAttribute('aria-expanded','false');pm.classList.remove('abierto')}});
  d.addEventListener('keydown',function(e){if(e.key==='Escape'&&pm.classList.contains('abierto')){mb.setAttribute('aria-expanded','false');pm.classList.remove('abierto');mb.focus()}})}
+var gb=d.querySelector('.grupo-b'),gp=gb&&gb.parentNode;
+if(gb){var gset=function(a){gb.setAttribute('aria-expanded',String(a));gp.classList.toggle('abierto',a)};
+ gb.addEventListener('click',function(){gset(gb.getAttribute('aria-expanded')!=='true')});
+ d.addEventListener('click',function(e){if(!gp.contains(e.target))gset(false)});
+ gp.addEventListener('keydown',function(e){if(e.key==='Escape'){gset(false);gb.focus()}})}
 var tb=d.querySelector('.tema');
 if(tb)tb.addEventListener('click',function(){var osc=de.getAttribute('data-theme')==='dark'||(!de.getAttribute('data-theme')&&matchMedia('(prefers-color-scheme: dark)').matches);var n=osc?'light':'dark';de.setAttribute('data-theme',n);try{localStorage.setItem('oc_tema',n)}catch(e){}});
 function contar(el){var fin=Number(el.getAttribute('data-count'));if(!isFinite(fin))return;var fmt=function(v){return Math.round(v).toLocaleString('es-PE').replace(/,/g,' ')};
  if(rm){el.textContent=fmt(fin);return}var t0=null,dur=1400;function p(t){if(!t0)t0=t;var k=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-k,4);el.textContent=fmt(fin*e);if(k<1)requestAnimationFrame(p)}requestAnimationFrame(p)}
-var els=d.querySelectorAll('.rv,[data-count],[data-play]');
-if('IntersectionObserver' in window){var io=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;var t=e.target;t.classList.add('in');if(t.hasAttribute('data-count'))contar(t);if(t.hasAttribute('data-play'))t.dispatchEvent(new CustomEvent('play'));io.unobserve(t)})},{rootMargin:'0px 0px -8% 0px',threshold:.12});
+// Cifras grandes sin data-count (p. ej. «150 641», «98 %», «20,2 s»): cuentan desde 0 conservando formato y sufijo.
+function contarTexto(el){var o=el.textContent,m=/^(\D{0,3}?)(\d{1,3}(?:[ \u00a0\u202f]\d{3})+|\d+)([.,]\d+)?([\s\S]*)$/.exec(o);if(!m||rm)return;
+ var dec=m[3]?m[3].length-1:0,fin=Number(m[2].replace(/\D/g,'')+(m[3]?'.'+m[3].slice(1):''));if(!(fin>=5))return;
+ var sep=/\d\D\d/.test(m[2])?m[2].replace(/\d/g,'').charAt(0):'',ds=m[3]?m[3].charAt(0):'';
+ var fmt=function(v){var x=v.toFixed(dec).split('.'),e=x[0];if(sep)e=e.replace(/\B(?=(\d{3})+(?!\d))/g,sep);return m[1]+e+(dec?ds+x[1]:'')+m[4]};
+ el.style.display='inline-block';el.style.minWidth=el.offsetWidth+'px';var t0=null,dur=1200;function p(t){if(!t0)t0=t;var k=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-k,4);el.textContent=k<1?fmt(fin*e):o;if(k<1)requestAnimationFrame(p);else{el.style.minWidth='';el.style.display=''}}requestAnimationFrame(p)}
+// Barras de los gráficos SVG: crecen desde su base al aparecer.
+function barras(r){var bs=r.querySelectorAll('svg.gx rect[class*="gx-b"],svg.gx rect.gx-sin,svg.gx rect.gx-con');if(!bs.length||rm)return;
+ bs.forEach(function(b,i){var v=Number(b.getAttribute('height'))>Number(b.getAttribute('width'))*1.2;b.style.transformBox='fill-box';b.style.transformOrigin=v?'50% 100%':'0 50%';b.style.transform=v?'scaleY(0)':'scaleX(0)';b.style.transition='transform .9s cubic-bezier(.2,.7,.2,1) '+Math.min(i*45,600)+'ms'});
+ r.ocBarras=bs}
+function crecer(r){if(r.ocBarras)requestAnimationFrame(function(){r.ocBarras.forEach(function(b){b.style.transform='none'})})}
+var vh=innerHeight;
+// Bloques comunes bajo el pliegue que aún no tienen animación de entrada.
+d.querySelectorAll('main .kpi,main .tbw,main details.det,main .code,main table.ref,main figure').forEach(function(el){if(el.closest('.rv')||el.getBoundingClientRect().top<vh)return;el.classList.add('rv')});
+d.querySelectorAll('.rv').forEach(function(f){if(f.getBoundingClientRect().top>vh*.9)barras(f)});
+d.querySelectorAll('main .kpi b').forEach(function(el){if(el.getBoundingClientRect().top>vh*.9)el.setAttribute('data-cuenta','')});
+var els=d.querySelectorAll('.rv,[data-count],[data-play],[data-cuenta]');
+if('IntersectionObserver' in window){var io=new IntersectionObserver(function(es){var n=0;es.forEach(function(e){if(!e.isIntersecting)return;var t=e.target;
+ if(t.classList.contains('rv')&&!/\bd[1-3]\b/.test(t.className)){t.style.transitionDelay=Math.min(n,5)*70+'ms';n++}
+ t.classList.add('in');crecer(t);if(t.hasAttribute('data-count'))contar(t);if(t.hasAttribute('data-cuenta'))contarTexto(t);if(t.hasAttribute('data-play'))t.dispatchEvent(new CustomEvent('play'));io.unobserve(t)})},{rootMargin:'0px 0px -8% 0px',threshold:.12});
  els.forEach(function(el){if(el.hasAttribute('data-count'))el.textContent='0';io.observe(el)})}
-else els.forEach(function(el){el.classList.add('in');if(el.hasAttribute('data-play'))el.dispatchEvent(new CustomEvent('play'))});
+else els.forEach(function(el){el.classList.add('in');crecer(el);if(el.hasAttribute('data-play'))el.dispatchEvent(new CustomEvent('play'))});
+// Pulsación al hacer clic (onda) en botones.
+if(!rm)d.addEventListener('pointerdown',function(e){var b=e.target.closest&&e.target.closest('.btn,.b-comp,.nueva,.chips button,.adj-b,.pl-d,.b-onda');if(!b||b.disabled)return;
+ var r=b.getBoundingClientRect(),s=Math.max(r.width,r.height)*2,o=d.createElement('span');o.className='onda';o.setAttribute('aria-hidden','true');o.style.width=o.style.height=s+'px';o.style.left=(e.clientX-r.left-s/2)+'px';o.style.top=(e.clientY-r.top-s/2)+'px';
+ b.appendChild(o);setTimeout(function(){o.remove()},650)});
 d.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-copy]');if(!b)return;var t=b.getAttribute('data-copy'),o=b.textContent;
  var ok=function(){b.textContent='Copiado';setTimeout(function(){b.textContent=o},1400)};
  if(navigator.clipboard)navigator.clipboard.writeText(t).then(ok,function(){});})
@@ -75,6 +118,12 @@ export interface Opciones {
 export function shell(o: Opciones): string {
   const actual = (h: string) => (h === o.ruta ? ' aria-current="page"' : "");
   const links = RUTAS.map(([h, t]) => `<a href="${h}"${actual(h)}>${t}</a>`).join("");
+  const grupo = RUTAS.filter(([h]) => GRUPO.includes(h)).map(([h, t]) => `<a href="${h}"${actual(h)}>${t}</a>`).join("");
+  const linksEsc = RUTAS.map(([h, t], i) =>
+    !GRUPO.includes(h) ? `<a href="${h}"${actual(h)}>${t}</a>`
+    : RUTAS.findIndex(([x]) => GRUPO.includes(x)) !== i ? ""
+    : `<div class="grupo"><button class="grupo-b" type="button" aria-expanded="false" aria-controls="menu-g"${GRUPO.includes(o.ruta) ? " data-act" : ""}>Proyecto${icoBaja}</button><div class="grupo-m" id="menu-g">${grupo}</div></div>`,
+  ).join("");
   const fecha = esc(o.m.fecha_descarga ?? "sin fecha");
   const pie = o.app ? "" : `<footer class="pie"><div class="wrap">
 <div class="grid">
@@ -100,11 +149,12 @@ export function shell(o: Opciones): string {
 <link rel="preload" href="/fonts/public-sans.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/source-serif-4-600.woff2" as="font" type="font/woff2" crossorigin>
 <script>${scriptHead}</script>
-<style>${css}${o.cssExtra ?? ""}</style></head><body${o.app ? ' class="es-app"' : ""}>
+<link rel="stylesheet" href="${CSS_URL}">${o.cssExtra ? `<style>${o.cssExtra}</style>` : ""}</head><body${o.app ? ' class="es-app"' : ""}>
+<div id="carga" aria-hidden="true">${logo}<i></i></div>
 <a class="skip" href="#contenido">Saltar al contenido</a>
 <header class="nav${o.app ? " app" : ""}"><div class="wrap">
 <a class="marca" href="/" aria-label="ObraClara Perú, inicio">${logo}<span>ObraClara <small>Perú</small></span></a>
-<nav class="links" aria-label="Principal">${links}</nav>
+<nav class="links" aria-label="Principal">${linksEsc}</nav>
 <div class="nav-r">
 <a class="ico gh" href="${REPO}" aria-label="Código en GitHub">${icoGh}</a>
 <button class="ico tema" type="button" aria-label="Cambiar entre tema claro y oscuro">${icoLuna}${icoSol}</button>

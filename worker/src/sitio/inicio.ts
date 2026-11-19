@@ -42,11 +42,12 @@ const css = String.raw`
 .cifras dl{margin:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
 .cifras div{padding:clamp(28px,4vw,48px) clamp(16px,2.4vw,32px)}
 .cifras div+div{border-left:1px solid var(--line)}
+.cifras div:first-child{padding-left:0}
 .cifras dt{font:600 clamp(2rem,1.3rem + 2.6vw,3.4rem)/1 var(--serif);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .cifras dd{margin:12px 0 0;color:var(--ink-2);font-size:var(--s-1);max-width:26ch}
 .cifras .w dt{color:var(--warn)}.cifras .r dt{color:var(--risk)}
 .cifras-p{padding:14px 0;font-size:var(--s-1);color:var(--mut)}
-@media (max-width:860px){.cifras dl{grid-template-columns:repeat(2,minmax(0,1fr))}.cifras div:nth-child(3){border-left:0}.cifras div:nth-child(n+3){border-top:1px solid var(--line)}}
+@media (max-width:860px){.cifras dl{grid-template-columns:repeat(2,minmax(0,1fr))}.cifras div:nth-child(3){border-left:0}.cifras div:nth-child(3){padding-left:0}.cifras div:nth-child(n+3){border-top:1px solid var(--line)}}
 
 .pasos{list-style:none;margin:0 0 clamp(48px,6vw,80px);padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;counter-reset:p}
 .pasos li{padding:24px 24px 0 0;border-top:1px solid var(--line-2);position:relative}

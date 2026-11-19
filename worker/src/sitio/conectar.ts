@@ -18,16 +18,12 @@ const css = String.raw`
 .doc p+p,.doc ol+p,.doc p+.code,.doc .code+p,.doc ol+.code,.doc .code+.code{margin-top:16px}
 .doc ol.pasos-n{margin:16px 0 0;padding-left:1.3em;display:grid;gap:8px}
 .doc ol.pasos-n b{color:var(--ink)}
-.ref{width:100%;border-collapse:collapse;font-size:15px;margin-top:20px}
-.ref th,.ref td{text-align:left;padding:10px 12px 10px 0;border-bottom:1px solid var(--line);vertical-align:top}
-.ref th{font:500 12px/1.3 var(--mono);color:var(--mut)}
-.ref td:first-child{font-family:var(--mono);font-size:14px;white-space:nowrap;color:var(--ink)}
-.ref td{color:var(--ink-2)}
+.ref.par td:first-child{font-family:var(--mono);font-size:14px;white-space:nowrap;color:var(--ink)}
 .tool-h{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px;margin:36px 0 6px}
 .tool-h:first-of-type{margin-top:12px}
 .tool-h h3{font:600 17px/1.3 var(--mono)}
 @media (max-width:900px){.doc{grid-template-columns:minmax(0,1fr)}.toc{display:none}}
-@media (max-width:560px){.ref td:first-child{white-space:normal;word-break:break-word}}
+@media (max-width:560px){.ref.par{font-size:14px}.ref.par td:first-child{font-size:12.5px}.ref.par th,.ref.par td{padding-right:10px}}
 `;
 
 const scriptToc = String.raw`(function(){var ls=document.querySelectorAll('.toc a');if(!ls.length||!('IntersectionObserver' in window))return;
@@ -48,7 +44,7 @@ const FILTROS: Param[] = [
 const LIMITE: Param = ["limite", "entero", "Cantidad máxima de resultados, de 1 a 20 (por defecto 20)."];
 
 function tabla(ps: Param[], req: string[] = []): string {
-  return `<table class="ref"><thead><tr><th>parámetro</th><th>tipo</th><th>descripción</th></tr></thead><tbody>${ps
+  return `<table class="ref par"><thead><tr><th>parámetro</th><th>tipo</th><th>descripción</th></tr></thead><tbody>${ps
     .map(([n, t, d]) => `<tr><td>${n}${req.includes(n) ? " *" : ""}</td><td>${t}</td><td>${d}</td></tr>`)
     .join("")}</tbody></table>`;
 }
@@ -131,7 +127,7 @@ ${tabla(FILTROS)}
 </section>
 
 <section id="limites"><h2>Límites</h2>
-<table class="ref"><tbody>
+<table class="ref par"><tbody>
 <tr><td>/mcp</td><td>60 solicitudes por minuto por dirección IP.</td></tr>
 <tr><td>panel web</td><td>20 preguntas por minuto a la IA del servidor. Con tu propia clave, el límite es el de tu proveedor.</td></tr>
 <tr><td>resultados</td><td>Hasta 20 inversiones por consulta; <code>total</code> indica cuántas coinciden.</td></tr>
@@ -159,6 +155,7 @@ const cssAcerca = String.raw`
 .filas-a>div{padding:28px 0;border-bottom:1px solid var(--line);color:var(--ink-2)}
 .filas-a>div p+p,.filas-a>div p+ul{margin-top:12px}
 .filas-a ul{margin:0;padding-left:1.2em;display:grid;gap:6px}
+.filas-a .tbw{overflow-x:auto;margin:20px 0 4px}.filas-a .ref{margin-top:0}.filas-a .tbw+p{margin-top:16px}
 @media (max-width:720px){.filas-a{grid-template-columns:minmax(0,1fr)}.filas-a>h2{border-bottom:0;padding-bottom:0}.filas-a>div{padding-top:10px}}
 `;
 
@@ -175,7 +172,7 @@ export function acerca(m: Meta): string {
 <h2>Por qué</h2><div><p>Los datos de inversión pública del Perú son abiertos, pero consultarlos exige descargar un CSV de cientos de megabytes y saber leer sus columnas. Un asistente de IA puede hacer esa consulta por ti, siempre que tenga acceso al dato oficial y no lo invente.</p></div>
 <h2>Qué es</h2><div><p>Un «servidor» (programa siempre encendido en internet) con cuatro «herramientas» (funciones de consulta) sobre el archivo de inversiones del MEF, conectado mediante MCP, un enchufe estándar para asistentes de IA. Incluye este sitio y un panel para probarlo con o sin la conexión.</p></div>
 <h2>Evaluación</h2><div><p>40 preguntas con respuesta verificada en el archivo del MEF (10 de búsqueda, 10 de detalle, 10 de alertas y 10 de resumen), hechas al mismo asistente de IA (un modelo de lenguaje, es decir, un programa que entiende y escribe texto) sin la conexión y con ella. En palabras: <b>de 40 preguntas, sin la conexión acertó 3 y con la conexión acertó las 40</b>; sin ella, 21 de las 40 respuestas traían cifras que no coinciden con el registro oficial. Puntuación automática; los casos dudosos se marcan para revisión manual.</p>
-<table class="ref"><thead><tr><th>Métrica</th><th>Sin MCP</th><th>Con MCP</th></tr></thead><tbody>
+<div class="tbw"><table class="ref num"><thead><tr><th>Métrica</th><th>Sin MCP</th><th>Con MCP</th></tr></thead><tbody>
 <tr><td>Respuesta correcta (a ±1 % del valor oficial)</td><td>8 % (3 de 40)</td><td>100 % (40 de 40)</td></tr>
 <tr><td>Dice la fuente y la fecha</td><td>10 % (4 de 40)</td><td>100 % (40 de 40)</td></tr>
 <tr><td>Correcta y sin cifras dudosas (exacta estricta)</td><td>5 % (2 de 40)</td><td>98 % (39 de 40)</td></tr>
@@ -184,7 +181,7 @@ export function acerca(m: Meta): string {
 <tr><td>Preguntas respondidas</td><td>40 / 40</td><td>40 / 40</td></tr>
 <tr><td>Tiempo medio por pregunta (sin reintentos)</td><td>11,1 s</td><td>20,2 s</td></tr>
 <tr><td>Tiempo mediano / p90 (con reintentos)</td><td>12,9 s / 17,9 s</td><td>21,0 s / 214,2 s</td></tr>
-</tbody></table>
+</tbody></table></div>
 <p><a href="/evaluacion"><b>Ver las 40 preguntas y todas las respuestas en la página de Benchmarks</b></a>.</p>
 <p><b>Qué significa:</b> la regla original da por correcta una respuesta si una de sus cifras coincide con la oficial; la «exacta estricta» además exige que ninguna otra cifra de la respuesta contradiga los datos (así, un caso de «40,279,184.89» frente al correcto «40,682,184.89» deja de contar). Es un puntuador automático con reglas simples: no entiende el contexto de cada cifra, y sin la conexión compara contra la referencia y la fila de la base, así que cifras reales de otras páginas cuentan como sin respaldo. Los tiempos máximos (más de 300 s) se deben a reintentos del proveedor de IA; por eso se muestran mediana y p90.</p>
 <p>Sin MCP, el modelo respondió de memoria o con búsquedas web, con cifras de otras fuentes o fechas. «Inventada» es una cota superior: incluye cifras reales de otras fuentes que no coinciden con el MEF. Detalle por pregunta y método en <a href="${REPO}/blob/main/eval/resultados/resumen.md">eval/resultados/resumen.md</a>.</p></div>

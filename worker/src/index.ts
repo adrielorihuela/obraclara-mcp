@@ -7,6 +7,7 @@ import { AGENTE_MAX_CUERPO, chatIdSeguro, validarAgente } from "./lib/agenteapi"
 import { RespaldoDb } from "./lib/remotedb";
 import { COMP_MAX_CUERPO, borrarCompartido, guardarCompartido, leerCompartido, validarCompartir, type DbComp } from "./lib/compartir";
 import { CABECERAS_COMPARTIDO, compartidoNoEncontrado, paginaCompartida } from "./compartido";
+import { CSS_HOJA, CSS_RUTA } from "./sitio/layout";
 export { ColaIA } from "./cola";
 
 interface Env {
@@ -137,6 +138,8 @@ export default {
       return cola.fetch(new Request("https://cola/ws", req));
     }
     if (url.pathname === "/api/ia-estado") return cola.fetch("https://cola/estado");
+    if (url.pathname === CSS_RUTA)
+      return new Response(CSS_HOJA, { headers: { "content-type": "text/css; charset=utf-8", "cache-control": url.search ? "public, max-age=31536000, immutable" : "public, max-age=300" } });
     if (url.pathname === "/salud") return json({ estado: "ok", ...(await meta(db)) });
     if (url.pathname === "/api/buscar" || url.pathname === "/api/alertas") {
       if (!(await env.LIMITER.limit({ key: clave })).success) return json({ error: "Demasiadas solicitudes, intenta en un minuto." }, 429);
