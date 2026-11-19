@@ -1,6 +1,248 @@
 // GENERADO por eval/exportar_sitio.mjs a partir de eval/resultados/. No editar a mano: vuelve a ejecutar `node eval/exportar_sitio.mjs`.
 export const EVAL = {
- "fecha": "2026-11-18",
+ "recallPreguntas": [
+  {
+   "id": "B01",
+   "condicion": "sin_mcp",
+   "esperados": 20,
+   "mencionados": 0,
+   "aciertos": 0,
+   "recall": 0
+  },
+  {
+   "id": "B03",
+   "condicion": "sin_mcp",
+   "esperados": 20,
+   "mencionados": 0,
+   "aciertos": 0,
+   "recall": 0
+  },
+  {
+   "id": "B04",
+   "condicion": "sin_mcp",
+   "esperados": 20,
+   "mencionados": 0,
+   "aciertos": 0,
+   "recall": 0
+  },
+  {
+   "id": "B05",
+   "condicion": "sin_mcp",
+   "esperados": 20,
+   "mencionados": 1,
+   "aciertos": 0,
+   "recall": 0
+  },
+  {
+   "id": "B07",
+   "condicion": "sin_mcp",
+   "esperados": 20,
+   "mencionados": 0,
+   "aciertos": 0,
+   "recall": 0
+  },
+  {
+   "id": "B08",
+   "condicion": "sin_mcp",
+   "esperados": 20,
+   "mencionados": 0,
+   "aciertos": 0,
+   "recall": 0
+  },
+  {
+   "id": "B10",
+   "condicion": "sin_mcp",
+   "esperados": 0,
+   "mencionados": 0,
+   "aciertos": 0,
+   "recall": null
+  },
+  {
+   "id": "A01",
+   "condicion": "sin_mcp",
+   "esperados": 20,
+   "mencionados": 0,
+   "aciertos": 0,
+   "recall": 0
+  },
+  {
+   "id": "A03",
+   "condicion": "sin_mcp",
+   "esperados": 20,
+   "mencionados": 0,
+   "aciertos": 0,
+   "recall": 0
+  },
+  {
+   "id": "A04",
+   "condicion": "sin_mcp",
+   "esperados": 20,
+   "mencionados": 0,
+   "aciertos": 0,
+   "recall": 0
+  },
+  {
+   "id": "A05",
+   "condicion": "sin_mcp",
+   "esperados": 9,
+   "mencionados": 0,
+   "aciertos": 0,
+   "recall": 0
+  },
+  {
+   "id": "A06",
+   "condicion": "sin_mcp",
+   "esperados": 20,
+   "mencionados": 0,
+   "aciertos": 0,
+   "recall": 0
+  },
+  {
+   "id": "A08",
+   "condicion": "sin_mcp",
+   "esperados": 20,
+   "mencionados": 0,
+   "aciertos": 0,
+   "recall": 0
+  },
+  {
+   "id": "A09",
+   "condicion": "sin_mcp",
+   "esperados": 7,
+   "mencionados": 3,
+   "aciertos": 1,
+   "recall": 14
+  },
+  {
+   "id": "A10",
+   "condicion": "sin_mcp",
+   "esperados": 0,
+   "mencionados": 0,
+   "aciertos": 0,
+   "recall": null
+  },
+  {
+   "id": "B01",
+   "condicion": "con_mcp",
+   "esperados": 20,
+   "mencionados": 0,
+   "aciertos": 0,
+   "recall": 0
+  },
+  {
+   "id": "B03",
+   "condicion": "con_mcp",
+   "esperados": 20,
+   "mencionados": 0,
+   "aciertos": 0,
+   "recall": 0
+  },
+  {
+   "id": "B04",
+   "condicion": "con_mcp",
+   "esperados": 20,
+   "mencionados": 0,
+   "aciertos": 0,
+   "recall": 0
+  },
+  {
+   "id": "B05",
+   "condicion": "con_mcp",
+   "esperados": 20,
+   "mencionados": 0,
+   "aciertos": 0,
+   "recall": 0
+  },
+  {
+   "id": "B07",
+   "condicion": "con_mcp",
+   "esperados": 20,
+   "mencionados": 0,
+   "aciertos": 0,
+   "recall": 0
+  },
+  {
+   "id": "B08",
+   "condicion": "con_mcp",
+   "esperados": 20,
+   "mencionados": 0,
+   "aciertos": 0,
+   "recall": 0
+  },
+  {
+   "id": "B10",
+   "condicion": "con_mcp",
+   "esperados": 0,
+   "mencionados": 0,
+   "aciertos": 0,
+   "recall": null
+  },
+  {
+   "id": "A01",
+   "condicion": "con_mcp",
+   "esperados": 20,
+   "mencionados": 0,
+   "aciertos": 0,
+   "recall": 0
+  },
+  {
+   "id": "A03",
+   "condicion": "con_mcp",
+   "esperados": 20,
+   "mencionados": 2,
+   "aciertos": 2,
+   "recall": 10
+  },
+  {
+   "id": "A04",
+   "condicion": "con_mcp",
+   "esperados": 20,
+   "mencionados": 0,
+   "aciertos": 0,
+   "recall": 0
+  },
+  {
+   "id": "A05",
+   "condicion": "con_mcp",
+   "esperados": 9,
+   "mencionados": 9,
+   "aciertos": 9,
+   "recall": 100
+  },
+  {
+   "id": "A06",
+   "condicion": "con_mcp",
+   "esperados": 20,
+   "mencionados": 4,
+   "aciertos": 4,
+   "recall": 20
+  },
+  {
+   "id": "A08",
+   "condicion": "con_mcp",
+   "esperados": 20,
+   "mencionados": 0,
+   "aciertos": 0,
+   "recall": 0
+  },
+  {
+   "id": "A09",
+   "condicion": "con_mcp",
+   "esperados": 7,
+   "mencionados": 0,
+   "aciertos": 0,
+   "recall": 0
+  },
+  {
+   "id": "A10",
+   "condicion": "con_mcp",
+   "esperados": 0,
+   "mencionados": 0,
+   "aciertos": 0,
+   "recall": null
+  }
+ ],
+ "fecha": "2026-11-19",
  "preguntas": 40,
  "global": [
   {
@@ -15,7 +257,11 @@ export const EVAL = {
    "reintentos": 2,
    "ejecutadas": "40/40",
    "estricta": 5,
-   "noSustentadas": 55
+   "noSustentadas": 55,
+   "recall": 1,
+   "precision": 17,
+   "f1": 2,
+   "conReferencia": 13
   },
   {
    "condicion": "con_mcp",
@@ -29,7 +275,11 @@ export const EVAL = {
    "reintentos": 16,
    "ejecutadas": "40/40",
    "estricta": 98,
-   "noSustentadas": 3
+   "noSustentadas": 3,
+   "recall": 10,
+   "precision": 100,
+   "f1": 12,
+   "conReferencia": 13
   }
  ],
  "porTipo": [
@@ -40,7 +290,10 @@ export const EVAL = {
    "citacion": 0,
    "inventada": 80,
    "estricta": 0,
-   "noSustentadas": 60
+   "noSustentadas": 60,
+   "recall": 0,
+   "precision": 0,
+   "f1": 0
   },
   {
    "tipo": "busqueda",
@@ -49,7 +302,10 @@ export const EVAL = {
    "citacion": 100,
    "inventada": 0,
    "estricta": 100,
-   "noSustentadas": 0
+   "noSustentadas": 0,
+   "recall": 0,
+   "precision": null,
+   "f1": 0
   },
   {
    "tipo": "detalle",
@@ -58,7 +314,10 @@ export const EVAL = {
    "citacion": 30,
    "inventada": 20,
    "estricta": 20,
-   "noSustentadas": 40
+   "noSustentadas": 40,
+   "recall": null,
+   "precision": null,
+   "f1": null
   },
   {
    "tipo": "detalle",
@@ -67,7 +326,10 @@ export const EVAL = {
    "citacion": 100,
    "inventada": 0,
    "estricta": 90,
-   "noSustentadas": 10
+   "noSustentadas": 10,
+   "recall": null,
+   "precision": null,
+   "f1": null
   },
   {
    "tipo": "alertas",
@@ -76,7 +338,10 @@ export const EVAL = {
    "citacion": 0,
    "inventada": 70,
    "estricta": 0,
-   "noSustentadas": 50
+   "noSustentadas": 50,
+   "recall": 2,
+   "precision": 33,
+   "f1": 3
   },
   {
    "tipo": "alertas",
@@ -85,7 +350,10 @@ export const EVAL = {
    "citacion": 100,
    "inventada": 0,
    "estricta": 100,
-   "noSustentadas": 0
+   "noSustentadas": 0,
+   "recall": 19,
+   "precision": 100,
+   "f1": 22
   },
   {
    "tipo": "resumen",
@@ -94,7 +362,10 @@ export const EVAL = {
    "citacion": 10,
    "inventada": 40,
    "estricta": 0,
-   "noSustentadas": 70
+   "noSustentadas": 70,
+   "recall": null,
+   "precision": null,
+   "f1": null
   },
   {
    "tipo": "resumen",
@@ -103,7 +374,10 @@ export const EVAL = {
    "citacion": 100,
    "inventada": 0,
    "estricta": 100,
-   "noSustentadas": 0
+   "noSustentadas": 0,
+   "recall": null,
+   "precision": null,
+   "f1": null
   }
  ],
  "latencia": [

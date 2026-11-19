@@ -57,6 +57,11 @@ async function ask(messages, errors) {
   try { return await timed(messages, errors); }
   catch (e) {
     errors.push('ask: ' + e.message);
+    // Límite de uso del proveedor (modelos con cupo por minuto): se espera a que se libere, sin cambiar de modelo ni de cuenta (hasta 4 esperas de 65 s).
+    for (let i = 0; i < 4 && /límite|limit|429/i.test(e.message); i++) {
+      await sleep(65000);
+      try { return await timed(messages, errors); } catch (e2) { e = e2; errors.push('ask: ' + e2.message); }
+    }
     await sleep(5000);
     return await timed(messages, errors); // un reintento; si falla, se propaga
   }

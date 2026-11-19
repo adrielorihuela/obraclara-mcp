@@ -266,6 +266,22 @@ node exportar_sitio.mjs   # añade el modelo a la tabla y al gráfico comparativ
 
 Si un proveedor alcanza su límite de uso, el ejecutor se detiene tras 3 fallos seguidos; es reanudable y la tabla muestra cuántas preguntas se respondieron («Respondidas»). Los resultados por modelo aparecen en la sección «El MCP mejora a todos los modelos» de `/evaluacion`.
 
+**Resultados por modelo** (40 preguntas, una corrida por modelo y condición; porcentajes de las 40 preguntas; recall y precisión sobre las 13 preguntas de conteo o lista; «–» = el modelo no nombró ninguna obra, la precisión no se puede calcular):
+
+| Modelo | Condición | Exacta | Estricta | Cita | Inventada | Respondidas | Recall | Precisión |
+|---|---|---|---|---|---|---|---|---|
+| IA del servidor | sin MCP | 8 % | 5 % | 10 % | 53 % | 40/40 | 1 % | 17 % |
+| IA del servidor | con MCP | 100 % | 98 % | 100 % | 0 % | 40/40 | 10 % | 100 % |
+| gpt-oss-120b (Groq) | sin MCP | 3 % | 3 % | 0 % | 93 % | 40/40 | 0 % | – |
+| gpt-oss-120b (Groq) | con MCP | 25 % | 25 % | 25 % | 55 % | 36/40 | 0 % | – |
+| Gemini 3.5 Flash-Lite (Google) | sin MCP | 0 % | 0 % | 0 % | 45 % | 40/40 | 0 % | – |
+| Gemini 3.5 Flash-Lite (Google) | con MCP | 95 % | 93 % | 100 % | 3 % | 40/40 | 0 % | – |
+
+Los modelos de otros proveedores se ejecutaron fijos (sin cadena de respaldo) el 19/11/2026. Lectura: con MCP las respuestas exactas suben en los tres modelos, pero el tamaño de la mejora depende del modelo: gpt-oss-120b contestó muchas preguntas sin llamar a la herramienta (inventando el resultado) y 4 respuestas llegaron vacías, así que sube de 3 % a 25 %, mientras que Gemini sube de 0 % a 95 %. Los modelos nuevos casi nunca nombran obras, por eso su recall es 0.
+
+**Recall y precisión de elementos** (métrica pedida por el profesor en la clase del 18/11). Se calculan en las preguntas de búsqueda y alertas que piden contar o listar obras (13 con referencia; B10 y A10 no tienen obras y solo cuentan para la precisión). La lista esperada son los códigos únicos que devuelve la herramienta con los filtros correctos (`eval/reconstruir_referencia.mjs` → `eval/resultados/referencia_items.json`; máximo 20 por consulta). Mencionados = códigos de 7 dígitos de la respuesta. **Recall** = aciertos / esperados («de las obras que debía encontrar, encontró X %»); **precisión** = aciertos / mencionados («de las que nombró, X % eran correctas»); **F1** = 2·P·R / (P + R). Una respuesta que solo da el total tiene recall 0. Las columnas están en `graficos_*.csv` y el detalle por pregunta en `graficos_recall.csv`; en el sitio, sección «Recall y precisión» de `/evaluacion`.
+
+
 ## Métricas
 
 **En sencillo:** medimos cuatro cosas: si los datos están completos, cuántas obras tienen alertas, si el servidor responde rápido y sin fallar, y si lo que responde coincide con la base de datos. Todos los números salen de los archivos de [`metricas/resultados/`](../metricas/resultados/) (corte del 10 de noviembre de 2026); las tablas y los gráficos de la página `/proyecto` se generan con `node metricas/exportar_sitio.mjs`.

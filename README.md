@@ -195,6 +195,16 @@ Resultados: [`eval/resultados/resumen.md`](eval/resultados/resumen.md). Las resp
 
 La página `/evaluacion` del sitio muestra las 40 preguntas con sus respuestas, filtro por tipo y búsqueda, gráficos de todas las métricas y la comparación por modelo × condición («El MCP mejora a todos los modelos, no solo a uno»). Para evaluar otro modelo sin pisar la corrida principal: `EVAL_MODELO_ID=<id> EVAL_MODELO_NOMBRE="<nombre>" IA_URL=... IA_MODELO=... node run_eval.mjs` (y luego `reconstruir_fuentes.mjs`, `score_eval.mjs`, `exportar_graficos.mjs` con la misma variable); guarda en `eval/resultados/modelos/<id>/`. `node exportar_sitio.mjs` genera `evaluacion-datos.ts` y `evaluacion-tabla.ts`. Detalle en `docs/PROYECTO.md`.
 
+Resultados por modelo (de 40 preguntas; sin MCP → con MCP; el detalle y la definición de recall y precisión están en `docs/PROYECTO.md`):
+
+| Modelo | Exacta | Estricta | Cita | Inventada | Recall (13 preguntas de conteo o lista) |
+|---|---|---|---|---|---|
+| IA del servidor | 8 % → 100 % | 5 % → 98 % | 10 % → 100 % | 53 % → 0 % | 1 % → 10 % |
+| gpt-oss-120b (Groq) | 3 % → 25 % | 3 % → 25 % | 0 % → 25 % | 93 % → 55 % | 0 % → 0 % |
+| Gemini 3.5 Flash-Lite (Google) | 0 % → 95 % | 0 % → 93 % | 0 % → 100 % | 45 % → 3 % | 0 % → 0 % |
+
+**Recall** = de las obras que debía encontrar, qué porcentaje encontró; **precisión** = de las obras que nombró, qué porcentaje es correcto (`eval/score_eval.mjs`, `eval/reconstruir_referencia.mjs`).
+
 ### Tablas para gráficos en Excel
 
 ```bash

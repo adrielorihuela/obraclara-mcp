@@ -118,6 +118,22 @@ function fuenteDe(q, cond) {
   }
   return v;
 }
+// Precisión y recall de elementos (códigos únicos de obra): referencia = códigos que devuelve la herramienta esperada con los filtros correctos (reconstruir_referencia.mjs).
+const refFile = path.join(DIR, 'resultados', 'referencia_items.json');
+const refItems = fs.existsSync(refFile) ? JSON.parse(fs.readFileSync(refFile, 'utf8')) : {};
+function itemsPR(q, r) {
+  const ref = refItems[q.id]; if (!ref) return {};
+  const esp = new Set(ref.codigos);
+  const delaPregunta = new Set(q.pregunta.match(/\b2\d{6}\b/g) || []);
+  const mencionados = new Set((r.answer || '').match(/(?<![\d.,])2\d{6}(?![\d.,]\d|\d)/g) || []);
+  for (const x of delaPregunta) mencionados.delete(x);
+  const aciertos = [...mencionados].filter((x) => esp.has(x)).length;
+  const recall = esp.size ? aciertos / esp.size : null;
+  const precision = mencionados.size ? aciertos / mencionados.size : null;
+  const p = precision ?? 0;
+  const f1 = esp.size ? (p + recall ? (2 * p * recall) / (p + recall) : 0) : null;
+  return { items_ref: esp.size, items_mencionados: mencionados.size, items_aciertos: aciertos, recall, precision, f1 };
+}
 for (const c of conds) {
   const raw = lastById(path.join(OUT, `raw_${c}.jsonl`));
   for (const q of qs) {
@@ -126,6 +142,7 @@ for (const c of conds) {
     const noSust = r.answer ? cifrasNoSustentadas(r.answer, q.pregunta, fuenteDe(q, c)) : [];
     s.no_sustentada = noSust.length > 0; s.cifras_no_sustentadas = noSust.join('; ');
     s.estricta = s.exacta && !s.no_sustentada;
+    Object.assign(s, itemsPR(q, r));
     rows.push({ id: q.id, tipo: q.tipo, condicion: c, ...s, llamadas: r.tool_calls.length, pasos: r.steps, latencia_s: r.latency_s, latencia_ok_s: r.ask_ok_s ?? null, reintentos: (r.errors || []).filter((e) => e.startsWith('ask')).length,
       herramientas: r.tool_calls.map((t) => t.name).join('+'), esperada: q.herramienta_esperada,
       respuesta_resumida: (r.answer || '').replace(/\s+/g, ' ').slice(0, 300), ejecutada: r.answer != null });
@@ -133,13 +150,13 @@ for (const c of conds) {
 }
 
 const esc = (v) => { const s = String(v ?? ''); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
-const head = ['id', 'tipo', 'condicion', 'exacta', 'cita', 'inventada', 'revisar', 'estricta', 'no_sustentada', 'cifras_no_sustentadas', 'llamadas', 'pasos', 'latencia_s', 'latencia_ok_s', 'respuesta_resumida'];
+const head = ['id', 'tipo', 'condicion', 'exacta', 'cita', 'inventada', 'revisar', 'estricta', 'no_sustentada', 'cifras_no_sustentadas', 'llamadas', 'pasos', 'latencia_s', 'latencia_ok_s', 'items_ref', 'items_mencionados', 'items_aciertos', 'recall', 'precision', 'f1', 'respuesta_resumida'];
 fs.writeFileSync(path.join(OUT, 'resultados.csv'),
-  [head.join(','), ...rows.map((r) => head.map((k) => esc(k === 'revisar' && r.notes.length ? (r.revisar ? 'sí: ' + r.notes.join('; ') : '') : typeof r[k] === 'boolean' ? (r[k] ? 1 : 0) : r[k])).join(','))].join('\n') + '\n');
+  [head.join(','), ...rows.map((r) => head.map((k) => esc(k === 'revisar' && r.notes.length ? (r.revisar ? 'sí: ' + r.notes.join('; ') : '') : typeof r[k] === 'boolean' ? (r[k] ? 1 : 0) : typeof r[k] === 'number' && ['recall', 'precision', 'f1'].includes(k) ? r[k].toFixed(3) : r[k])).join(','))].join('\n') + '\n');
 
 const pct = (xs, k) => (xs.length ? ((100 * xs.filter((x) => x[k]).length) / xs.length).toFixed(0) + ' %' : '-');
 const mean = (xs, k) => { const v = xs.map((x) => x[k]).filter((x) => x != null); return v.length ? (v.reduce((a, b) => a + b, 0) / v.length).toFixed(1) : '-'; };
-let md = `# Evaluación ObraClara: sin MCP vs con MCP\n\nFecha: ${new Date().toISOString().slice(0, 10)} · 40 preguntas (\`preguntas.csv\`) · modelo: ${process.env.EVAL_MODELO_NOMBRE || 'IA del servidor del grupo (API privada compatible con OpenAI, con respaldo automático)'} · una corrida (R02, R03 y R07–R10 se ejecutaron el 2026-11-18: R02 y R03 de nuevo tras corregir la búsqueda por entidad, y R07–R10 porque faltaban; el resto, el 2026-11-10).\n\n`;
+let md = `# Evaluación ObraClara: sin MCP vs con MCP\n\nFecha: ${new Date().toISOString().slice(0, 10)} · 40 preguntas (\`preguntas.csv\`) · modelo: ${process.env.EVAL_MODELO_NOMBRE || 'IA del servidor del grupo (API privada compatible con OpenAI, con respaldo automático)'} · una corrida${process.env.EVAL_MODELO_ID ? ' (todas las preguntas, mismo día, con el modelo fijo)' : ' (R02, R03 y R07–R10 se ejecutaron el 2026-11-18: R02 y R03 de nuevo tras corregir la búsqueda por entidad, y R07–R10 porque faltaban; el resto, el 2026-11-10)'}.\n\n`;
 md += '## Resultado global (porcentaje de las 40 preguntas)\n\n| Condición | Exacta | Cita fuente y fecha | Inventada | Revisar | Latencia media total (s) | Latencia media sin reintentos (s) | Llamadas medias | Reintentos | Ejecutadas |\n|---|---|---|---|---|---|---|---|---|---|\n';
 for (const c of conds) {
   const xs = rows.filter((r) => r.condicion === c);
@@ -150,6 +167,18 @@ for (const c of conds) {
   const xs = rows.filter((r) => r.condicion === c);
   md += `| ${c} | ${pct(xs, 'exacta')} | ${pct(xs, 'estricta')} | ${pct(xs, 'no_sustentada')} |\n`;
 }
+const conRef = (c) => rows.filter((r) => r.condicion === c && r.recall != null);
+const prom = (xs, k) => { const v = xs.map((x) => x[k]).filter((x) => x != null); return v.length ? (100 * v.reduce((a, b) => a + b, 0) / v.length).toFixed(0) + ' %' : '-'; };
+md += `\n## Precisión y recall de elementos (preguntas que piden contar o listar obras)\n
+Se aplican a las ${Object.keys(refItems).filter((id) => refItems[id].codigos.length).length} preguntas de búsqueda y alertas cuya respuesta es un conteo o una lista (las de una sola obra, como «la más cara», no entran). **Referencia**: los códigos únicos de obra que devuelve la herramienta esperada con los filtros correctos (\`reconstruir_referencia.mjs\` -> \`resultados/referencia_items.json\`; la herramienta muestra como máximo 20, aunque el total sea mayor). **Mencionados**: códigos únicos (7 dígitos, empiezan con 2) que aparecen en la respuesta (sin contar los de la pregunta).
+
+- **Recall** = aciertos / elementos esperados, donde aciertos = mencionados que están en la referencia. Responde: «de las obras que debía encontrar, ¿qué porcentaje encontró?». Una respuesta que solo da el total y no nombra obras tiene recall 0.
+- **Precisión** = aciertos / mencionados. Responde: «de las obras que nombró, ¿qué porcentaje es correcto?». Solo se calcula si la respuesta menciona al menos un código; en las preguntas sin datos (B10, A10) cualquier código mencionado es un error.
+- **F1** = 2 · precisión · recall / (precisión + recall), con 0 si ambos son 0 (una precisión sin calcular cuenta como 0).
+- Promedio simple entre preguntas (cada pregunta pesa igual).
+
+| Condición | Preguntas con referencia | Recall medio | Precisión media (con códigos mencionados) | F1 medio |\n|---|---|---|---|---|\n`;
+for (const c of conds) { const xs = conRef(c); md += `| ${c} | ${xs.length} | ${prom(xs, 'recall')} | ${prom(rows.filter((r) => r.condicion === c && r.precision != null), 'precision')} | ${prom(xs, 'f1')} |\n`; }
 const cambian = rows.filter((r) => r.exacta && !r.estricta);
 md += '\nRespuestas que pasan de exacta a **no estricta** (la cifra de la referencia aparece, pero otra cifra no se sustenta en la fuente):\n\n';
 md += cambian.length ? '| Pregunta | Condición | Cifras no sustentadas |\n|---|---|---|\n' + cambian.map((r) => `| ${r.id} | ${r.condicion} | ${r.cifras_no_sustentadas} |`).join('\n') + '\n' : '(ninguna)\n';
@@ -184,12 +213,12 @@ md += `\n## Cómo se puntuó (automático)\n
 - **Revisar**: casos dudosos para revisión manual (columna \`revisar\` de \`resultados.csv\` con el motivo).
 
 ## Advertencias
-- El proveedor de IA es un servicio de uso gratuito con límite de uso; no se controla qué modelo responde y puede cambiar entre preguntas. En «sin MCP» el modelo puede usar búsqueda web.
+${process.env.EVAL_MODELO_ID ? '- Modelo fijo (sin cadena de respaldo) servido con una cuenta gratuita: puede haber esperas por límite de uso; el ejecutor espera a que se libere y no cambia de modelo. Sin MCP el modelo responde de memoria, sin búsqueda web.' : `- El proveedor de IA es un servicio de uso gratuito con límite de uso; no se controla qué modelo responde y puede cambiar entre preguntas. En «sin MCP» el modelo puede usar búsqueda web.`}
 - Con MCP se usa un protocolo de herramientas **en texto** (JSON en la respuesta), no llamadas nativas; resultados de más de ${15000} caracteres se recortan.
 - Puntuación **automática** con reglas simples: puede contar como exacta una coincidencia casual o perder respuestas correctas con otro formato. Los casos «revisar» deben verificarlos a mano dos integrantes del grupo.
 - La latencia total incluye los reintentos: el proveedor a veces tarda hasta 3 min en responder y el ejecutor reintenta una vez; «sin reintentos» suma solo los intentos exitosos (medida desde B08; antes no se registraba).
 - «Inventada» es una cota superior: sin MCP el chat suele citar otras fuentes reales (Contraloría, notas de prensa, otras fechas) cuyas cifras no coinciden con el MEF al 2026-11-10; la regla las cuenta como inventadas aunque no sean fabricadas. Conviene revisarlas a mano.
-- Cuando el modelo usa búsqueda web, algunas respuestas sin MCP llegan con marcado interno (<Cite>, imágenes) o empiezan a mitad de texto. Afecta sobre todo a «cita» sin MCP.
+${process.env.EVAL_MODELO_ID ? '' : `- Cuando el modelo usa búsqueda web, algunas respuestas sin MCP llegan con marcado interno (<Cite>, imágenes) o empiezan a mitad de texto. Afecta sobre todo a «cita» sin MCP.`}
 - Abstenciones («no he podido verificar…») no cuentan como exactas ni como inventadas (se marcan «revisar»).
 - «Exacta estricta» sigue siendo automática y aproximada: no entiende el contexto de cada cifra (una cifra correcta con otro significado cuenta como sustentada; una derivación válida que la respuesta no explicita puede contarse como no sustentada) y no mide si la conclusión es correcta. La «Exacta» original sigue publicada para comparar y sobrestima el acierto porque basta con que una cifra coincida.
 - **Una sola corrida** por condición: no mide la variabilidad entre corridas.

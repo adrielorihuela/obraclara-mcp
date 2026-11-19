@@ -34,16 +34,24 @@ const ejec = (xs) => xs.filter((x) => (x.respuesta_resumida || '') !== '' && !/\
 const lat = (xs) => { const v = xs.map((x) => x.latencia_s).filter((x) => x !== '' && x != null).map(Number); return v.length ? (v.reduce((a, b) => a + b, 0) / v.length).toFixed(1) : ''; };
 const p1 = (v) => (v == null ? '' : v.toFixed(1));
 const lats = (xs, k) => xs.map((x) => x[k]).filter((x) => x !== '' && x != null).map(Number);
+// Precisión y recall de elementos: promedio en % entre las preguntas que lo tienen definido (columna vacía en resultados.csv = no aplica).
+const nums = (xs, k) => xs.map((x) => x[k]).filter((x) => x !== '' && x != null).map(Number);
+const prom = (xs, k) => { const v = nums(xs, k); return v.length ? (100 * v.reduce((a, b) => a + b, 0) / v.length).toFixed(0) : ''; };
+const prHead = ',recall_pct,precision_pct,f1_pct,preguntas_con_referencia';
+const pr = (xs) => [prom(xs, 'recall'), prom(xs, 'precision'), prom(xs, 'f1'), nums(xs, 'recall').length].join(',');
 const w = (name, head, lines) => fs.writeFileSync(path.join(OUT, name), [head, ...lines].join('\n') + '\n');
 
-w('graficos_global.csv', 'condicion,exactitud_pct,citacion_pct,inventada_pct,ejecutadas,preguntas,exacta_estricta_pct,no_sustentadas_pct',
-  conds.map((c) => { const xs = rows.filter((r) => r.condicion === c); return [c, pct(xs, 'exacta'), pct(xs, 'cita'), pct(xs, 'inventada'), ejec(xs), xs.length, pct(xs, 'estricta'), pct(xs, 'no_sustentada')].join(','); }));
+w('graficos_global.csv', 'condicion,exactitud_pct,citacion_pct,inventada_pct,ejecutadas,preguntas,exacta_estricta_pct,no_sustentadas_pct' + prHead,
+  conds.map((c) => { const xs = rows.filter((r) => r.condicion === c); return [c, pct(xs, 'exacta'), pct(xs, 'cita'), pct(xs, 'inventada'), ejec(xs), xs.length, pct(xs, 'estricta'), pct(xs, 'no_sustentada')].join(',') + ',' + pr(xs); }));
 
-w('graficos_por_tipo.csv', 'tipo,condicion,exactitud_pct,citacion_pct,inventada_pct,ejecutadas,preguntas,exacta_estricta_pct,no_sustentadas_pct',
-  tipos.flatMap((t) => conds.map((c) => { const xs = rows.filter((r) => r.tipo === t && r.condicion === c); return [t, c, pct(xs, 'exacta'), pct(xs, 'cita'), pct(xs, 'inventada'), ejec(xs), xs.length, pct(xs, 'estricta'), pct(xs, 'no_sustentada')].join(','); })));
+w('graficos_por_tipo.csv', 'tipo,condicion,exactitud_pct,citacion_pct,inventada_pct,ejecutadas,preguntas,exacta_estricta_pct,no_sustentadas_pct' + prHead,
+  tipos.flatMap((t) => conds.map((c) => { const xs = rows.filter((r) => r.tipo === t && r.condicion === c); return [t, c, pct(xs, 'exacta'), pct(xs, 'cita'), pct(xs, 'inventada'), ejec(xs), xs.length, pct(xs, 'estricta'), pct(xs, 'no_sustentada')].join(',') + ',' + pr(xs); })));
 
 w('graficos_latencia.csv', 'condicion,latencia_media_s,latencia_mediana_s,latencia_p90_s,latencia_max_s,mediana_sin_reintentos_s,p90_sin_reintentos_s',
   conds.map((c) => { const xs = rows.filter((r) => r.condicion === c), t = lats(xs, 'latencia_s'), o = lats(xs, 'latencia_ok_s');
     return [c, lat(xs), p1(percentil(t, 0.5)), p1(percentil(t, 0.9)), p1(Math.max(...t)), p1(percentil(o, 0.5)), p1(percentil(o, 0.9))].join(','); }));
 
-console.log('Escrito en', OUT, ': graficos_global.csv, graficos_por_tipo.csv, graficos_latencia.csv');
+w('graficos_recall.csv', 'id,condicion,elementos_esperados,mencionados,aciertos,recall_pct,precision_pct,f1_pct',
+  rows.filter((r) => r.items_ref !== '').map((r) => [r.id, r.condicion, r.items_ref, r.items_mencionados, r.items_aciertos, ...['recall', 'precision', 'f1'].map((k) => (r[k] === '' ? '' : (100 * Number(r[k])).toFixed(0)))].join(',')));
+
+console.log('Escrito en', OUT, ': graficos_global.csv, graficos_por_tipo.csv, graficos_latencia.csv, graficos_recall.csv');

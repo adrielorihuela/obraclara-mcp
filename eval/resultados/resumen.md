@@ -1,6 +1,6 @@
 # Evaluación ObraClara: sin MCP vs con MCP
 
-Fecha: 2026-11-18 · 40 preguntas (`preguntas.csv`) · modelo: IA del servidor del grupo (API privada compatible con OpenAI, con respaldo automático) · una corrida (R02, R03 y R07–R10 se ejecutaron el 2026-11-18: R02 y R03 de nuevo tras corregir la búsqueda por entidad, y R07–R10 porque faltaban; el resto, el 2026-11-10).
+Fecha: 2026-11-19 · 40 preguntas (`preguntas.csv`) · modelo: IA del servidor del grupo (API privada compatible con OpenAI, con respaldo automático) · una corrida (R02, R03 y R07–R10 se ejecutaron el 2026-11-18: R02 y R03 de nuevo tras corregir la búsqueda por entidad, y R07–R10 porque faltaban; el resto, el 2026-11-10).
 
 ## Resultado global (porcentaje de las 40 preguntas)
 
@@ -15,6 +15,20 @@ Fecha: 2026-11-18 · 40 preguntas (`preguntas.csv`) · modelo: IA del servidor d
 |---|---|---|---|
 | sin_mcp | 8 % | 5 % | 55 % |
 | con_mcp | 100 % | 98 % | 3 % |
+
+## Precisión y recall de elementos (preguntas que piden contar o listar obras)
+
+Se aplican a las 13 preguntas de búsqueda y alertas cuya respuesta es un conteo o una lista (las de una sola obra, como «la más cara», no entran). **Referencia**: los códigos únicos de obra que devuelve la herramienta esperada con los filtros correctos (`reconstruir_referencia.mjs` -> `resultados/referencia_items.json`; la herramienta muestra como máximo 20, aunque el total sea mayor). **Mencionados**: códigos únicos (7 dígitos, empiezan con 2) que aparecen en la respuesta (sin contar los de la pregunta).
+
+- **Recall** = aciertos / elementos esperados, donde aciertos = mencionados que están en la referencia. Responde: «de las obras que debía encontrar, ¿qué porcentaje encontró?». Una respuesta que solo da el total y no nombra obras tiene recall 0.
+- **Precisión** = aciertos / mencionados. Responde: «de las obras que nombró, ¿qué porcentaje es correcto?». Solo se calcula si la respuesta menciona al menos un código; en las preguntas sin datos (B10, A10) cualquier código mencionado es un error.
+- **F1** = 2 · precisión · recall / (precisión + recall), con 0 si ambos son 0 (una precisión sin calcular cuenta como 0).
+- Promedio simple entre preguntas (cada pregunta pesa igual).
+
+| Condición | Preguntas con referencia | Recall medio | Precisión media (con códigos mencionados) | F1 medio |
+|---|---|---|---|---|
+| sin_mcp | 13 | 1 % | 17 % | 2 % |
+| con_mcp | 13 | 10 % | 100 % | 12 % |
 
 Respuestas que pasan de exacta a **no estricta** (la cifra de la referencia aparece, pero otra cifra no se sustenta en la fuente):
 

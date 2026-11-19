@@ -7,6 +7,7 @@ import { REPO, enSencillo, esc, shell, type Meta } from "./layout";
 
 const TIPOS: [string, string][] = [["busqueda", "Búsqueda"], ["detalle", "Detalle"], ["alertas", "Alertas"], ["resumen", "Resumen"]];
 const leyenda = `<ul class="leyenda"><li><i style="background:var(--mut)"></i>Sin la conexión (MCP)</li><li><i style="background:var(--accent)"></i>Con la conexión (MCP)</li></ul>`;
+const pc = (v: number | null) => (v == null ? "sin datos" : `${v} %`);
 const kpi = (b: string, t: string, cls = "") => `<div class="kpi ev-k ${cls}"><b>${b}</b><span>${t}</span></div>`;
 
 const css = String.raw`
@@ -74,17 +75,18 @@ function modelosHtml(): string {
   const n = EVAL.preguntas;
   const ok = (p: number) => Math.round((p * n) / 100);
   const varios = MODELOS.length > 1;
-  const tab = `<div class="tbw"><table class="tb"><thead><tr><th scope="col">Modelo</th><th scope="col">Condición</th><th scope="col">Exactas</th><th scope="col">Estrictas</th><th scope="col">Citan</th><th scope="col">Inventadas</th><th scope="col">Respondidas</th><th scope="col">Mediana</th></tr></thead><tbody>${MODELOS.map((m) => (["sin", "con"] as const).map((c) => {
+  const tab = `<div class="tbw"><table class="tb"><thead><tr><th scope="col">Modelo</th><th scope="col">Condición</th><th scope="col">Exactas</th><th scope="col">Estrictas</th><th scope="col">Citan</th><th scope="col">Inventadas</th><th scope="col">Recall</th><th scope="col">Precisión</th><th scope="col">Respondidas</th><th scope="col">Mediana</th></tr></thead><tbody>${MODELOS.map((m) => (["sin", "con"] as const).map((c) => {
     const x = m[c];
-    return `<tr><th scope="row">${c === "sin" ? esc(m.nombre) : ""}</th><td>${c === "sin" ? "Sin MCP" : "Con MCP"}</td><td class="num">${ok(x.exactitud)} / ${n}</td><td class="num">${ok(x.estricta)} / ${n}</td><td class="num">${ok(x.citacion)} / ${n}</td><td class="num">${ok(x.inventada)} / ${n}</td><td class="num">${x.ejecutadas} / ${n}</td><td class="num">${nf(x.mediana, 1)} s</td></tr>`;
+    return `<tr><th scope="row">${c === "sin" ? esc(m.nombre) : ""}</th><td>${c === "sin" ? "Sin MCP" : "Con MCP"}</td><td class="num">${ok(x.exactitud)} / ${n}</td><td class="num">${ok(x.estricta)} / ${n}</td><td class="num">${ok(x.citacion)} / ${n}</td><td class="num">${ok(x.inventada)} / ${n}</td><td class="num">${x.recall} %</td><td class="num">${pc(x.precision)}</td><td class="num">${x.ejecutadas} / ${n}</td><td class="num">${nf(x.mediana, 1)} s</td></tr>`;
   }).join("")).join("")}</tbody></table></div>`;
-  const grafico = (clave: "exactitud" | "estricta", id: string, nom: string) => `<figure>${barrasAgrupadas(id, `${nom} por modelo, sin y con la conexión`,
+  const grafico = (clave: "exactitud" | "estricta" | "recall", id: string, nom: string) => `<figure>${barrasAgrupadas(id, `${nom} por modelo, sin y con la conexión`,
     `Barras por modelo. ${nom}: ` + MODELOS.map((m) => `${m.nombre}, ${m.sin[clave]} % sin la conexión y ${m.con[clave]} % con ella`).join("; ") + ".",
     MODELOS.map((m) => ({ etiqueta: m.id === "principal" ? "IA servidor" : m.nombre.replace(/\s*\(.*\)/, "").slice(0, 16), sin: m.sin[clave], con: m.con[clave] })), [Math.max(320, 150 + MODELOS.length * 130), 260], 30)}<figcaption>${nom} (porcentaje de las ${n} preguntas)</figcaption></figure>`;
   return `<section class="ev-s" id="modelos"><h2>El MCP mejora a todos los modelos, no solo a uno</h2>
 ${varios
     ? `<p>El profesor pidió comparar la IA sola con la IA más la herramienta en <b>varios modelos</b>, para comprobar que la mejora no depende de un modelo en particular. Se hicieron las mismas ${n} preguntas, sin y con MCP, a cada modelo. «Respondidas» indica cuántas preguntas alcanzó a contestar antes de que el proveedor pusiera su límite de uso; las que faltan cuentan como no acertadas.</p>
-<div class="figs">${grafico("exactitud", "gM1", "Respuestas exactas")}${grafico("estricta", "gM2", "Respuestas exactas con criterio estricto")}</div>${leyenda}`
+<p>Resultado: con MCP las respuestas exactas suben en ${MODELOS.filter((m) => m.con.exactitud > m.sin.exactitud).length} de ${MODELOS.length} modelos (${MODELOS.map((m) => `${esc(m.nombre)}: de ${ok(m.sin.exactitud)} a ${ok(m.con.exactitud)} de ${n}`).join("; ")}). El tamaño de la mejora depende del modelo: un modelo que contesta sin llamar a la herramienta se beneficia menos. El <b>recall</b> de obras es bajo en los modelos que solo dan el total sin nombrar las obras (ver la sección de recall).</p>
+<div class="figs">${grafico("exactitud", "gM1", "Respuestas exactas")}${grafico("estricta", "gM2", "Respuestas exactas con criterio estricto")}${grafico("recall", "gM3", "Recall de obras")}</div>${leyenda}`
     : `<p>Aquí se compara cada modelo, sin y con MCP, para comprobar que la mejora no depende de un modelo en particular. Por ahora solo está la corrida principal (la IA del servidor del grupo); las corridas de otros modelos se añaden cuando terminan.</p>`}
 ${tab}
 ${MODELOS.filter((m) => m.nota).map((m) => `<p class="small mut"><b>${esc(m.nombre)}:</b> ${esc(m.nota)}</p>`).join("")}
@@ -103,6 +105,7 @@ export function evaluacion(m: Meta): string {
   const g = (c: string) => EVAL.global.find((x) => x.condicion === c)!;
   const sin = g("sin_mcp"), con = g("con_mcp");
   const n = EVAL.preguntas, ok = (p: number) => Math.round((p * n) / 100);
+  const rc = (x: typeof sin) => x.recall, pr = (x: typeof sin) => pc(x.precision);
   const cuerpo = `
 <section class="ev-h"><div class="wrap">
 <p class="eyebrow">Benchmarks</p>
@@ -112,6 +115,9 @@ ${enSencillo("El proyecto es el MCP: el «enchufe» que deja a un asistente de I
   "Es como comparar a un estudiante que responde de memoria con el mismo estudiante con el libro oficial abierto. Abajo puedes ver cada pregunta y cada respuesta, sin filtros ni maquillaje.")}
 <div class="kpis">${kpi(`${ok(sin.exactitud)} de ${n}`, `acertó <b>sin MCP</b> (${sin.exactitud} %)`)}${kpi(`${ok(con.exactitud)} de ${n}`, `acertó <b>con MCP</b> (${con.exactitud} %)`, "con")}${kpi(`${ok(sin.inventada)} de ${n}`, `respuestas con cifras que no coinciden, sin MCP`)}${kpi(`${ok(con.citacion)} de ${n}`, `respuestas con fuente y fecha, con MCP (sin MCP: ${ok(sin.citacion)})`, "con")}</div>
 <p class="small mut">Con la regla estricta (ninguna cifra sin respaldo): ${ok(sin.estricta)} de ${n} sin MCP y ${ok(con.estricta)} de ${n} con MCP. Mediana de tiempo por respuesta: ${nf(EVAL.latencia[0].mediana, 1)} s sin MCP y ${nf(EVAL.latencia[1].mediana, 1)} s con MCP. Datos al corte del 10 de noviembre de 2026; una sola corrida, puntuación automática.</p>
+
+<div class="kpis">${kpi(`${rc(con)} %`, `de las obras que debía encontrar, las encontró <b>con MCP</b> (sin MCP: ${rc(sin)} %)`, "con")}${kpi(`${pr(con)}`, `de las obras que nombró con MCP eran correctas (sin MCP: ${pr(sin)})`, "con")}</div>
+<p class="small mut">Recall y precisión se miden en las ${con.conReferencia} preguntas que piden contar o listar obras; ver «Qué se midió».</p>
 </div></section>
 <div class="wrap">
 <section class="ev-s"><h2>Qué se midió</h2>
@@ -119,12 +125,18 @@ ${enSencillo("El proyecto es el MCP: el «enchufe» que deja a un asistente de I
 <li><b>Estricta:</b> es exacta y ninguna otra cifra de la respuesta queda sin respaldo en la fuente.</li>
 <li><b>Cita:</b> dice de dónde salió el dato (MEF) y la fecha de corte.</li>
 <li><b>Inventada:</b> da cifras que no coinciden con la referencia (es un máximo: incluye cifras reales de otras fuentes).</li>
+<li><b>Recall:</b> de las obras que la respuesta debía encontrar, qué porcentaje encontró (aciertos entre obras esperadas). Es la métrica que el profesor destacó.</li>
+<li><b>Precisión:</b> de las obras que nombró, qué porcentaje es correcto (aciertos entre obras nombradas).</li>
 <li><b>Tiempo:</b> cuánto tarda en responder; consultar el registro toma más que responder de memoria.</li></ul>
 <p class="small mut">Reglas completas y limitaciones en <a href="/proyecto#evaluacion">El proyecto, sección Evaluación</a>.</p></section>
 <section class="ev-s" id="graficos"><h2>Resultados en gráficos</h2>
 <div class="figs"><figure>${graficoGlobal()}<figcaption>Todas las métricas, en porcentaje de las ${n} preguntas</figcaption></figure><figure>${graficoLatencia()}<figcaption>Tiempo medio por pregunta (con y sin reintentos)</figcaption></figure></div>${leyenda}
 <h3 style="margin-top:28px">Por tipo de pregunta</h3><p class="small mut">Hay 10 preguntas de cada tipo.</p>
 <div class="figs">${graficosPorTipo().replace(/<p class="que">.*?<\/p>/g, "")}</div>${leyenda}</section>
+<section class="ev-s" id="recall"><h2>Recall y precisión: ¿encontró las obras?</h2>
+<p>En las ${con.conReferencia} preguntas que piden <b>contar o listar obras</b>, medimos cuántas de las obras que debía encontrar apareció en la respuesta (<b>recall</b>) y cuántas de las que nombró eran correctas (<b>precisión</b>). La lista esperada son los códigos que devuelve la herramienta con los filtros correctos (máximo 20 por consulta). Una respuesta que solo da el total y no nombra obras tiene recall 0, porque no «encontró» ninguna.</p>
+<div class="figs"><figure>${barrasAgrupadas("gR", "Recall, precisión y F1, sin y con la conexión (MCP)", `Barras agrupadas sobre ${con.conReferencia} preguntas de conteo o lista. Recall: ${sin.recall} % sin la conexión y ${con.recall} % con ella. Precisión: ${pc(sin.precision)} y ${pc(con.precision)}. F1: ${sin.f1} % y ${con.f1} %.`, [{ etiqueta: "Recall", sin: sin.recall, con: con.recall }, { etiqueta: "Precisión", sin: sin.precision ?? 0, con: con.precision ?? 0 }, { etiqueta: "F1", sin: sin.f1, con: con.f1 }], [400, 260], 36)}<figcaption>Porcentaje medio entre las ${con.conReferencia} preguntas de conteo o lista</figcaption></figure></div>${leyenda}
+<p class="small mut">Precisión: solo cuenta las respuestas que nombran al menos una obra. F1 = 2 · precisión · recall / (precisión + recall).</p></section>
 ${modelosHtml()}
 <section class="ev-s" id="preguntas"><h2>Las ${n} preguntas, una por una</h2>
 <p>Filtra por tipo, busca una palabra (una región, un código, «Cusco») y abre «Ver respuesta» para comparar lo que contestó la IA sola con lo que contestó con MCP. ✓ y ✗ indican si se cumplió cada criterio; en «Inventada», ✓ es lo malo.</p>

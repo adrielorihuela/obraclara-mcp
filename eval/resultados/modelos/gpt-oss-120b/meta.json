@@ -1,0 +1,1 @@
+{"nombre":"gpt-oss-120b (Groq)","nota":"Modelo abierto de OpenAI servido por Groq, fijo (sin respaldo); una corrida el 19/11/2026 con las 40 preguntas y el mismo protocolo de herramientas en texto. Algunas respuestas llegaron vacías (el modelo no produjo texto) y cuentan como no acertadas; con MCP respondió varias preguntas sin llamar a la herramienta."}

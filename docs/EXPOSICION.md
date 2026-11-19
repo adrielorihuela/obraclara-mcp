@@ -41,6 +41,8 @@ Abrir https://obraclara.adrielorihuela.net/asistente. Hacer **la misma pregunta 
 
 **Demostración de benchmarks (`/evaluacion`).** Abrir https://obraclara.adrielorihuela.net/evaluacion: (1) mostrar las tarjetas («sin MCP acertó 3 de 40; con MCP, 40»); (2) bajar a los gráficos y a la comparación entre modelos («el MCP mejora a todos los modelos, no solo a uno»); (3) en «Las 40 preguntas», filtrar por tipo (por ejemplo **Alertas**) o buscar «Cusco»; (4) abrir **Ver respuesta** de una pregunta y comparar lo que contestó la IA sola (cifras de otras fuentes, sin fecha de corte) con lo que contestó con MCP (cifra oficial, fuente y fecha, y la herramienta usada). Funciona también en el celular.
 
+**Varios modelos y recall (para el profesor).** Con las mismas 40 preguntas, las respuestas exactas con MCP suben en los tres modelos: IA del servidor 8 % → 100 %, Gemini 3.5 Flash-Lite 0 % → 95 %, gpt-oss-120b (Groq) 3 % → 25 % (este contesta muchas veces sin llamar a la herramienta). Sobre recall, que el profesor destacó: «de las obras que debía encontrar, la IA del servidor con MCP encontró 10 % (sin MCP, 1 %) y todo lo que nombró era correcto (100 %)»; los otros dos modelos dan el total pero casi nunca nombran obras, así que su recall es 0. Es una limitación honesta: la herramienta muestra como máximo 20 obras por consulta.
+
 ## 3b. Guion de la demo del viernes 20/11 (2 a 3 minutos, `/demo`)
 
 La página `/demo` lleva los casos ya grabados (aparecen al instante) y no depende de que la IA conteste. Abrir antes https://obraclara.adrielorihuela.net/demo y probar el botón una vez.
