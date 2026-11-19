@@ -4,6 +4,7 @@ import { EVAL } from "./evaluacion-datos";
 import { MODELOS, PREGUNTAS, type Lado } from "./evaluacion-tabla";
 import { barrasAgrupadas, diagramasCss, graficoGlobal, graficoLatencia, graficosPorTipo, nf } from "./proyecto-diagramas";
 import { REPO, enSencillo, esc, shell, type Meta } from "./layout";
+import { tarjetaCss, tarjetaRespuesta, tarjetaSprite } from "./evaluacion-md";
 
 const TIPOS: [string, string][] = [["busqueda", "Búsqueda"], ["detalle", "Detalle"], ["alertas", "Alertas"], ["resumen", "Resumen"]];
 const leyenda = `<ul class="leyenda"><li><i style="background:var(--mut)"></i>Sin la conexión (MCP)</li><li><i style="background:var(--accent)"></i>Con la conexión (MCP)</li></ul>`;
@@ -42,13 +43,19 @@ const css = String.raw`
 .qr .qref b{color:var(--mut);font-weight:500}
 .qr .m{display:flex;flex-wrap:wrap;gap:4px}.qr .m .lb{display:none;width:100%;font:600 12px/1.4 var(--sans);color:var(--mut);margin-bottom:2px}
 .mk{display:inline-flex;gap:4px;align-items:center;padding:2px 7px;border-radius:6px;font:500 12px/1.6 var(--mono);white-space:nowrap}
-.mk.ok{background:var(--accent-soft);color:var(--accent)}.mk.no{background:var(--surface-2);color:var(--mut)}.mk.mal{background:var(--risk-soft);color:var(--risk)}
+.mk{border:1px solid var(--line)}.mk.ok{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 45%,transparent)}.mk.no{color:var(--mut)}.mk.mal{color:var(--risk);border-color:color-mix(in srgb,var(--risk) 45%,transparent)}
 .qr details{grid-column:1/-1;border-top:1px solid var(--line);padding-top:8px}
 .qr summary{cursor:pointer;font-weight:600;font-size:var(--s-1);color:var(--accent);width:max-content;max-width:100%}
-.qr .par{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:10px}
-.qr .lado{border-radius:var(--r);padding:10px 12px;background:var(--surface-2);min-width:0;font-size:var(--s-1)}
-.qr .lado.con{background:var(--accent-soft)}.qr .lado h5{margin:0 0 6px;font:600 13px/1.3 var(--sans)}
-.qr .lado p{overflow-wrap:anywhere;color:var(--ink)}.qr .lado .h{margin-top:8px;color:var(--mut)}
+.qr .par{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px;align-items:start}
+.qr .rs{padding:14px;gap:12px}
+.qr details[open]>summary{margin-bottom:2px}
+@media (prefers-reduced-motion:no-preference){
+.qr details[open] .rs{animation:ev-entra .45s cubic-bezier(.2,.7,.2,1) both}.qr details[open] .rs.con{animation-delay:.07s}
+.qr details[open] .rs-chip{animation:ev-chip .4s .2s ease both}
+.qr{transition:border-color .2s,box-shadow .2s}.qr:hover{border-color:var(--line-2)}
+@keyframes ev-entra{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes ev-chip{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:none}}
+}
 .ev-vacio{padding:24px;text-align:center;color:var(--mut);border:1px dashed var(--line-2);border-radius:var(--r)}
 @media (max-width:860px){.ev-hd{display:none}.qr{grid-template-columns:minmax(0,1fr)}.qr .m .lb{display:block}.qr .par{grid-template-columns:minmax(0,1fr)}.qr .id .tag{display:inline-flex;margin:0 0 0 8px}.qr .id{display:flex;align-items:center}}
 `;
@@ -60,13 +67,22 @@ function filas(): string {
   return PREGUNTAS.map((q) => {
     const tipo = TIPOS.find((t) => t[0] === q.tipo)?.[1] ?? q.tipo;
     const buscar = `${q.id} ${q.p} ${q.r} ${tipo}`.toLowerCase();
-    const lado = (l: Lado, et: string, cls: string) => `<div class="lado ${cls}"><h5>${et}</h5><p>${esc(l.t)}</p>${l.h ? `<p class="h">Herramienta usada: <code>${esc(l.h.join(", ") || "ninguna")}</code></p>` : ""}</div>`;
-    return `<article class="qr" data-tipo="${q.tipo}" data-q="${esc(buscar)}">
+    const lado = (l: Lado, cond: "sin" | "con") => tarjetaRespuesta({
+      cond,
+      titulo: cond === "sin" ? "IA sola (sin MCP)" : "IA + MCP",
+      sub: cond === "sin" ? "Respondió de memoria" : `Herramienta usada: ${l.h?.join(", ") || "ninguna"}`,
+      ok: l.e,
+      veredicto: l.e ? "Correcta" : l.i ? "Incorrecta: dio cifras que no coinciden" : "Incorrecta: no dio la cifra oficial",
+      clave: l.k,
+      referencia: q.rk,
+      md: l.t,
+    }, "h4");
+    return `<article class="qr" data-id="${q.id}" data-tipo="${q.tipo}" data-q="${esc(buscar)}">
 <div class="id">${q.id}<span class="tag tag-a">${tipo}</span></div>
 <div><div class="qp">${esc(q.p)}</div><div class="qref"><b>Referencia:</b> ${esc(q.r)}</div></div>
 <div class="m"><span class="lb">Sin MCP</span>${marcas(q.sin)}</div>
 <div class="m"><span class="lb">Con MCP</span>${marcas(q.con)}</div>
-<details><summary>Ver respuesta</summary><div class="par">${lado(q.sin, "Sin MCP", "sin")}${lado(q.con, "Con MCP", "con")}</div></details>
+<details><summary>Ver respuesta</summary><div class="par">${lado(q.sin, "sin")}${lado(q.con, "con")}</div></details>
 </article>`;
   }).join("");
 }
@@ -144,7 +160,7 @@ ${modelosHtml()}
 <div class="ev-f" role="group" aria-label="Filtrar por tipo"><button type="button" data-t="" aria-pressed="true">Todas</button>${TIPOS.map(([k, t]) => `<button type="button" data-t="${k}" aria-pressed="false">${t}</button>`).join("")}</div></div>
 <p class="ev-n" id="ev-cuenta" aria-live="polite">Mostrando ${n} de ${n} preguntas</p>
 <div class="ev-hd" aria-hidden="true"><span>Código</span><span>Pregunta y referencia</span><span>Sin MCP</span><span>Con MCP</span></div>
-<div id="ev-lista">${filas()}</div>
+${tarjetaSprite}<div id="ev-lista">${filas()}</div>
 <div class="ev-vacio" id="ev-vacio" hidden>Ninguna pregunta coincide con el filtro.</div>
 <p class="small mut" style="margin-top:14px">Respuestas recortadas y sin el marcado interno del proveedor; las completas están en <a href="${REPO}/tree/main/eval/resultados"><code>eval/resultados/</code></a>. Las respuestas de un asistente cambian entre intentos.</p></section>
 </div>`;
@@ -154,7 +170,7 @@ ${modelosHtml()}
     ruta: "/evaluacion",
     cuerpo,
     m,
-    cssExtra: diagramasCss + css,
+    cssExtra: diagramasCss + tarjetaCss + css,
     scriptExtra: script,
   });
 }

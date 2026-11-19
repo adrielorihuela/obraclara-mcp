@@ -5,6 +5,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { limpiarMd, recortarMd, claveRespuesta, claveReferencia } from './respuesta_md.mjs';
 
 const AQUI = path.dirname(fileURLToPath(import.meta.url));
 const RES = path.join(AQUI, 'resultados');
@@ -99,17 +100,19 @@ console.log(`escrito ${path.relative(process.cwd(), SALIDA)} (${global.length} c
 
 // --- Tabla de las 40 preguntas y comparación entre modelos (página /evaluacion) -> worker/src/sitio/evaluacion-tabla.ts ---
 const SALIDA_TABLA = path.join(AQUI, '..', 'worker', 'src', 'sitio', 'evaluacion-tabla.ts');
-const MAX_TXT = 420;
+const MAX_MD = 400; // con las 80 respuestas la página debe pesar menos de 230 KB (test/sitio.test.ts)
 const lista = Object.values(preguntas);
+// t: respuesta en Markdown recortada por bloques (tablas por filas); k: la cifra que se compara con la referencia (rk).
 const fila = (raw, cond, id) => {
   const r = raw[id], p = punt[`${id}|${cond}`];
   return {
     e: p.exacta === '1', s: p.estricta === '1', c: p.cita === '1', i: p.inventada === '1',
-    t: r?.answer ? recortar(limpiar(r.answer), MAX_TXT) : '(sin respuesta)',
+    t: r?.answer ? recortarMd(limpiarMd(r.answer), MAX_MD, 4).md : '(sin respuesta)',
+    k: claveRespuesta(preguntas[id], r?.answer, p.exacta === '1'),
     ...(cond === 'con_mcp' ? { h: (r?.tool_calls ?? []).map((t) => t.name) } : {}),
   };
 };
-const tabla = lista.map((q) => ({ id: q.id, tipo: q.tipo, p: q.pregunta, r: q.respuesta_referencia, esp: q.herramienta_esperada, sin: fila(sin, 'sin_mcp', q.id), con: fila(con, 'con_mcp', q.id) }));
+const tabla = lista.map((q) => ({ id: q.id, tipo: q.tipo, p: q.pregunta, r: q.respuesta_referencia, rk: claveReferencia(q), esp: q.herramienta_esperada, sin: fila(sin, 'sin_mcp', q.id), con: fila(con, 'con_mcp', q.id) }));
 
 // Modelos: la corrida principal («IA del servidor») más cada carpeta de resultados/modelos/<id>/ con su meta.json {nombre, nota}.
 function resumenModelo(id, nombre, nota, dir) {
@@ -129,5 +132,5 @@ if (fs.existsSync(dirModelos)) for (const id of fs.readdirSync(dirModelos).sort(
   const meta = JSON.parse(fs.readFileSync(path.join(d, 'meta.json'), 'utf8'));
   modelos.push(resumenModelo(id, meta.nombre, meta.nota ?? '', d));
 }
-fs.writeFileSync(SALIDA_TABLA, `// GENERADO por eval/exportar_sitio.mjs a partir de eval/resultados/. No editar a mano.\nexport interface Lado { e: boolean; s: boolean; c: boolean; i: boolean; t: string; h?: string[] }\nexport interface Fila { id: string; tipo: string; p: string; r: string; esp: string; sin: Lado; con: Lado }\nexport interface Lote { exactitud: number; estricta: number; citacion: number; inventada: number; noSustentadas: number; recall: number; precision: number | null; f1: number; ejecutadas: number; mediana: number }\nexport interface Modelo { id: string; nombre: string; nota: string; sin: Lote; con: Lote }\nexport const PREGUNTAS: Fila[] = ${JSON.stringify(tabla)};\nexport const MODELOS: Modelo[] = ${JSON.stringify(modelos)};\n`);
+fs.writeFileSync(SALIDA_TABLA, `// GENERADO por eval/exportar_sitio.mjs a partir de eval/resultados/. No editar a mano.\nexport interface Lado { e: boolean; s: boolean; c: boolean; i: boolean; t: string; k: string; h?: string[] }\nexport interface Fila { id: string; tipo: string; p: string; r: string; rk: string; esp: string; sin: Lado; con: Lado }\nexport interface Lote { exactitud: number; estricta: number; citacion: number; inventada: number; noSustentadas: number; recall: number; precision: number | null; f1: number; ejecutadas: number; mediana: number }\nexport interface Modelo { id: string; nombre: string; nota: string; sin: Lote; con: Lote }\nexport const PREGUNTAS: Fila[] = ${JSON.stringify(tabla)};\nexport const MODELOS: Modelo[] = ${JSON.stringify(modelos)};\n`);
 console.log(`escrito ${path.relative(process.cwd(), SALIDA_TABLA)} (${tabla.length} preguntas, ${modelos.length} modelos)`);

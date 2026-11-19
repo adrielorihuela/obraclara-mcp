@@ -42,10 +42,11 @@ describe("página /proyecto", () => {
 
 describe("página /evaluacion", () => {
   const ev = paginaSitio("/evaluacion", meta) ?? "";
-  it("existe, está en el menú y pesa menos de 200 KB", () => {
+  // 230 KB: las 80 respuestas se muestran como Markdown (tablas, listas) con su cifra clave; comprimida pesa unos 40 KB.
+  it("existe, está en el menú y pesa menos de 230 KB", () => {
     expect(ev.startsWith("<!doctype html>")).toBe(true);
     expect(ev).toContain('<a href="/evaluacion" aria-current="page">Benchmarks</a>');
-    expect(Buffer.byteLength(ev)).toBeLessThan(200_000);
+    expect(Buffer.byteLength(ev)).toBeLessThan(230_000);
   });
   it("lista las 40 preguntas con filtro y búsqueda", () => {
     expect((ev.match(/class="qr"/g) ?? []).length).toBe(40);

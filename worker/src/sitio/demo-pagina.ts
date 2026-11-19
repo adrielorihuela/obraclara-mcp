@@ -1,5 +1,6 @@
 import { CASOS_DEMO, RESUMEN_DEMO, type CasoDemo, type LadoDemo } from "./demo-datos";
 import { enSencillo, esc, fechaLarga, shell, type Meta } from "./layout";
+import { tarjetaCss, tarjetaRespuesta, tarjetaSprite } from "./evaluacion-md";
 
 // Página /demo: casos preparados, gráficos con los datos reales de cada herramienta y «Probar en vivo».
 // Los textos de cada respuesta y los datos de los gráficos vienen de demo-datos.ts (generado por eval/exportar_demo.mjs).
@@ -38,26 +39,20 @@ const css = String.raw`
 .dm-nav a{border:1px solid var(--line-2);border-radius:999px;padding:7px 14px;font-size:var(--s-1);text-decoration:none;background:var(--surface)}
 .dm-nav a:hover{border-color:var(--ink)}
 .dm-caso{padding:clamp(40px,5vw,72px) 0;border-top:1px solid var(--line);scroll-margin-top:72px}
-.dm-etq{font:500 var(--s-1)/1 var(--mono);color:var(--mut);margin-bottom:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.dm-etq b{color:var(--accent);font-weight:500}
-.dm-etq code{background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:2px 7px}
-.dm-q{font-size:var(--s2);max-width:30ch;max-width:none}
-.dm-comp{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:24px}
-.dm-lado{border:1px solid var(--line);border-radius:var(--r-l);background:var(--surface);padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
-.dm-lado.sin{border-top:4px solid var(--risk)}
-.dm-lado.con{border-top:4px solid var(--accent)}
-.dm-lado h3{display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap}
-.dm-lado h3 small{font:400 var(--s-1)/1 var(--mono);color:var(--mut)}
-.dm-resp{white-space:pre-line;overflow-wrap:anywhere;font-size:var(--s-1);line-height:1.55;color:var(--ink-2);flex:1}
-.dm-lado details summary{cursor:pointer;font-size:var(--s-1);color:var(--accent);font-weight:600}
-.dm-lado details .dm-resp{margin-top:8px;max-height:320px;overflow:auto;border-top:1px dashed var(--line);padding-top:8px}
-.dm-sel{display:flex;flex-wrap:wrap;gap:8px}
-.dm-sel span{font-size:var(--s-1);font-weight:600;border-radius:999px;padding:4px 11px;display:inline-flex;gap:6px;align-items:center}
-.dm-sel .ok{background:var(--accent-soft);color:var(--accent-2)}
-.dm-sel .mal{background:var(--risk-soft);color:var(--risk)}
-.dm-ref{margin-top:16px;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:var(--r);background:var(--accent-soft);padding:14px 18px}
-.dm-ref b{display:block;font:500 var(--s-1)/1 var(--mono);color:var(--mut);margin-bottom:6px}
-.dm-ref p{overflow-wrap:anywhere}
+.dm-etq{font:500 var(--s-1)/1.3 var(--sans);color:var(--mut);margin-bottom:14px;display:flex;gap:6px 14px;flex-wrap:wrap;align-items:center}
+.dm-etq b{color:var(--ink);font-weight:650}
+.dm-etq code{font:500 12px/1.4 var(--mono);color:var(--ink-2)}
+.dm-etq>*+*::before{content:"·";margin-right:14px;color:var(--mut)}
+.dm-ql{font:600 12px/1.3 var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin:0 0 6px}
+.dm-q{font-size:var(--s2);max-width:none}
+.dm-comp{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:26px;align-items:start}
+.dm-sel{display:flex;flex-wrap:wrap;gap:6px 14px;margin:0;padding:0;list-style:none;font-size:var(--s-1);color:var(--ink-2)}
+.dm-sel li{display:inline-flex;gap:6px;align-items:center}
+.dm-sel .ok i{color:var(--accent)}.dm-sel .mal i{color:var(--risk)}
+.dm-sel i{font-style:normal;font-weight:700}
+.dm-ref{margin-top:16px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:14px 18px;display:flex;gap:6px 14px;flex-wrap:wrap;align-items:baseline}
+.dm-ref b{font:600 12px/1.3 var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--mut)}
+.dm-ref p{overflow-wrap:anywhere;flex:1 1 320px;margin:0;color:var(--ink)}
 .dm-graf{margin-top:28px;border:1px solid var(--line);border-radius:var(--r-l);background:var(--surface);padding:clamp(16px,3vw,28px);box-shadow:var(--shadow)}
 .dm-graf>h3{font-family:var(--serif);font-size:var(--s2)}
 .dm-graf>h3 small{display:block;font:500 var(--s-1)/1.3 var(--mono);color:var(--mut);margin-bottom:6px}
@@ -86,20 +81,38 @@ const css = String.raw`
 .dm-cifra .n1{color:var(--risk)}.dm-cifra .n2{color:var(--accent)}
 .dm-cifra small{color:var(--mut)}
 .dm-res .btn{margin-top:28px}
+/* Animaciones locales: solo si hay JS (clase dm-anima) y el visitante no pidió menos movimiento. */
+@media (prefers-reduced-motion:no-preference){
+.dm-anima .dm-caso .rs,.dm-anima .dm-graf,.dm-anima .dm-cifra{opacity:0;transform:translateY(14px);transition:opacity .5s ease,transform .5s cubic-bezier(.2,.7,.2,1)}
+.dm-anima .dm-caso .rs.con{transition-delay:.08s}
+.dm-anima .dm-vis.rs,.dm-anima .dm-graf.dm-vis,.dm-anima .dm-cifra.dm-vis{opacity:1;transform:none}
+.dm-anima .rs .rs-chip{opacity:0;transform:scale(.96)}
+.dm-anima .rs.dm-vis .rs-chip{opacity:1;transform:none;transition-delay:.25s}
+.dm-anima .rs.dm-vis .rs-chip.ref{transition-delay:.35s}
+.dm-fig.dm-vis svg rect:not(.gb){transform-box:fill-box;transform-origin:left center;animation:dm-crece .9s cubic-bezier(.2,.7,.2,1) both}
+@keyframes dm-crece{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.dm-nav a,.btn{transition:border-color .2s,transform .2s}.dm-nav a:hover{transform:translateY(-1px)}
+}
 @media (max-width:900px){.dm-flujo{grid-template-columns:repeat(2,minmax(0,1fr))}.dm-flujo li:nth-child(2)::after{display:none}.dm-flujo li::after{display:none!important}}
 @media (max-width:900px){.dm-gcols{grid-template-columns:minmax(0,1fr)}.dm-lado-d{margin-top:16px}}
 @media (max-width:760px){.dm-comp,.dm-cifras{grid-template-columns:minmax(0,1fr)}}
 @media (max-width:480px){.dm-flujo{grid-template-columns:minmax(0,1fr)}}
 `;
 
-const lado = (l: LadoDemo, cond: "sin" | "con", id: string): string => {
-  const marca = (ok: boolean, t: string) => `<span class="${ok ? "ok" : "mal"}"><span aria-hidden="true">${ok ? "✓" : "✗"}</span>${t}: ${ok ? "sí" : "no"}</span>`;
-  return `<div class="dm-lado ${cond}">
-<h3>${cond === "sin" ? "IA sola (sin MCP)" : "IA + MCP"}<small>tardó ${Math.round(l.latencia_s)} s en la evaluación</small></h3>
-<p class="dm-resp">${esc(l.corta)}</p>
-${l.completa.length > l.corta.length ? `<details><summary>Ver completa</summary><p class="dm-resp">${esc(l.completa)}</p></details>` : ""}
-<div class="dm-sel" aria-label="Resultado en la evaluación de ${esc(id)}">${marca(l.exacta, "Exacta")}${marca(l.cita, "Cita la fuente")}${l.inventada ? `<span class="mal"><span aria-hidden="true">✗</span>Trae cifras que no coinciden</span>` : ""}</div>
-</div>`;
+const lado = (l: LadoDemo, cond: "sin" | "con", c: CasoDemo): string => {
+  const marca = (ok: boolean, t: string) => `<li class="${ok ? "ok" : "mal"}"><i aria-hidden="true">${ok ? "✓" : "✗"}</i>${t}</li>`;
+  return tarjetaRespuesta({
+    cond,
+    titulo: cond === "sin" ? "IA sola (sin MCP)" : "IA + MCP",
+    sub: `${cond === "sin" ? "Respondió de memoria" : "Consultó los datos del MEF"} · tardó ${Math.round(l.latencia_s)} s`,
+    ok: l.exacta,
+    veredicto: l.veredicto,
+    clave: l.clave,
+    referencia: c.referencia_clave,
+    md: l.corta,
+    mdCompleta: l.completa || undefined,
+    pie: `<ul class="dm-sel" aria-label="Otros criterios de la evaluación en ${esc(c.id)}">${marca(l.cita, l.cita ? "Cita la fuente y la fecha" : "No cita la fuente oficial")}${marca(!l.inventada, l.inventada ? "Trae cifras que no coinciden" : "Sin cifras inventadas")}</ul>`,
+  });
 };
 
 const caso = (c: CasoDemo, i: number): string => {
@@ -107,8 +120,9 @@ const caso = (c: CasoDemo, i: number): string => {
   return `<section class="dm-caso" id="caso-${i + 1}" aria-labelledby="caso-${i + 1}-t" data-caso="${i}">
 <div class="wrap">
 <p class="dm-etq"><b>Caso ${i + 1}</b><span>${esc(t.etiqueta)}</span><code>${esc(c.herramienta)}</code><span>pregunta ${esc(c.id)} de la evaluación</span></p>
+<p class="dm-ql">La pregunta</p>
 <h2 class="dm-q" id="caso-${i + 1}-t">«${esc(c.pregunta)}»</h2>
-<div class="dm-comp">${lado(c.sin, "sin", c.id)}${lado(c.con, "con", c.id)}</div>
+<div class="dm-comp">${lado(c.sin, "sin", c)}${lado(c.con, "con", c)}</div>
 <div class="dm-ref"><b>Respuesta oficial de referencia</b><p>${esc(c.referencia)}</p></div>
 <div class="dm-graf">
 <h3><small>El MCP con gráficas</small>${esc(t.titulo)}</h3>
@@ -160,6 +174,10 @@ function lee(txt){var t=String(txt).trim(),j=null;if(t.charAt(0)==='{')j=JSON.pa
  if(!j)throw new Error('sin respuesta');if(j.error)throw new Error(j.error.message||'error');
  var r=j.result;if(!r||r.isError)throw new Error('error de la herramienta');return JSON.parse(r.content[0].text).datos}
 var figs=d.querySelectorAll('.dm-fig');
+var ver=d.querySelectorAll('.dm-caso .rs,.dm-graf,.dm-cifra,.dm-fig');
+if('IntersectionObserver' in window){d.documentElement.classList.add('dm-anima');
+ var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('dm-vis');io.unobserve(e.target)}})},{rootMargin:'0px 0px -8% 0px'});
+ for(var v=0;v<ver.length;v++)io.observe(ver[v])}
 for(var k=0;k<figs.length;k++){var c=TXT[figs[k].getAttribute('data-caso')];if(c)dibujar(figs[k],c.herramienta,c.args,c.datos)}
 d.addEventListener('click',function(e){var t=e.target,b=t.closest&&t.closest('[data-vivo]'),a=t.closest&&t.closest('[data-pregunta]');
  if(a){var est=a.parentNode.querySelector('.dm-est'),q=a.getAttribute('data-pregunta');
@@ -189,6 +207,7 @@ ${enSencillo("La IA tarda en contestar, así que las respuestas de abajo ya est�
 <ol class="dm-flujo" aria-label="El flujo en cuatro pasos">${PASOS.map(([t, p], i) => `<li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONOS[i]}</svg><b><span>${i + 1}</span>${esc(t)}</b><p>${esc(p)}</p></li>`).join("")}</ol>
 <nav class="dm-nav" aria-label="Casos">${CASOS_DEMO.map((c, i) => `<a href="#caso-${i + 1}">Caso ${i + 1} · ${esc(TEXTOS[c.id].etiqueta)}</a>`).join("")}</nav>
 </div></section>
+${tarjetaSprite}
 ${CASOS_DEMO.map(caso).join("\n")}
 <section class="dm-res" id="resultados"><div class="wrap">
 <h2>Así le fue en las 40 preguntas</h2>
@@ -203,7 +222,7 @@ ${CASOS_DEMO.map(caso).join("\n")}
     ruta: "/demo",
     cuerpo,
     m,
-    cssExtra: css,
+    cssExtra: tarjetaCss + css,
     scriptExtra: script,
   });
 }

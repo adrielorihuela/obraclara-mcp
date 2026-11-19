@@ -14,6 +14,8 @@ describe("datos de /demo (generados desde la evaluación)", () => {
       expect(c.con.exacta && c.con.cita).toBe(true);
       expect(c.sin.exacta).toBe(false);
       expect(c.sin.corta).not.toMatch(/<[A-Za-z]/);
+      expect(c.con.clave).toBe(c.referencia_clave);
+      expect(c.sin.clave).not.toBe(c.referencia_clave);
     }
     const detalle = CASOS_DEMO.find((c) => c.id === "D05")!;
     expect(detalle.datos).toMatchObject({ codigo_unico: "2110581" });
@@ -37,13 +39,21 @@ describe("página /demo", () => {
     expect((html.match(/<li><svg/g) ?? []).length).toBe(4);
     expect((html.match(/class="dm-caso"/g) ?? []).length).toBe(4);
     expect((html.match(/IA sola \(sin MCP\)/g) ?? []).length).toBe(4);
-    expect((html.match(/IA \+ MCP<small>/g) ?? []).length).toBe(4);
+    expect((html.match(/<h3>IA \+ MCP<\/h3>/g) ?? []).length).toBe(4);
+    expect((html.match(/Lo que respondió la IA/g) ?? []).length).toBe(8);
     expect((html.match(/Respuesta oficial de referencia/g) ?? []).length).toBe(4);
     expect((html.match(/Qué significa:/g) ?? []).length).toBe(4);
     expect((html.match(/El MCP con gráficas/g) ?? []).length).toBe(4);
     for (const c of CASOS_DEMO) expect(html).toContain(c.herramienta);
-    expect(html).toContain("Exacta: no");
-    expect(html).toContain("Exacta: sí");
+    expect((html.match(/class="rs-ver ok"/g) ?? []).length).toBe(4);
+    expect((html.match(/class="rs-ver mal"/g) ?? []).length).toBe(4);
+    const d05 = CASOS_DEMO.find((c) => c.id === "D05")!;
+    expect(d05.referencia_clave).toBe("S/ 162\u00a0507\u00a0128,65");
+    expect(html).toContain(`<b>${d05.referencia_clave}</b>`);
+  });
+  it("muestra las tablas de la respuesta como tabla, no como texto con barras", () => {
+    expect(html).toContain('<table class="md-t">');
+    expect(html).not.toMatch(/\|\s*-{3}\s*\|/);
   });
   it("incluye «Probar en vivo», el enlace al asistente y el resumen 40/40 frente a 3/40", () => {
     expect((html.match(/data-vivo=/g) ?? []).length).toBe(4);
