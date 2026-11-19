@@ -130,6 +130,9 @@ Repetir la evaluación varias veces y revisar a mano los casos dudosos; acercar 
 **20. ¿Cómo aporta al ODS 16?**
 Directamente a las metas 16.6 (instituciones transparentes que rindan cuentas) y 16.10 (acceso público a la información), porque vuelve consultables datos que ya eran públicos. A la meta 16.5 (reducir la corrupción) solo de forma indirecta: facilita la vigilancia ciudadana, pero las alertas no prueban irregularidades.
 
+**Extra. ¿Por qué aparecen cementerios entre las obras de «salud»?**
+Porque así las clasifica el propio MEF: en Cusco hay 55 inversiones de cementerios o nichos registradas con la función SALUD. ObraClara muestra los datos oficiales tal como vienen; si se quiere excluirlas, se filtra por texto en el nombre.
+
 ## 6. Lista de verificación antes de exponer
 
 - [ ] Probar las dos preguntas de la demostración con MCP apagado y encendido (las respuestas cambian entre intentos).
