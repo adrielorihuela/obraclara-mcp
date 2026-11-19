@@ -41,6 +41,17 @@ Abrir https://obraclara.adrielorihuela.net/asistente. Hacer **la misma pregunta 
 
 **Demostración de benchmarks (`/evaluacion`).** Abrir https://obraclara.adrielorihuela.net/evaluacion: (1) mostrar las tarjetas («sin MCP acertó 3 de 40; con MCP, 40»); (2) bajar a los gráficos y a la comparación entre modelos («el MCP mejora a todos los modelos, no solo a uno»); (3) en «Las 40 preguntas», filtrar por tipo (por ejemplo **Alertas**) o buscar «Cusco»; (4) abrir **Ver respuesta** de una pregunta y comparar lo que contestó la IA sola (cifras de otras fuentes, sin fecha de corte) con lo que contestó con MCP (cifra oficial, fuente y fecha, y la herramienta usada). Funciona también en el celular.
 
+## 3b. Guion de la demo del viernes 20/11 (2 a 3 minutos, `/demo`)
+
+La página `/demo` lleva los casos ya grabados (aparecen al instante) y no depende de que la IA conteste. Abrir antes https://obraclara.adrielorihuela.net/demo y probar el botón una vez.
+
+1. **Arriba (20 s).** Señalar los 4 pasos: pregunta, la IA elige una herramienta, el servidor consulta los datos oficiales del MEF, respuesta con fuente.
+2. **Caso 2, detalle de la obra 2226075 (50 s).** Leer la pregunta. Izquierda, «IA sola»: ✗ no exacta ni cita la fuente. Derecha, «IA + MCP»: ✓ exacta y con fuente; compararla con la respuesta oficial. Bajar al gráfico: la barra roja (costo hoy) es mucho más larga que la gris (lo aprobado). Decir «Qué significa»: es una señal para revisar, no una acusación.
+3. **Caso 3, alertas de Tacna (40 s).** Mostrar el gráfico de obras con más meses sin gasto y pulsar **Probar en vivo**: el servidor MCP responde en 1 a 2 s y el gráfico se redibuja con los datos de hoy. Mostrar la línea `tools/call` que se ejecutó.
+4. **Cierre en `/evaluacion` (30 s).** Abrir «Ver la evaluación completa»: con la conexión la IA acertó 40 de 40 preguntas; sola, 3 de 40.
+
+Plan B: si «Probar en vivo» falla (sin internet o sin servidor), el gráfico grabado sigue en pantalla y el mensaje lo avisa; seguir con el caso grabado. «Preguntarle al asistente» copia la pregunta y abre `/asistente` para pegarla.
+
 ## 4. Los conceptos, explicados sencillo
 
 - **Inteligencia artificial (IA):** programas que hacen tareas que antes pedían una persona, como entender un texto o responder una pregunta.

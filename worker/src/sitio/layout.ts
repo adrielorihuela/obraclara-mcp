@@ -29,6 +29,7 @@ const RUTAS: [string, string][] = [
   ["/#como", "Cómo funciona"],
   ["/proyecto", "El proyecto"],
   ["/evaluacion", "Benchmarks"],
+  ["/demo", "Demo"],
   ["/datos", "Datos y alertas"],
   ["/asistente", "Asistente"],
   ["/conectar", "Conectar"],

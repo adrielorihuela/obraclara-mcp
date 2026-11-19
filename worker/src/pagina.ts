@@ -1,6 +1,7 @@
 import { demoCss, demoHtml, demoScript } from "./demo";
 import { acerca, conectar, noEncontrada } from "./sitio/conectar";
 import { datos } from "./sitio/datos";
+import { demo } from "./sitio/demo-pagina";
 import { evaluacion } from "./sitio/evaluacion";
 import { inicio } from "./sitio/inicio";
 import { proyecto } from "./sitio/proyecto";
@@ -24,6 +25,7 @@ const PAGINAS: Record<string, (m: Meta) => string> = {
   "/asistente": asistente,
   "/proyecto": proyecto,
   "/evaluacion": evaluacion,
+  "/demo": demo,
   "/datos": datos,
   "/conectar": conectar,
   "/acerca": acerca,
