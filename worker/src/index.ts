@@ -82,6 +82,14 @@ export default {
       if (!chatIdSeguro(chat)) return json({ error: "chat_id no válido." }, 400);
       return cola.fetch(`https://cola/eventos?chat_id=${encodeURIComponent(chat)}&desde=${encodeURIComponent(url.searchParams.get("desde") ?? "0")}`);
     }
+    // .zip con todos los archivos vigentes del chat: lo arma la API del servidor y el conector lo trae bajo demanda.
+    if (url.pathname === "/api/agente/archivos.zip" && req.method === "GET") {
+      const chat = url.searchParams.get("chat_id");
+      if (!chatIdSeguro(chat)) return json({ error: "chat_id no válido." }, 400);
+      if (!(await env.CHAT_LIMITER.limit({ key: "zip:" + clave })).success) return json({ error: "Demasiadas descargas seguidas. Espera un minuto." }, 429);
+      const r = await cola.fetch(`https://cola/zip?chat_id=${encodeURIComponent(chat)}`);
+      return new Response(r.body, { status: r.status, headers: { "content-type": r.headers.get("content-type") ?? "application/json", ...(r.headers.get("content-disposition") ? { "content-disposition": r.headers.get("content-disposition") as string } : {}), "cache-control": "no-store" } });
+    }
     if (url.pathname === "/api/compartir" && req.method === "POST") {
       const origen = req.headers.get("origin");
       if (origen && origen !== SITIO && origen !== url.origin) return json({ error: "Origen no permitido" }, 403);

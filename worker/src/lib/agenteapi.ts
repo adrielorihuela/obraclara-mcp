@@ -2,7 +2,7 @@
 // lectura de archivos, límites) vive en la API del servidor. Aquí solo se descarta lo que no tiene forma de petición.
 export const AGENTE_MAX_CUERPO = 25 * 1024 * 1024; // protección: la API acepta cuerpos de unos 25 MB
 
-export type PeticionAgente = { chat_id?: string; mensaje: string; archivos: { nombre: string; datos: string }[]; mcp?: true };
+export type PeticionAgente = { chat_id?: string; mensaje: string; archivos: { nombre: string; datos: string }[]; mcp?: true; conocidos?: Record<string, number>; subidos?: string[] };
 export type ValidacionAgente = { ok: true; valor: PeticionAgente } | { ok: false; error: string };
 
 export const chatIdSeguro = (s: unknown): s is string => typeof s === "string" && /^[A-Za-z0-9_-]{1,64}$/.test(s);
@@ -15,5 +15,9 @@ export function validarAgente(b: unknown): ValidacionAgente {
   if (o.mcp !== undefined && typeof o.mcp !== "boolean") return { ok: false, error: "mcp debe ser verdadero o falso." };
   if (o.archivos !== undefined && o.archivos !== null && !Array.isArray(o.archivos)) return { ok: false, error: "archivos debe ser una lista." };
   const archivos = ((o.archivos as unknown[]) ?? []).filter((a): a is { nombre: string; datos: string } => !!a && typeof (a as { datos?: unknown }).datos === "string");
-  return { ok: true, valor: { ...(chatIdSeguro(o.chat_id) ? { chat_id: o.chat_id } : {}), mensaje: o.mensaje, archivos: archivos.map((a) => ({ nombre: String(a.nombre ?? "archivo").slice(0, 200), datos: a.datos })), ...(o.mcp === true ? { mcp: true as const } : {}) } };
+  // Pistas para que el conector no baje de nuevo lo que el navegador ya tiene (versión conocida por ruta y archivos recién subidos).
+  const conocidos: Record<string, number> = {};
+  if (o.conocidos && typeof o.conocidos === "object" && !Array.isArray(o.conocidos)) for (const [k, v] of Object.entries(o.conocidos as Record<string, unknown>).slice(0, 100)) if (typeof v === "number" && Number.isFinite(v)) conocidos[k.slice(0, 200)] = v;
+  const subidos = Array.isArray(o.subidos) ? (o.subidos as unknown[]).filter((x): x is string => typeof x === "string").slice(0, 50).map((x) => x.slice(0, 200)) : [];
+  return { ok: true, valor: { ...(chatIdSeguro(o.chat_id) ? { chat_id: o.chat_id } : {}), mensaje: o.mensaje, archivos: archivos.map((a) => ({ nombre: String(a.nombre ?? "archivo").slice(0, 200), datos: a.datos })), ...(Object.keys(conocidos).length ? { conocidos } : {}), ...(subidos.length ? { subidos } : {}), ...(o.mcp === true ? { mcp: true as const } : {}) } };
 }

@@ -5,9 +5,10 @@ import { DurableObject } from "cloudflare:workers";
 import { MAX_PENDIENTES, type Mensaje } from "./lib/gptjobs";
 
 const TIEMPO_MAX_MS = 85_000;
-type Resp = { codigo?: number; cuerpo?: unknown; content?: string; modelo?: string; error?: string; rows?: unknown[]; row?: unknown };
+type Resp = { codigo?: number; cuerpo?: unknown; content?: string; modelo?: string; error?: string; rows?: unknown[]; row?: unknown; zip?: string };
 const TIEMPO_SQL_MS = 8_000;
 const TIEMPO_AGENTE_MS = 300_000;
+const TIEMPO_ZIP_MS = 60_000;
 const MAX_AGENTES = 6; // turnos y mensajes al agente a la vez (la API decide qué hacer con cada uno)
 const MAX_CHATS_EVENTOS = 40;
 const MAX_EVENTOS = 300;
@@ -37,13 +38,13 @@ export class ColaIA extends DurableObject {
       this.conn = servidor;
       servidor.addEventListener("message", (ev) => {
         try {
-          const m = JSON.parse(String(ev.data)) as { codigo?: number; cuerpo?: unknown; type?: string; id?: string; chat_id?: string; tipo?: string; texto?: string; content?: string; modelo?: string; error?: string; rows?: unknown[]; row?: unknown; sql?: boolean; imagenes?: boolean; agente?: unknown };
+          const m = JSON.parse(String(ev.data)) as { codigo?: number; cuerpo?: unknown; type?: string; id?: string; chat_id?: string; tipo?: string; texto?: string; content?: string; modelo?: string; error?: string; rows?: unknown[]; row?: unknown; sql?: boolean; imagenes?: boolean; agente?: unknown; zip?: string };
           if (m.type === "ping") return servidor.send(JSON.stringify({ type: "pong" }));
           if (m.type === "hola") { this.sqlListo = !!m.sql; this.imagenes = !!m.imagenes; this.agente = !!m.agente; return; }
           if (m.type === "evento") return this.guardarEvento(m.chat_id, m.tipo, m.texto);
           if (m.type === "resultado" && m.id) {
             const r = this.pendientes.get(m.id) ?? this.consultas.get(m.id) ?? this.agentes.get(m.id)?.resolver;
-            r?.({ codigo: typeof m.codigo === "number" ? m.codigo : undefined, cuerpo: m.cuerpo, content: m.content, modelo: typeof m.modelo === "string" ? m.modelo.slice(0, 100) : undefined, error: m.error, rows: m.rows, row: m.row });
+            r?.({ codigo: typeof m.codigo === "number" ? m.codigo : undefined, cuerpo: m.cuerpo, content: m.content, modelo: typeof m.modelo === "string" ? m.modelo.slice(0, 100) : undefined, error: m.error, rows: m.rows, row: m.row, zip: typeof m.zip === "string" ? m.zip : undefined });
             this.pendientes.delete(m.id); this.consultas.delete(m.id); this.agentes.delete(m.id);
           }
         } catch { /* mensaje inválido: se ignora */ }
@@ -89,7 +90,7 @@ export class ColaIA extends DurableObject {
     if (url.pathname === "/agente" && req.method === "POST") {
       if (!this.conn || !this.agente) return Response.json({ error: "El modo agente del servidor no está disponible en este momento." }, { status: 503 });
       if (this.agentes.size >= MAX_AGENTES) return Response.json({ error: "El servidor está ocupado con otras preguntas. Inténtalo en unos segundos." }, { status: 503 });
-      const { chat_id, mensaje, archivos, mcp } = (await req.json()) as { chat_id?: string; mensaje: string; archivos: unknown[]; mcp?: boolean };
+      const { chat_id, mensaje, archivos, mcp, conocidos, subidos } = (await req.json()) as { chat_id?: string; mensaje: string; archivos: unknown[]; mcp?: boolean; conocidos?: unknown; subidos?: unknown };
       // Un turno nuevo (el chat no tiene otro en curso) empieza con el progreso en blanco; la numeración sigue para que el navegador no repita.
       if (chat_id && ![...this.agentes.values()].some((a) => a.chat_id === chat_id)) { const e = this.eventos.get(chat_id); if (e) e.lista = []; }
       const id = crypto.randomUUID();
@@ -97,11 +98,26 @@ export class ColaIA extends DurableObject {
         this.agentes.set(id, { chat_id, resolver: resolve });
         setTimeout(() => { if (this.agentes.delete(id)) resolve({ error: "El agente tardó demasiado en responder. Inténtalo de nuevo." }); }, TIEMPO_AGENTE_MS);
       });
-      try { this.conn.send(JSON.stringify({ type: "agente", id, chat_id, mensaje, archivos, ...(mcp === true ? { mcp: true } : {}) })); }
+      try { this.conn.send(JSON.stringify({ type: "agente", id, chat_id, mensaje, archivos, ...(mcp === true ? { mcp: true } : {}), ...(conocidos ? { conocidos } : {}), ...(subidos ? { subidos } : {}) })); }
       catch { this.agentes.delete(id); return Response.json({ error: "No se pudo enviar la tarea al conector." }, { status: 502 }); }
       const r = await respuesta;
       if (r.cuerpo && typeof r.cuerpo === "object" && (r.codigo === 200 || r.codigo === 202)) return Response.json(r.cuerpo, { status: r.codigo });
       return Response.json({ error: r.error ?? "Error del agente" }, { status: r.codigo && r.codigo >= 400 && r.codigo < 500 ? r.codigo : 502 });
+    }
+    if (url.pathname === "/zip") {
+      if (!this.conn || !this.agente) return Response.json({ error: "El servidor no está disponible en este momento." }, { status: 503 });
+      const chat = url.searchParams.get("chat_id") ?? "";
+      if (!/^[A-Za-z0-9_-]{1,64}$/.test(chat) || this.consultas.size >= 6) return Response.json({ error: "Petición no válida u ocupada." }, { status: 400 });
+      const id = crypto.randomUUID();
+      const respuesta = new Promise<Resp>((resolve) => {
+        this.consultas.set(id, resolve);
+        setTimeout(() => { if (this.consultas.delete(id)) resolve({ error: "tiempo agotado" }); }, TIEMPO_ZIP_MS);
+      });
+      try { this.conn.send(JSON.stringify({ type: "zip", id, chat_id: chat })); } catch { this.consultas.delete(id); return Response.json({ error: "no se pudo enviar" }, { status: 502 }); }
+      const r = await respuesta;
+      if (!r.zip) return Response.json({ error: r.error ?? "No se pudo preparar el .zip." }, { status: 502 });
+      const bin = Uint8Array.from(atob(r.zip), (c) => c.charCodeAt(0));
+      return new Response(bin, { headers: { "content-type": "application/zip", "content-disposition": 'attachment; filename="archivos-del-chat.zip"', "cache-control": "no-store" } });
     }
     if (url.pathname === "/eventos") {
       const chat = url.searchParams.get("chat_id") ?? "";

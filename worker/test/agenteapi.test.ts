@@ -14,4 +14,13 @@ describe("validarAgente (solo forma de la petición)", () => {
     const v = validarAgente({ mensaje: "x", archivos: [{ nombre: "a.xlsx", datos: "data:application/x;base64,AAAA" }, null, { nombre: "b" }] });
     expect(v).toEqual({ ok: true, valor: { mensaje: "x", archivos: [{ nombre: "a.xlsx", datos: "data:application/x;base64,AAAA" }] } });
   });
+  it("pasa las pistas de versiones (conocidos y subidos) y descarta lo que no tiene forma", () => {
+    const v = validarAgente({ mensaje: "x", conocidos: { "a.pptx": 2, "b.pptx": "uno" }, subidos: ["a.docx", 5] });
+    expect(v).toEqual({ ok: true, valor: { mensaje: "x", archivos: [], conocidos: { "a.pptx": 2 }, subidos: ["a.docx"] } });
+  });
+  it("normalizarMensaje conserva la versión de cada archivo entregado", async () => {
+    const { normalizarMensaje } = await import("../src/lib/agente");
+    const m = normalizarMensaje({ rol: "a", texto: "ok", arch: [{ id: "f1", n: "a.pptx", b: 5, v: 2 }, { id: "f2", n: "b.pptx", b: 5, v: 1 }] })!;
+    expect(m.arch).toEqual([{ id: "f1", n: "a.pptx", b: 5, v: 2 }, { id: "f2", n: "b.pptx", b: 5 }]);
+  });
 });

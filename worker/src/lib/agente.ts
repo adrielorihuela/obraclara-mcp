@@ -286,7 +286,7 @@ export type MensajeGuardado = {
   herramienta?: { nombre: string; args: unknown; resultado: string };
   /** Adjuntos del mensaje de usuario (solo datos para mostrar chips). */
   adj?: { n: string; t: string; c: number; b?: number }[];
-  arch?: { id: string; n: string; ti?: string; b: number; g?: boolean }[];
+  arch?: { id: string; n: string; ti?: string; b: number; g?: boolean; v?: number }[];
 };
 export type ChatGuardado = { id: string; titulo: string; creado: number; actualizado: number; mensajes: MensajeGuardado[]; agenteId?: string };
 
@@ -311,12 +311,13 @@ export function normalizarMensaje(m: any): MensajeGuardado | null {
     if (Array.isArray(m.adj) && m.adj.length) o.adj = m.adj.slice(0, 10).map((x: any) => ({ n: String((x && x.n) || "").slice(0, 100), t: String((x && x.t) || "").slice(0, 10), c: Number(x && x.c) || 0, b: Number(x && x.b) || 0 }));
   }
   if (m.rol === "a" && Array.isArray(m.arch) && m.arch.length) {
-    const ar: { id: string; n: string; ti?: string; b: number; g?: boolean }[] = [];
+    const ar: { id: string; n: string; ti?: string; b: number; g?: boolean; v?: number }[] = [];
     m.arch.slice(0, 20).forEach((x: any) => {
       if (!x || typeof x.id !== "string" || !/^[A-Za-z0-9_-]{1,40}$/.test(x.id)) return;
-      const it: { id: string; n: string; ti?: string; b: number; g?: boolean } = { id: x.id, n: String(x.n || "archivo").slice(0, 200), b: Math.max(0, Number(x.b) || 0) };
+      const it: { id: string; n: string; ti?: string; b: number; g?: boolean; v?: number } = { id: x.id, n: String(x.n || "archivo").slice(0, 200), b: Math.max(0, Number(x.b) || 0) };
       if (typeof x.ti === "string" && x.ti) it.ti = x.ti.slice(0, 100);
       if (x.g === true) it.g = true;
+      if (Number.isFinite(x.v) && x.v > 1 && x.v < 1000) it.v = Math.floor(x.v);
       ar.push(it);
     });
     if (ar.length) o.arch = ar;

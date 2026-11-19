@@ -65,7 +65,7 @@ async function responder(ws, tarea) {
 // Modo agente: el conector solo reenvía. La API local lleva toda la lógica (turnos, mensajes durante un turno, lectura y creación
 // de archivos, reintentos, limpieza de la respuesta); aquí se añade el servidor MCP de ObraClara, se reenvía el POST /v1/agente
 // tal cual, se descargan los `adjuntos` que declara la API y se empujan al Worker los eventos de progreso del turno.
-const AGENTE_MAX_BYTES = 16 * 1024 * 1024; // descarga total de adjuntos hacia el navegador
+const AGENTE_MAX_BYTES = 25 * 1024 * 1024; // descarga total de adjuntos hacia el navegador
 const TIPOS = { txt: "text/plain", md: "text/markdown", csv: "text/csv", json: "application/json", html: "text/html", pdf: "application/pdf", zip: "application/zip", png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation" };
 const cabIA = () => (IA_KEY ? { authorization: "Bearer " + IA_KEY } : {});
 const enviar = (ws, msg) => { try { ws.send(JSON.stringify(msg)); } catch { /* conexión caída */ } };
@@ -116,23 +116,33 @@ async function agente(ws, tarea) {
     } else if (!r.ok || typeof j?.respuesta !== "string") {
       throw new Error(j?.error?.message || (typeof j?.error === "string" ? j.error : "") || `respuesta vacía (${r.status})`);
     } else {
-      const archivos = []; const omitidos = []; let total = 0;
+      const archivos = []; const omitidos = []; const pendientes = []; let total = 0;
       const adjuntos = (Array.isArray(j.adjuntos) ? j.adjuntos : []).slice(0, 20);
-      for (const a of adjuntos) {
+      const vigentes = (Array.isArray(j.archivos_chat) ? j.archivos_chat : []).slice(0, 100);
+      const conocidos = tarea.conocidos && typeof tarea.conocidos === "object" ? tarea.conocidos : {};
+      const subidos = new Set(Array.isArray(tarea.subidos) ? tarea.subidos : []);
+      // Primero lo entregado en este turno; después lo vigente del chat que el navegador aún no tiene (versiones nuevas).
+      const bajar = async (a, obligatorio) => {
         try {
-          if (typeof a?.url !== "string" || !a.url.startsWith("/") || a.url.startsWith("//")) continue;
-          if (total + (Number(a.bytes) || 0) > AGENTE_MAX_BYTES) { omitidos.push(a.ruta); continue; }
+          if (typeof a?.url !== "string" || !a.url.startsWith("/") || a.url.startsWith("//")) return;
+          if (total + (Number(a.bytes) || 0) > AGENTE_MAX_BYTES) { (obligatorio ? omitidos : pendientes).push(a.ruta); return; }
           const d = await fetch(IA_URL + a.url, { headers: cabIA(), signal: AbortSignal.timeout(60000) });
-          if (!d.ok) { omitidos.push(a.ruta); continue; }
+          if (!d.ok) { (obligatorio ? omitidos : pendientes).push(a.ruta); return; }
           const b = Buffer.from(await d.arrayBuffer());
-          if (total + b.length > AGENTE_MAX_BYTES) { omitidos.push(a.ruta); continue; }
+          if (total + b.length > AGENTE_MAX_BYTES) { (obligatorio ? omitidos : pendientes).push(a.ruta); return; }
           total += b.length;
           const ext = String(a.ruta).split(".").pop().toLowerCase();
-          archivos.push({ nombre: String(a.ruta), ...(typeof a.titulo === "string" && a.titulo ? { titulo: a.titulo.slice(0, 100) } : {}), tipo: TIPOS[ext] || "application/octet-stream", datos: b.toString("base64") });
-        } catch { omitidos.push(a?.ruta); }
+          archivos.push({ nombre: String(a.ruta), ...(typeof a.titulo === "string" && a.titulo ? { titulo: a.titulo.slice(0, 100) } : {}), ...(Number.isFinite(a.version) ? { version: a.version } : {}), tipo: TIPOS[ext] || "application/octet-stream", datos: b.toString("base64") });
+        } catch { (obligatorio ? omitidos : pendientes).push(a?.ruta); }
+      };
+      for (const a of adjuntos) await bajar(a, true);
+      for (const a of vigentes) {
+        if (archivos.some((x) => x.nombre === a?.ruta && x.version === a?.version) || (a?.origen === "usuario" && subidos.has(a?.ruta)) || conocidos[a?.ruta] === a?.version) continue;
+        await bajar(a, false);
       }
       // Solo se reenvían los campos que el sitio usa (sin direcciones internas ni datos del proveedor).
-      const cuerpo = { chat_id: j.chat_id ?? chat, respuesta: j.respuesta, adjuntos: adjuntos.map((a) => ({ ruta: a.ruta, titulo: a.titulo, bytes: a.bytes, tipo: a.tipo })), mensajes_incorporados: Number(j.mensajes_incorporados) || 0, archivos, ...(omitidos.length ? { omitidos } : {}) };
+      const meta = (a) => ({ ruta: a.ruta, titulo: a.titulo, bytes: a.bytes, tipo: a.tipo, ...(Number.isFinite(a.version) ? { version: a.version } : {}), ...(a.origen === "usuario" || a.origen === "agente" ? { origen: a.origen } : {}), ...(a.actualizado ? { actualizado: a.actualizado } : {}) });
+      const cuerpo = { chat_id: j.chat_id ?? chat, respuesta: j.respuesta, adjuntos: adjuntos.map(meta), ...(Array.isArray(j.archivos_chat) ? { archivos_chat: vigentes.map(meta) } : {}), mensajes_incorporados: Number(j.mensajes_incorporados) || 0, archivos, ...(omitidos.length ? { omitidos } : {}), ...(pendientes.length ? { pendiente: true, pendientes } : {}) };
       msg = { type: "resultado", id: tarea.id, codigo: 200, cuerpo };
       log("agente ok", tarea.id.slice(0, 8), `${Date.now() - t0}ms`, `archivos=${archivos.length}`);
     }
@@ -145,13 +155,28 @@ async function agente(ws, tarea) {
   enviar(ws, msg);
 }
 
+// .zip con los archivos vigentes del chat, bajo demanda (lo arma la API local).
+async function zipChat(ws, m) {
+  let msg;
+  try {
+    const chat = /^[A-Za-z0-9_-]{1,64}$/.test(String(m.chat_id)) ? m.chat_id : "";
+    if (!chat) throw new Error("chat no válido");
+    const d = await fetch(`${IA_URL}/v1/agente/chats/${chat}/archivos-chat.zip`, { headers: cabIA(), signal: AbortSignal.timeout(50000) });
+    if (!d.ok) throw new Error(`respuesta ${d.status}`);
+    const b = Buffer.from(await d.arrayBuffer());
+    if (b.length > AGENTE_MAX_BYTES) throw new Error("el .zip supera el límite de descarga");
+    msg = { type: "resultado", id: m.id, zip: b.toString("base64") };
+  } catch (e) { msg = { type: "resultado", id: m.id, error: "No se pudo preparar el .zip: " + String(e.message).slice(0, 150) }; }
+  enviar(ws, msg);
+}
+
 let espera = 1000;
 function conectar() {
   const ws = new WebSocket(SITIO.replace(/^http/, "ws") + "/conector/ws", [SECRET]);
   let ping;
   ws.addEventListener("open", () => { log("conectado", db ? "(SQL local activo)" : "(sin base local: el Worker usará D1)"); ws.send(JSON.stringify({ type: "hola", sql: !!db, imagenes: true, agente: true })); espera = 1000; ping = setInterval(() => { try { ws.send('{"type":"ping"}'); } catch {} }, 25000); });
   ws.addEventListener("message", (ev) => {
-    try { const m = JSON.parse(String(ev.data)); if (m.type === "job") lanzar(ws, m); else if (m.type === "agente") agente(ws, m); else if (m.type === "sql") consultar(ws, m); } catch { /* ignorar */ }
+    try { const m = JSON.parse(String(ev.data)); if (m.type === "job") lanzar(ws, m); else if (m.type === "agente") agente(ws, m); else if (m.type === "zip") zipChat(ws, m); else if (m.type === "sql") consultar(ws, m); } catch { /* ignorar */ }
   });
   ws.addEventListener("close", (ev) => { clearInterval(ping); log("desconectado", ev.code); setTimeout(conectar, espera); espera = Math.min(espera * 2, 30000); });
   ws.addEventListener("error", () => { /* 'close' se dispara después y reconecta */ });

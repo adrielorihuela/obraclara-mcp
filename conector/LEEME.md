@@ -45,8 +45,8 @@ lectura y creación de archivos, MCP, reintentos, limpieza de la respuesta) vive
 - El Worker expone `POST /api/agente` (`{chat_id, mensaje, archivos?: [{nombre, datos}], mcp?: true}`; `datos` en base64 crudo; cuerpo máx. ~25 MB)
   y lo reenvía al conector como tarea `agente`. El conector llama una sola vez a `IA_URL/v1/agente` tal cual, añadiendo el servidor MCP de ObraClara
   (`SITIO/mcp`) si `mcp` es verdadero.
-- Respuesta 200: el conector descarga solo los `adjuntos` que declara la API (máx. 16 MB en total; los que no caben van en `omitidos`) y devuelve
-  `{chat_id, respuesta, adjuntos, mensajes_incorporados, archivos: [{nombre, titulo, tipo, datos}]}`. Respuesta 202 (ya había un turno en curso):
+- Respuesta 200: el conector descarga solo los `adjuntos` que declara la API (máx. 25 MB en total; los que no caben van en `omitidos`), reenvía `archivos_chat` (archivos vigentes del chat, con `version`) y baja también las versiones que el navegador aún no tiene (si no caben: `pendiente: true`). Devuelve
+  `{chat_id, respuesta, adjuntos, archivos_chat, mensajes_incorporados, archivos: [{nombre, titulo, tipo, version, datos}]}`. Bajo demanda, `GET /api/agente/archivos.zip?chat_id=…` trae el .zip con todos los archivos del chat. Respuesta 202 (ya había un turno en curso):
   `{estado: "inyectado", chat_id, pendientes}`. Espera máxima: 300 s. Al visitante no se le muestra qué proveedor respondió.
 - Progreso: mientras dura el turno, el conector sigue `IA_URL/v1/agente/chats/<id>/eventos` (SSE) y empuja cada evento (`paso`, `herramienta`,
   `archivo`, `mensaje_incorporado`, `fin`, `error`) por el WebSocket; el Worker los guarda en memoria por chat y el navegador los lee en
