@@ -249,6 +249,23 @@ xychart-beta
 
 Para regenerar los datos del sitio: `node eval/exportar_sitio.mjs`.
 
+### Benchmarks: página `/evaluacion` y comparación entre modelos
+
+**En sencillo:** la página [/evaluacion](https://obraclara.adrielorihuela.net/evaluacion) («Benchmarks» en el menú) muestra el examen de 40 preguntas completo: tarjetas con el resultado principal (**de 40 preguntas, sin MCP acertó 3; con MCP, 40**), gráficos de todas las métricas y de la latencia, y una tabla de las 40 preguntas con filtro por tipo, búsqueda, la respuesta de referencia, ✓/✗ de exacta, estricta, cita e inventada en cada condición, y un desplegable «Ver respuesta» con lo que contestó la IA (y la herramienta usada, con MCP). Todo se genera con `node eval/exportar_sitio.mjs` desde `eval/resultados/` (archivo `worker/src/sitio/evaluacion-tabla.ts`); nada se copia a mano.
+
+**El MCP mejora a todos los modelos, no solo a uno.** El profesor pidió comparar la IA sola con la herramienta en más de un modelo. Cada modelo se evalúa con las mismas 40 preguntas, sin y con MCP, y sus resultados se guardan aparte en `eval/resultados/modelos/<id>/` sin tocar la corrida principal:
+
+```bash
+cd eval
+export IA_URL=<API compatible con OpenAI del modelo> IA_KEY=<clave> IA_MODELO=<modelo>
+export EVAL_MODELO_ID=<id corto> EVAL_MODELO_NOMBRE="<nombre legible>"
+node run_eval.mjs && node reconstruir_fuentes.mjs && node score_eval.mjs && node exportar_graficos.mjs
+echo '{"nombre":"<nombre legible>","nota":"<observaciones>"}' > resultados/modelos/<id>/meta.json
+node exportar_sitio.mjs   # añade el modelo a la tabla y al gráfico comparativo de /evaluacion
+```
+
+Si un proveedor alcanza su límite de uso, el ejecutor se detiene tras 3 fallos seguidos; es reanudable y la tabla muestra cuántas preguntas se respondieron («Respondidas»). Los resultados por modelo aparecen en la sección «El MCP mejora a todos los modelos» de `/evaluacion`.
+
 ## Métricas
 
 **En sencillo:** medimos cuatro cosas: si los datos están completos, cuántas obras tienen alertas, si el servidor responde rápido y sin fallar, y si lo que responde coincide con la base de datos. Todos los números salen de los archivos de [`metricas/resultados/`](../metricas/resultados/) (corte del 10 de noviembre de 2026); las tablas y los gráficos de la página `/proyecto` se generan con `node metricas/exportar_sitio.mjs`.

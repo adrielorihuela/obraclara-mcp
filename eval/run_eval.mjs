@@ -6,7 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const DIR = path.dirname(fileURLToPath(import.meta.url));
-const OUT = path.join(DIR, 'resultados');
+const OUT = path.join(DIR, 'resultados', ...(process.env.EVAL_MODELO_ID ? ['modelos', process.env.EVAL_MODELO_ID] : [])); // EVAL_MODELO_ID guarda la corrida de otro modelo en resultados/modelos/<id>/
 if (!process.env.IA_URL) { console.error('Falta IA_URL (API compatible con OpenAI).'); process.exit(1); }
 const IA = process.env.IA_URL.replace(/\/+$/, '') + '/v1/chat/completions';
 const MCP = 'https://obraclara.adrielorihuela.net/mcp';

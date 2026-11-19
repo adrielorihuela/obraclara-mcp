@@ -182,7 +182,7 @@ export function inicio(m: Meta): string {
 <figure class="rv d1"><p class="lbl"><i aria-hidden="true"></i>MCP desactivado</p><div class="shot"><img src="/img/sin-mcp.png" width="1200" height="900" alt="Panel del asistente con MCP desactivado: el modelo responde sin consultar datos" loading="lazy" decoding="async"></div>
 <figcaption><b>Sin la conexión.</b> La misma pregunta. Los números de expediente, montos y fechas de esta tabla no existen en los datos del MEF: el asistente los inventó.</figcaption></figure>
 </div>
-<p class="small mut" style="margin-top:20px">Capturas reales del panel, tomadas el 10 de noviembre de 2026. Las respuestas de un asistente cambian entre intentos. <a href="/proyecto#evaluacion">Ver la evaluación completa</a>.</p>
+<p class="small mut" style="margin-top:20px">Capturas reales del panel, tomadas el 10 de noviembre de 2026. Las respuestas de un asistente cambian entre intentos. <a href="/evaluacion">Ver los benchmarks y las 40 preguntas</a> · <a href="/proyecto#evaluacion">método de la evaluación</a>.</p>
 </div></section>
 
 <section class="sec"><div class="wrap tools">

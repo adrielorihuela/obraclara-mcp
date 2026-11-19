@@ -191,6 +191,10 @@ node score_eval.mjs                        # puntúa y escribe resultados/result
 
 Resultados: [`eval/resultados/resumen.md`](eval/resultados/resumen.md). Las respuestas crudas están en `eval/resultados/raw_*.jsonl`; los resultados de las herramientas, en `fuentes_con_mcp.json`. Pruebas del puntuador: `node --test eval/cifras.test.mjs`.
 
+### Benchmarks y comparación entre modelos
+
+La página `/evaluacion` del sitio muestra las 40 preguntas con sus respuestas, filtro por tipo y búsqueda, gráficos de todas las métricas y la comparación por modelo × condición («El MCP mejora a todos los modelos, no solo a uno»). Para evaluar otro modelo sin pisar la corrida principal: `EVAL_MODELO_ID=<id> EVAL_MODELO_NOMBRE="<nombre>" IA_URL=... IA_MODELO=... node run_eval.mjs` (y luego `reconstruir_fuentes.mjs`, `score_eval.mjs`, `exportar_graficos.mjs` con la misma variable); guarda en `eval/resultados/modelos/<id>/`. `node exportar_sitio.mjs` genera `evaluacion-datos.ts` y `evaluacion-tabla.ts`. Detalle en `docs/PROYECTO.md`.
+
 ### Tablas para gráficos en Excel
 
 ```bash

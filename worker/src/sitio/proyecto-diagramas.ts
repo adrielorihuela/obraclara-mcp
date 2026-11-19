@@ -123,7 +123,7 @@ export function flujoConsulta(): string {
 /* ---------- 5. Evaluación: barras agrupadas ---------- */
 
 type Par = { etiqueta: string; sin: number; con: number };
-function barrasAgrupadas(id: string, titulo: string, desc: string, grupos: Par[], vb: [number, number], bw: number): string {
+export function barrasAgrupadas(id: string, titulo: string, desc: string, grupos: Par[], vb: [number, number], bw: number): string {
   const [W, H] = vb, izq = 34, arriba = 22, abajo = 34, alto = H - arriba - abajo, gw = (W - izq - 6) / grupos.length;
   const y = (v: number) => arriba + alto - (v / 100) * alto;
   let s = [0, 50, 100].map((g) => `<line x1="${izq}" x2="${W}" y1="${y(g).toFixed(1)}" y2="${y(g).toFixed(1)}" class="gx-g"/>` + txt(izq - 6, y(g) + 4, String(g), "gx-m", "end")).join("");

@@ -7,7 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const DIR = path.dirname(fileURLToPath(import.meta.url));
-const OUT = path.join(DIR, 'resultados');
+const OUT = path.join(DIR, 'resultados', ...(process.env.EVAL_MODELO_ID ? ['modelos', process.env.EVAL_MODELO_ID] : [])); // EVAL_MODELO_ID guarda la corrida de otro modelo en resultados/modelos/<id>/
 const MCP = 'https://obraclara.adrielorihuela.net/mcp';
 
 async function rpc(method, params) {

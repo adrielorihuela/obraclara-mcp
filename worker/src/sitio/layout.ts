@@ -28,6 +28,7 @@ const icoMenu = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stro
 const RUTAS: [string, string][] = [
   ["/#como", "Cómo funciona"],
   ["/proyecto", "El proyecto"],
+  ["/evaluacion", "Benchmarks"],
   ["/datos", "Datos y alertas"],
   ["/asistente", "Asistente"],
   ["/conectar", "Conectar"],

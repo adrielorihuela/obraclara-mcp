@@ -90,7 +90,7 @@ code,kbd,pre{font-family:var(--mono);font-size:.88em}
 .marca svg{width:26px;height:26px}
 .marca span small{font-weight:400;color:var(--mut)}
 .links{display:flex;gap:2px;margin-left:12px}
-.links a{white-space:nowrap;padding:8px 12px;border-radius:8px;text-decoration:none;font-size:15px;color:var(--ink-2)}
+.links a{white-space:nowrap;padding:8px 9px;border-radius:8px;text-decoration:none;font-size:15px;color:var(--ink-2)}
 .links a:hover{color:var(--ink);background:var(--surface-2)}
 .links a[aria-current=page]{color:var(--ink);font-weight:600}
 .nav-r{margin-left:auto;display:flex;align-items:center;gap:6px}

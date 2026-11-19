@@ -39,3 +39,20 @@ describe("página /proyecto", () => {
     for (const p of prohibidas) expect(html.toLowerCase()).not.toContain(p);
   });
 });
+
+describe("página /evaluacion", () => {
+  const ev = paginaSitio("/evaluacion", meta) ?? "";
+  it("existe, está en el menú y pesa menos de 200 KB", () => {
+    expect(ev.startsWith("<!doctype html>")).toBe(true);
+    expect(ev).toContain('<a href="/evaluacion" aria-current="page">Benchmarks</a>');
+    expect(Buffer.byteLength(ev)).toBeLessThan(200_000);
+  });
+  it("lista las 40 preguntas con filtro y búsqueda", () => {
+    expect((ev.match(/class="qr"/g) ?? []).length).toBe(40);
+    expect(ev).toContain('id="ev-buscar"');
+    expect(ev).toContain('data-t="alertas"');
+  });
+  it("no nombra al proveedor privado", () => {
+    expect(ev).not.toMatch(new RegExp(["head", "less|87", "65"].join(""), "i"));
+  });
+});

@@ -39,6 +39,8 @@ Abrir https://obraclara.adrielorihuela.net/asistente. Hacer **la misma pregunta 
 
 **Plan B si el asistente tarda o está apagado.** Las respuestas pueden tardar hasta 20 s; llenar el silencio explicando qué hace el servidor. Si no responde, usar la página `/datos` (búsqueda directa, sin IA) o mostrar las capturas de la página de inicio, que son reales. Probar las dos preguntas **antes** de exponer: las respuestas del asistente cambian entre intentos.
 
+**Demostración de benchmarks (`/evaluacion`).** Abrir https://obraclara.adrielorihuela.net/evaluacion: (1) mostrar las tarjetas («sin MCP acertó 3 de 40; con MCP, 40»); (2) bajar a los gráficos y a la comparación entre modelos («el MCP mejora a todos los modelos, no solo a uno»); (3) en «Las 40 preguntas», filtrar por tipo (por ejemplo **Alertas**) o buscar «Cusco»; (4) abrir **Ver respuesta** de una pregunta y comparar lo que contestó la IA sola (cifras de otras fuentes, sin fecha de corte) con lo que contestó con MCP (cifra oficial, fuente y fecha, y la herramienta usada). Funciona también en el celular.
+
 ## 4. Los conceptos, explicados sencillo
 
 - **Inteligencia artificial (IA):** programas que hacen tareas que antes pedían una persona, como entender un texto o responder una pregunta.

@@ -8,7 +8,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { percentil } from './cifras.mjs';
 
-const OUT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'resultados');
+const OUT = path.join(path.dirname(fileURLToPath(import.meta.url)), 'resultados', ...(process.env.EVAL_MODELO_ID ? ['modelos', process.env.EVAL_MODELO_ID] : []));
 
 function parseCSV(t) {
   const rows = []; let row = [], f = '', q = false;

@@ -93,3 +93,38 @@ const ejemplos = IDS_EJEMPLOS.map((id) => {
 const datos = { fecha, preguntas: globalCsv[0].preguntas, global, porTipo, latencia, cambios, herramientaEsperada: { usada: Number(herr?.[1]), total: Number(herr?.[2]) }, comoSePuntuo, advertencias, ejemplos };
 fs.writeFileSync(SALIDA, `// GENERADO por eval/exportar_sitio.mjs a partir de eval/resultados/. No editar a mano: vuelve a ejecutar \`node eval/exportar_sitio.mjs\`.\nexport const EVAL = ${JSON.stringify(datos, null, 1)} as const;\n`);
 console.log(`escrito ${path.relative(process.cwd(), SALIDA)} (${global.length} condiciones, ${porTipo.length} filas por tipo, ${ejemplos.length} ejemplos)`);
+
+// --- Tabla de las 40 preguntas y comparación entre modelos (página /evaluacion) -> worker/src/sitio/evaluacion-tabla.ts ---
+const SALIDA_TABLA = path.join(AQUI, '..', 'worker', 'src', 'sitio', 'evaluacion-tabla.ts');
+const MAX_TXT = 420;
+const lista = Object.values(preguntas);
+const fila = (raw, cond, id) => {
+  const r = raw[id], p = punt[`${id}|${cond}`];
+  return {
+    e: p.exacta === '1', s: p.estricta === '1', c: p.cita === '1', i: p.inventada === '1',
+    t: r?.answer ? recortar(limpiar(r.answer), MAX_TXT) : '(sin respuesta)',
+    ...(cond === 'con_mcp' ? { h: (r?.tool_calls ?? []).map((t) => t.name) } : {}),
+  };
+};
+const tabla = lista.map((q) => ({ id: q.id, tipo: q.tipo, p: q.pregunta, r: q.respuesta_referencia, esp: q.herramienta_esperada, sin: fila(sin, 'sin_mcp', q.id), con: fila(con, 'con_mcp', q.id) }));
+
+// Modelos: la corrida principal («IA del servidor») más cada carpeta de resultados/modelos/<id>/ con su meta.json {nombre, nota}.
+function resumenModelo(id, nombre, nota, dir) {
+  const rd = (f) => parseCSV(fs.readFileSync(path.join(dir, f), 'utf8'));
+  const g = rd('graficos_global.csv'), l = rd('graficos_latencia.csv');
+  const por = (c) => {
+    const x = g.find((r) => r.condicion === c), y = l.find((r) => r.condicion === c);
+    return { exactitud: n(x.exactitud_pct), estricta: n(x.exacta_estricta_pct), citacion: n(x.citacion_pct), inventada: n(x.inventada_pct), noSustentadas: n(x.no_sustentadas_pct), ejecutadas: n(x.ejecutadas), mediana: n(y.latencia_mediana_s) };
+  };
+  return { id, nombre, nota, sin: por('sin_mcp'), con: por('con_mcp') };
+}
+const modelos = [resumenModelo('principal', 'IA del servidor (modelo variable)', 'Corrida principal del proyecto; el proveedor puede cambiar de modelo entre preguntas.', RES)];
+const dirModelos = path.join(RES, 'modelos');
+if (fs.existsSync(dirModelos)) for (const id of fs.readdirSync(dirModelos).sort()) {
+  const d = path.join(dirModelos, id);
+  if (!fs.existsSync(path.join(d, 'meta.json')) || !fs.existsSync(path.join(d, 'graficos_global.csv'))) continue;
+  const meta = JSON.parse(fs.readFileSync(path.join(d, 'meta.json'), 'utf8'));
+  modelos.push(resumenModelo(id, meta.nombre, meta.nota ?? '', d));
+}
+fs.writeFileSync(SALIDA_TABLA, `// GENERADO por eval/exportar_sitio.mjs a partir de eval/resultados/. No editar a mano.\nexport interface Lado { e: boolean; s: boolean; c: boolean; i: boolean; t: string; h?: string[] }\nexport interface Fila { id: string; tipo: string; p: string; r: string; esp: string; sin: Lado; con: Lado }\nexport interface Lote { exactitud: number; estricta: number; citacion: number; inventada: number; noSustentadas: number; ejecutadas: number; mediana: number }\nexport interface Modelo { id: string; nombre: string; nota: string; sin: Lote; con: Lote }\nexport const PREGUNTAS: Fila[] = ${JSON.stringify(tabla)};\nexport const MODELOS: Modelo[] = ${JSON.stringify(modelos)};\n`);
+console.log(`escrito ${path.relative(process.cwd(), SALIDA_TABLA)} (${tabla.length} preguntas, ${modelos.length} modelos)`);
