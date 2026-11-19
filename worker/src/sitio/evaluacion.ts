@@ -17,9 +17,10 @@ const css = String.raw`
 .ev-s .lead{max-width:70ch}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:22px 0}
 .kpi{border:1px solid var(--line);border-radius:var(--r-l);background:var(--surface);padding:18px 20px}
-.kpi b{display:block;font:600 clamp(2rem,1.4rem + 2.4vw,3.2rem)/1.05 var(--serif);color:var(--ink);font-variant-numeric:tabular-nums}
+.kpi>b{display:block;font:600 clamp(2rem,1.4rem + 2.4vw,3.2rem)/1.05 var(--serif);color:var(--ink);font-variant-numeric:tabular-nums}
 .kpi span{display:block;margin-top:6px;font-size:var(--s-1);color:var(--mut)}
-.kpi.con{background:var(--accent-soft);border-color:transparent}.kpi.con b{color:var(--accent)}
+.kpi.con{background:var(--accent-soft);border-color:transparent}.kpi.con>b{color:var(--accent)}
+.kpi span b{font-weight:600;color:var(--ink)}
 .figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:24px;margin:20px 0}
 .figs figure{margin:0;min-width:0}.figs figcaption{margin-top:8px;font-size:var(--s-1);color:var(--mut);text-align:center}
 .tbw{overflow-x:auto;margin:16px 0;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { deflateRawSync } from "node:zlib";
 import {
-  buildSystemPrompt, clasificarRuta, docxATexto, esTextoBytes, extensionArchivo, leerDocx, nombreSeguro, normalizarMensaje, parseToolCall,
+  buildSystemPrompt, clasificarRuta, docxATexto, docxBloques, docxEstilos, docxNumeracion, docxRelaciones, leerDocxDoc, esTextoBytes, extensionArchivo, leerDocx, nombreSeguro, normalizarMensaje, parseToolCall,
   recortarMensajes, rutaSegura, tipoAdjunto, zipEntradas, zipExtraer,
 } from "../src/lib/agente";
 import { crc32, crearZip } from "./zipfake";
@@ -154,5 +154,40 @@ describe("zip de prueba", () => {
     const { entradas } = zipEntradas(z);
     expect(entradas.map((e) => e.nombre)).toEqual(["a.txt", "d/b.bin"]);
     expect(dec.decode((await zipExtraer(z, entradas[0], 100))!)).toBe("hola ñ");
+  });
+});
+
+describe("docx como documento", () => {
+  const W = '<w:document><w:body>';
+  const estilos = '<w:styles><w:style w:type="paragraph" w:styleId="Ttulo1"><w:name w:val="heading 1"/></w:style><w:style w:styleId="Title"><w:name w:val="Title"/></w:style></w:styles>';
+  const num = '<w:numbering><w:abstractNum w:abstractNumId="0"><w:lvl w:ilvl="0"><w:numFmt w:val="decimal"/></w:lvl><w:lvl w:ilvl="1"><w:numFmt w:val="bullet"/></w:lvl></w:abstractNum><w:num w:numId="3"><w:abstractNumId w:val="0"/></w:num></w:numbering>';
+  const rels = '<Relationships><Relationship Id="rId9" Type="http://x/relationships/image" Target="media/a.png"/><Relationship Id="rId2" Type="http://x/relationships/hyperlink" Target="http://e" TargetMode="External"/></Relationships>';
+  const doc = W + '<w:p><w:pPr><w:pStyle w:val="Title"/></w:pPr><w:r><w:t>T &amp; c</w:t></w:r></w:p>'
+    + '<w:p><w:pPr><w:pStyle w:val="Ttulo1"/></w:pPr><w:r><w:t>Uno</w:t></w:r></w:p>'
+    + '<w:p><w:r><w:rPr><w:b/></w:rPr><w:t>neg</w:t></w:r><w:r><w:rPr><w:b w:val="0"/><w:i/></w:rPr><w:t xml:space="preserve"> cur</w:t></w:r></w:p>'
+    + '<w:p><w:pPr><w:numPr><w:ilvl w:val="1"/><w:numId w:val="3"/></w:numPr></w:pPr><w:r><w:t>item</w:t></w:r></w:p>'
+    + '<w:tbl><w:tr><w:tc><w:tcPr><w:gridSpan w:val="2"/></w:tcPr><w:p><w:r><w:t>A</w:t></w:r></w:p></w:tc></w:tr></w:tbl>'
+    + '<w:p><w:r><w:drawing><a:blip r:embed="rId9"/></w:drawing></w:r></w:p></w:body></w:document>';
+  it("lee estilos, listas, formato, tablas e imágenes", () => {
+    const ctx = { estilos: docxEstilos(estilos), numeracion: docxNumeracion(num), rels: docxRelaciones(rels) };
+    expect(ctx.rels).toEqual({ rId9: "word/media/a.png" });
+    expect(ctx.numeracion).toEqual({ "3:0": true, "3:1": false });
+    const b: any[] = docxBloques(doc, ctx);
+    expect(b.map((x) => x.t)).toEqual(["p", "p", "p", "p", "tabla", "p"]);
+    expect(b[0].nivel).toBe(-1);
+    expect(b[0].runs[0].x).toBe("T & c");
+    expect(b[1].nivel).toBe(1);
+    expect(b[2].runs.map((r: any) => [r.x, r.b, r.i])).toEqual([["neg", true, false], [" cur", false, true]]);
+    expect(b[3].lista).toEqual({ orden: false, ilvl: 1 });
+    expect(b[4].filas[0][0].span).toBe(2);
+    expect(b[4].filas[0][0].ps[0].runs[0].x).toBe("A");
+    expect(b[5].runs[0].img).toBe("word/media/a.png");
+  });
+  it("leerDocxDoc devuelve bloques e imágenes y rechaza lo que no es docx", async () => {
+    const z = crearZip([{ ruta: "word/document.xml", datos: doc }, { ruta: "word/styles.xml", datos: estilos }, { ruta: "word/_rels/document.xml.rels", datos: rels }, { ruta: "word/media/a.png", datos: "PNG" }]);
+    const d = await leerDocxDoc(z, 1000);
+    expect(d.bloques.length).toBe(6);
+    expect(dec.decode(d.imagenes["word/media/a.png"])).toBe("PNG");
+    await expect(leerDocxDoc(crearZip([{ ruta: "x.txt", datos: "x" }]), 1000)).rejects.toThrow(/docx/);
   });
 });

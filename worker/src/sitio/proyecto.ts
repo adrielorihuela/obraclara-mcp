@@ -142,7 +142,7 @@ const css = String.raw`
 .ps code{background:var(--surface-2);padding:1px 5px;border-radius:5px;font-size:.86em}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:20px 0}
 .kpi{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:14px 16px}
-.kpi b{display:block;font:600 var(--s2)/1.15 var(--serif);color:var(--ink);font-variant-numeric:tabular-nums}
+.kpi>b{display:block;font:600 var(--s2)/1.15 var(--serif);color:var(--ink);font-variant-numeric:tabular-nums}
 .kpi span{font-size:var(--s-1);color:var(--mut)}
 .figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:28px;margin:24px 0;align-items:start}
 .fig{margin:24px 0}.fig figcaption{text-align:center;max-width:62ch;margin-inline:auto}

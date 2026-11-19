@@ -3,7 +3,7 @@ import {
   presetsIA, textoLimpio, truncate, validarConexion, limitesImagen, validarImagen, escalarImagen, construirContenido, aBloquesAnthropic,
   tituloChat, grupoFecha, recortarChats, serializarChats, deserializarChats, sinImagenes, normalizarMensaje, normalizarChat,
   recortarTexto, nombreSeguro, rutaSegura, extensionArchivo, tipoAdjunto, esTextoBytes, clasificarRuta,
-  zipEntradas, zipExtraer, docxATexto, leerDocx, xmlTexto, xmlAtributo, columnaDeRef, xlsxTextoT, xlsxFilasHoja, xlsxLeer, leerXlsx, csvAFilas,
+  zipEntradas, zipExtraer, docxATexto, leerDocx, docxEstilos, docxNumeracion, docxRelaciones, docxParrafo, docxBloques, leerDocxDoc, xmlTexto, xmlAtributo, columnaDeRef, xlsxTextoT, xlsxFilasHoja, xlsxLeer, leerXlsx, csvAFilas,
   largoContenido, acortarContenido, recortarMensajes, prepararCompartir,
   claseArchivo, mimeArchivo, tamanoLegible, resaltarLinea, htmlConRecursos, rutaRelativaZip, atributoHtml,
 } from "./lib/agente";
@@ -207,6 +207,24 @@ body.es-app main{flex:1;min-height:0}
 .pv-md .tb{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
 .pv-md table{border-collapse:collapse;width:max-content;min-width:100%;font-size:13.5px}
 .pv-md th,.pv-md td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--line);overflow-wrap:normal;word-break:normal;max-width:34ch}
+.pv-doc{container-type:inline-size;padding:22px 16px 36px;background:var(--bg-2);min-height:100%;box-sizing:border-box}
+.pv-hoja{max-width:720px;margin:0 auto;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:4px;box-shadow:0 1px 2px rgba(0,0,0,.06),0 10px 30px rgba(0,0,0,.07);padding:56px 60px 64px;font:400 15px/1.7 var(--sans);overflow-wrap:break-word}
+:root[data-theme=dark] .pv-doc{background:var(--bg)}:root[data-theme=dark] .pv-hoja{background:var(--surface-2);border-color:var(--line-2)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .pv-doc{background:var(--bg)}:root:not([data-theme=light]) .pv-hoja{background:var(--surface-2);border-color:var(--line-2)}}
+.pv-hoja>:first-child{margin-top:0}
+.pv-hoja h1,.pv-hoja h2,.pv-hoja h3,.pv-hoja h4,.pv-hoja h5,.pv-hoja h6{font-family:var(--serif);font-weight:600;line-height:1.25;color:var(--ink);margin:1.4em 0 .5em;text-wrap:balance}
+.pv-hoja h1{font-size:1.9em;margin-bottom:.3em}.pv-hoja h2{font-size:1.42em}.pv-hoja h3{font-size:1.18em}.pv-hoja h4{font-size:1.05em}
+.pv-hoja h5,.pv-hoja h6{font:600 .8em/1.4 var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+.pv-hoja p{margin:0 0 .75em;white-space:pre-wrap}.pv-hoja p.sub{font-size:1.15em;color:var(--mut);margin-bottom:1.3em}
+.pv-hoja ul,.pv-hoja ol{margin:0 0 .85em;padding-left:1.7em}.pv-hoja li{margin:.25em 0;white-space:pre-wrap;padding-left:.15em}.pv-hoja li>ul,.pv-hoja li>ol{margin:.25em 0 0}
+.pv-hoja img{display:block;max-width:100%;height:auto;margin:.8em auto;border-radius:2px}
+.pv-hoja strong{font-weight:700}
+.pv-dt{overflow-x:auto;margin:.5em 0 1.1em}
+.pv-hoja table{border-collapse:collapse;min-width:100%;font:400 13.5px/1.45 var(--sans)}
+.pv-hoja td{border:1px solid var(--line-2);padding:7px 11px;vertical-align:top;min-width:6ch}.pv-hoja td p{margin:0 0 .3em;white-space:pre-wrap}.pv-hoja td p:last-child{margin:0}
+.pv-hoja tr:first-child td{background:var(--bg-2);font-weight:600}
+@container (max-width:600px){.pv-hoja{padding:30px 22px 36px;font-size:14.5px}.pv-hoja h1{font-size:1.65em}.pv-hoja [style*=justify]{text-align:left!important}}
+@media (max-width:600px){.pv-doc{padding:12px 8px 24px}}
 .pv-code{width:max-content;min-width:100%;box-sizing:border-box;margin:0;padding:12px 0;background:var(--code-bg);color:var(--code-ink);font:400 12.5px/1.55 var(--mono);counter-reset:ln;tab-size:2;min-height:100%}
 .pv-code .l{display:block;white-space:pre;padding-right:16px;min-height:1.55em}
 .pv-code .l::before{counter-increment:ln;content:counter(ln);display:inline-block;width:3.6em;padding-right:1em;text-align:right;color:var(--code-mut);user-select:none}
@@ -413,7 +431,7 @@ const nombres = [
   migrarConfig, construirPeticion, extraerRespuesta, limitesImagen, validarImagen, escalarImagen, construirContenido, aBloquesAnthropic,
   tituloChat, grupoFecha, recortarChats, serializarChats, deserializarChats, sinImagenes, normalizarMensaje, normalizarChat,
   recortarTexto, nombreSeguro, rutaSegura, extensionArchivo, tipoAdjunto, esTextoBytes, clasificarRuta,
-  zipEntradas, zipExtraer, docxATexto, leerDocx, xmlTexto, xmlAtributo, columnaDeRef, xlsxTextoT, xlsxFilasHoja, xlsxLeer, leerXlsx, csvAFilas,
+  zipEntradas, zipExtraer, docxATexto, leerDocx, docxEstilos, docxNumeracion, docxRelaciones, docxParrafo, docxBloques, leerDocxDoc, xmlTexto, xmlAtributo, columnaDeRef, xlsxTextoT, xlsxFilasHoja, xlsxLeer, leerXlsx, csvAFilas,
   largoContenido, acortarContenido, recortarMensajes, prepararCompartir,
   claseArchivo, mimeArchivo, tamanoLegible, resaltarLinea, htmlConRecursos, rutaRelativaZip, atributoHtml,
 ].map((f) => f.toString()).join("\n");
@@ -778,7 +796,7 @@ async function ocSendAg(q,fs){if(!q)q='Revisa los archivos adjuntos y resume su 
  catch(e){if(mk&&mk.textContent!=='Entregado al agente')mk.textContent='No se pudo entregar';ocFinTurno(e)}
  finally{ocPendFin()}}
 var OC_ADJ_MAX=20*1024*1024,OC_CSP='<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; img-src data: blob: https:; media-src data: blob: https:; style-src \'unsafe-inline\' https:; font-src data: https:; script-src \'unsafe-inline\' https:; connect-src \'none\'; form-action \'none\'">';
-var ocPan={i:-1,cur:'',zip:null,modo:'vista',hoja:0,hojaDe:'',url:'',disp:null,tok:0},ocArch=[],ocZipOcup=false;
+var ocPan={i:-1,cur:'',zip:null,modo:'vista',hoja:0,hojaDe:'',url:'',urls:[],disp:null,tok:0},ocArch=[],ocZipOcup=false;
 function ocId(){return 'f'+Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
 function ocArchBuscar(n){for(var i=0;i<ocArch.length;i++)if(ocArch[i].n===n)return ocArch[i];return null}
 function ocArchIdx(n){for(var i=0;i<ocArch.length;i++)if(ocArch[i].n===n)return i;return -1}
@@ -841,7 +859,25 @@ async function ocArchMsg(rec,box,arch){
 async function ocArchDatos(a){if(a.datos)return a.datos;
  try{var r=await ocAdjGet(a.id);if(r&&r.d){a.datos=r.d instanceof Uint8Array?r.d:new Uint8Array(r.d);return a.datos}}catch(e){}
  return null}
-function ocPanSoltar(){if(ocPan.url){URL.revokeObjectURL(ocPan.url);ocPan.url=''}}
+function ocPanSoltar(){if(ocPan.url){URL.revokeObjectURL(ocPan.url);ocPan.url=''}(ocPan.urls||[]).forEach(function(u){URL.revokeObjectURL(u)});ocPan.urls=[]}
+function ocDocxRuns(el,runs,urls){runs.forEach(function(r){if(r.img){var u=urls[r.img];if(!u)return;var im=document.createElement('img');im.src=u;im.alt='Imagen del documento';im.loading='lazy';el.appendChild(im);return}
+ var w=document.createTextNode(r.x),e;if(r.u){e=document.createElement('u');e.appendChild(w);w=e}if(r.s){e=document.createElement('s');e.appendChild(w);w=e}
+ if(r.i){e=document.createElement('em');e.appendChild(w);w=e}if(r.b){e=document.createElement('strong');e.appendChild(w);w=e}el.appendChild(w)})}
+function ocDocxTiene(p){return p.runs.some(function(r){return r.img||/\S/.test(r.x)})}
+function ocDocx(el,doc){var hoja=document.createElement('article'),pila=[],n=0,urls={};hoja.className='pv-hoja';
+ Object.keys(doc.imagenes).forEach(function(ruta){var mi=mimeArchivo(ruta);if(!/^image\/(png|jpeg|gif|webp|bmp|svg\+xml)$/.test(mi))return;var u=URL.createObjectURL(new Blob([doc.imagenes[ruta]],{type:mi}));ocPan.urls.push(u);urls[ruta]=u});
+ doc.bloques.forEach(function(bq){
+  if(bq.t==='tabla'){pila=[];var w=document.createElement('div'),t=document.createElement('table'),tb=document.createElement('tbody');w.className='pv-dt';
+   bq.filas.forEach(function(f){var tr=document.createElement('tr');f.forEach(function(c){var td=document.createElement('td');if(c.span>1)td.colSpan=c.span;
+    c.ps.forEach(function(p){if(!ocDocxTiene(p))return;var d=document.createElement('p');if(p.alin)d.style.textAlign=p.alin;ocDocxRuns(d,p.runs,urls);td.appendChild(d)});tr.appendChild(td)});tb.appendChild(tr)});
+   t.appendChild(tb);w.appendChild(t);hoja.appendChild(w);n++;return}
+  if(!ocDocxTiene(bq))return;n++;
+  if(bq.lista){var lv=bq.lista.ilvl,tag=bq.lista.orden?'OL':'UL';while(pila.length>lv+1)pila.pop();if(pila.length===lv+1&&pila[lv].tagName!==tag)pila.pop();
+   while(pila.length<lv+1){var nl=document.createElement(tag),pad=pila[pila.length-1];(pad?(pad.lastElementChild||pad):hoja).appendChild(nl);pila.push(nl)}
+   var li=document.createElement('li');ocDocxRuns(li,bq.runs,urls);pila[lv].appendChild(li);return}
+  pila=[];var tg=bq.nivel===-1?'h1':bq.nivel>0?'h'+Math.min(6,bq.nivel+1):'p',el2=document.createElement(tg);if(bq.nivel===-2)el2.className='sub';
+  if(bq.alin)el2.style.textAlign=bq.alin;ocDocxRuns(el2,bq.runs,urls);hoja.appendChild(el2)});
+ el.appendChild(hoja);return n>0}
 function ocPanAct(){var cur=ocPan.i>=0&&!$('oc-pan').hidden&&ocArch[ocPan.i]?ocArch[ocPan.i].n:null;
  Array.prototype.forEach.call(document.querySelectorAll('.adj-c[data-n]'),function(c){c.classList.toggle('act',c.getAttribute('data-n')===cur)})}
 function ocPanAbrir(i,disp){if(!ocArch.length)return;ocPan.disp=disp||null;var p=$('oc-pan');p.hidden=false;
@@ -916,7 +952,7 @@ async function ocPanContenido(nombre,datos,tok,z){var b=$('oc-pan-b'),sub=$('oc-
  sub.hidden=!hay;
  if(k==='imagen'){var im=document.createElement('img');im.className='pv-img';im.alt=nombre.split('/').pop();ocPan.url=URL.createObjectURL(new Blob([datos],{type:mimeArchivo(nombre)}));im.src=ocPan.url;b.appendChild(im);return}
  if(k==='pdf'){var f=document.createElement('iframe');f.title='Vista previa de '+nombre;ocPan.url=URL.createObjectURL(new Blob([datos],{type:'application/pdf'}));f.src=ocPan.url;b.appendChild(f);return}
- if(k==='docx'){try{var a=await leerDocx(nombre,datos);if(tok!==ocPan.tok)return;var dv=document.createElement('div');dv.className='pv-md';ocMd(dv,a.texto);b.appendChild(dv)}catch(e){ocPanMsg('No se pudo mostrar el texto del documento: '+(e&&e.message?e.message:'error')+' Usa Descargar.')}return}
+ if(k==='docx'){try{var a=await leerDocxDoc(datos,8*1024*1024);if(tok!==ocPan.tok)return;ocPanSoltar();var dv=document.createElement('div');dv.className='pv-doc';if(!ocDocx(dv,a)){ocPanMsg('El documento no tiene texto. Usa Descargar.');return}b.appendChild(dv)}catch(e){ocPanMsg('No se pudo mostrar el documento: '+(e&&e.message?e.message:'error')+' Usa Descargar.')}return}
  if(ext==='xlsx'){if(xl&&xl.hojas){var hj=xl.hojas[ocPan.hoja];ocPanTabla(b,hj.filas,hj.truncada)}else ocPanMsg('No se pudo mostrar la hoja de cálculo: '+(xl&&xl.error||'error')+' Usa Descargar.');return}
  if((ext==='csv'||ext==='tsv')&&esTextoBytes(datos)){var cv=csvAFilas(new TextDecoder('utf-8').decode(datos.subarray(0,2000000)),200);ocPanTabla(b,cv.filas,cv.truncada);return}
  if(k==='zip'||k==='otro'&&!esTextoBytes(datos)){ocPanMsg('Este tipo de archivo no tiene vista previa. Usa Descargar para abrirlo en tu equipo.');return}

@@ -88,7 +88,7 @@ var vh=innerHeight;
 // Bloques comunes bajo el pliegue que aún no tienen animación de entrada.
 d.querySelectorAll('main .kpi,main .tbw,main details.det,main .code,main table.ref,main figure').forEach(function(el){if(el.closest('.rv')||el.getBoundingClientRect().top<vh)return;el.classList.add('rv')});
 d.querySelectorAll('.rv').forEach(function(f){if(f.getBoundingClientRect().top>vh*.9)barras(f)});
-d.querySelectorAll('main .kpi b').forEach(function(el){if(el.getBoundingClientRect().top>vh*.9)el.setAttribute('data-cuenta','')});
+d.querySelectorAll('main .kpi>b').forEach(function(el){if(el.getBoundingClientRect().top>vh*.9)el.setAttribute('data-cuenta','')});
 var els=d.querySelectorAll('.rv,[data-count],[data-play],[data-cuenta]');
 if('IntersectionObserver' in window){var io=new IntersectionObserver(function(es){var n=0;es.forEach(function(e){if(!e.isIntersecting)return;var t=e.target;
  if(t.classList.contains('rv')&&!/\bd[1-3]\b/.test(t.className)){t.style.transitionDelay=Math.min(n,5)*70+'ms';n++}

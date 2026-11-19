@@ -529,6 +529,210 @@ export async function leerDocx(nombre: string, bytes: Uint8Array): Promise<DocxL
   return { nombre: nombreSeguro(nombre), tipo: "docx", texto: t };
 }
 
+// ---- .docx como documento (vista previa del panel): párrafos, títulos, listas, tablas e imágenes ----
+export type DocxRun = { x: string; b?: boolean; i?: boolean; u?: boolean; s?: boolean; img?: string };
+export type DocxParrafo = { t: "p"; nivel: number; lista: null | { orden: boolean; ilvl: number }; alin: string; runs: DocxRun[] };
+export type DocxCelda = { span: number; ps: DocxParrafo[] };
+export type DocxTabla = { t: "tabla"; filas: DocxCelda[][] };
+export type DocxBloque = DocxParrafo | DocxTabla;
+export type DocxCtx = { estilos: Record<string, { nivel: number; lista: string }>; numeracion: Record<string, boolean>; rels: Record<string, string> };
+export type DocxDoc = { bloques: DocxBloque[]; imagenes: Record<string, Uint8Array> };
+
+/** Estilos de párrafo de styles.xml: nivel (-1 título, -2 subtítulo, 1-6 encabezado, 0 normal) y lista ("v", "n", "#numId" o ""). */
+export function docxEstilos(xml: string): Record<string, { nivel: number; lista: string }> {
+  const out: Record<string, { nivel: number; lista: string }> = {};
+  const re = /<w:style\b([^>]*)>([\s\S]*?)<\/w:style>/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(String(xml)))) {
+    const id = xmlAtributo(m[1], "w:styleId");
+    if (!id) continue;
+    const nm = /<w:name\b([^>]*)>/.exec(m[2]);
+    const nombre = (nm ? xmlAtributo(nm[1], "w:val") : id).toLowerCase().trim();
+    const h = /^(?:heading|t[ií]tulo|encabezado)\s*(\d)$/.exec(nombre) || /^heading\s*(\d)$/i.exec(id);
+    const ol = /<w:outlineLvl\b([^>]*)>/.exec(m[2]);
+    let nivel = 0;
+    if (nombre === "title" || nombre === "título" || /^title$/i.test(id)) nivel = -1;
+    else if (nombre === "subtitle" || nombre === "subtítulo" || /^subtitle$/i.test(id)) nivel = -2;
+    else if (h) nivel = Math.min(6, Math.max(1, +h[1]));
+    else if (ol) { const v = parseInt(xmlAtributo(ol[1], "w:val"), 10); if (v >= 0 && v < 6) nivel = v + 1; }
+    const ni = /<w:numId\b([^>]*)>/.exec(m[2]);
+    const lista = /list bullet|lista con vi[ñn]etas/.test(nombre) ? "v" : /list number|lista con n[úu]meros|lista numerada/.test(nombre) ? "n"
+      : ni && xmlAtributo(ni[1], "w:val") !== "0" ? "#" + xmlAtributo(ni[1], "w:val") : "";
+    out[id] = { nivel, lista };
+  }
+  return out;
+}
+
+/** numbering.xml: «numId:nivel» → true si la lista es numerada (false si son viñetas). */
+export function docxNumeracion(xml: string): Record<string, boolean> {
+  const s = String(xml);
+  const abs: Record<string, Record<string, boolean>> = {};
+  const out: Record<string, boolean> = {};
+  const ra = /<w:abstractNum\b([^>]*)>([\s\S]*?)<\/w:abstractNum>/g;
+  let m: RegExpExecArray | null;
+  while ((m = ra.exec(s))) {
+    const lv: Record<string, boolean> = {};
+    const rl = /<w:lvl\b([^>]*)>([\s\S]*?)<\/w:lvl>/g;
+    let l: RegExpExecArray | null;
+    while ((l = rl.exec(m[2]))) {
+      const f = /<w:numFmt\b([^>]*)>/.exec(l[2]);
+      const fmt = f ? xmlAtributo(f[1], "w:val") : "bullet";
+      lv[xmlAtributo(l[1], "w:ilvl") || "0"] = fmt !== "bullet" && fmt !== "none";
+    }
+    abs[xmlAtributo(m[1], "w:abstractNumId")] = lv;
+  }
+  const rn = /<w:num\b([^>]*)>([\s\S]*?)<\/w:num>/g;
+  while ((m = rn.exec(s))) {
+    const a = /<w:abstractNumId\b([^>]*)>/.exec(m[2]);
+    const lv = a ? abs[xmlAtributo(a[1], "w:val")] : undefined;
+    if (!lv) continue;
+    for (const k in lv) out[xmlAtributo(m[1], "w:numId") + ":" + k] = lv[k];
+  }
+  return out;
+}
+
+/** document.xml.rels: id → ruta dentro del zip, solo imágenes internas. */
+export function docxRelaciones(xml: string): Record<string, string> {
+  const out: Record<string, string> = {};
+  const re = /<Relationship\b([^>]*)>/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(String(xml)))) {
+    if (/TargetMode\s*=\s*["']External/i.test(m[1]) || !/\/image["']/.test(m[1])) continue;
+    const ruta = rutaRelativaZip("word", xmlAtributo(m[1], "Target"));
+    const id = xmlAtributo(m[1], "Id");
+    if (ruta && id) out[id] = ruta;
+  }
+  return out;
+}
+
+/** Un <w:p>: estilo, lista, alineación y tramos de texto con negrita/cursiva/subrayado/tachado o imagen. */
+export function docxParrafo(xml: string, ctx: DocxCtx): DocxParrafo {
+  const s = String(xml);
+  const ppr = /<w:pPr>([\s\S]*?)<\/w:pPr>/.exec(s);
+  const pp = ppr ? ppr[1] : "";
+  const ps = /<w:pStyle\b([^>]*)>/.exec(pp);
+  const est = ps ? ctx.estilos[xmlAtributo(ps[1], "w:val")] : undefined;
+  let lista: DocxParrafo["lista"] = null;
+  const np = /<w:numPr>([\s\S]*?)<\/w:numPr>/.exec(pp);
+  if (np) {
+    const il = /<w:ilvl\b([^>]*)>/.exec(np[1]);
+    const ni = /<w:numId\b([^>]*)>/.exec(np[1]);
+    const id = ni ? xmlAtributo(ni[1], "w:val") : "";
+    const ilvl = Math.min(8, Math.max(0, il ? parseInt(xmlAtributo(il[1], "w:val"), 10) || 0 : 0));
+    if (id && id !== "0") lista = { orden: !!ctx.numeracion[id + ":" + ilvl], ilvl };
+  } else if (est && est.lista) {
+    lista = { orden: est.lista === "n" || (est.lista.charAt(0) === "#" && !!ctx.numeracion[est.lista.slice(1) + ":0"]), ilvl: 0 };
+  }
+  const jc = /<w:jc\b([^>]*)>/.exec(pp);
+  const j = jc ? xmlAtributo(jc[1], "w:val") : "";
+  const alin = j === "center" ? "center" : j === "right" || j === "end" ? "right" : j === "both" || j === "distribute" ? "justify" : "";
+  const runs: DocxRun[] = [];
+  const cuerpo = ppr ? s.replace(ppr[0], "") : s;
+  const rr = /<w:r\b[^>]*>([\s\S]*?)<\/w:r>/g;
+  let m: RegExpExecArray | null;
+  while ((m = rr.exec(cuerpo))) {
+    const rp = /<w:rPr>([\s\S]*?)<\/w:rPr>/.exec(m[1]);
+    const p = rp ? rp[1] : "";
+    const b = /<w:b\b(?![^>]*w:val="(?:0|false|off)")[^>]*>/.test(p);
+    const i = /<w:i\b(?![^>]*w:val="(?:0|false|off)")[^>]*>/.test(p);
+    const u = /<w:u\b(?![^>]*w:val="none")[^>]*>/.test(p);
+    const st = /<w:(?:strike|dstrike)\b(?![^>]*w:val="(?:0|false|off)")[^>]*>/.test(p);
+    const cuerpoR = rp ? m[1].replace(rp[0], "") : m[1];
+    const rt = /<w:t\b[^>]*>([\s\S]*?)<\/w:t>|<w:tab\b[^>]*\/>|<w:(?:br|cr)\b[^>]*\/>|<a:blip\b([^>]*)>/g;
+    let t: RegExpExecArray | null;
+    let x = "";
+    while ((t = rt.exec(cuerpoR))) {
+      if (t[1] != null) x += xmlTexto(t[1]);
+      else if (t[2] != null) {
+        const ruta = ctx.rels[xmlAtributo(t[2], "r:embed")];
+        if (!ruta) continue;
+        if (x) { runs.push({ x, b, i, u, s: st }); x = ""; }
+        runs.push({ x: "", img: ruta });
+      } else if (/^<w:tab/.test(t[0])) x += "\t";
+      else x += "\n";
+    }
+    if (!x) continue;
+    const ult = runs[runs.length - 1];
+    if (ult && !ult.img && ult.b === b && ult.i === i && ult.u === u && ult.s === st) ult.x += x;
+    else runs.push({ x, b, i, u, s: st });
+  }
+  return { t: "p", nivel: est ? est.nivel : 0, lista, alin, runs };
+}
+
+/** Cuerpo de document.xml en bloques (párrafos y tablas, en orden). Máximo 4000 bloques. */
+export function docxBloques(xml: string, ctx: DocxCtx): DocxBloque[] {
+  let s = String(xml).replace(/<w:txbxContent\b[\s\S]*?<\/w:txbxContent>/g, "").replace(/<mc:Fallback\b[\s\S]*?<\/mc:Fallback>/g, "");
+  const bi = s.indexOf("<w:body");
+  if (bi >= 0) s = s.slice(bi);
+  const out: DocxBloque[] = [];
+  const re = /<w:tbl\b|<w:p\b[^>]*>/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(s)) && out.length < 4000) {
+    if (m[0] === "<w:tbl") {
+      const rt = /<w:tbl\b|<\/w:tbl>/g;
+      rt.lastIndex = m.index + 6;
+      let prof = 1;
+      let fin = s.length;
+      let q: RegExpExecArray | null;
+      while ((q = rt.exec(s))) { prof += q[0] === "<w:tbl" ? 1 : -1; if (!prof) { fin = q.index + 8; break; } }
+      const tx = s.slice(m.index, fin);
+      const filas: DocxCelda[][] = [];
+      const rf = /<w:tr\b[^>]*>([\s\S]*?)<\/w:tr>/g;
+      let f: RegExpExecArray | null;
+      while ((f = rf.exec(tx)) && filas.length < 500) {
+        const fila: DocxCelda[] = [];
+        const rc = /<w:tc\b[^>]*>([\s\S]*?)<\/w:tc>/g;
+        let c: RegExpExecArray | null;
+        while ((c = rc.exec(f[1]))) {
+          const gs = /<w:gridSpan\b([^>]*)>/.exec(c[1]);
+          const ps: DocxParrafo[] = [];
+          const rp = /<w:p\b[^>]*\/>|<w:p\b[^>]*>[\s\S]*?<\/w:p>/g;
+          let p: RegExpExecArray | null;
+          while ((p = rp.exec(c[1]))) ps.push(docxParrafo(p[0], ctx));
+          fila.push({ span: Math.min(50, Math.max(1, gs ? parseInt(xmlAtributo(gs[1], "w:val"), 10) || 1 : 1)), ps });
+        }
+        if (fila.length) filas.push(fila);
+      }
+      if (filas.length) out.push({ t: "tabla", filas });
+      re.lastIndex = fin;
+    } else if (/\/>$/.test(m[0])) {
+      continue;
+    } else {
+      const fin = s.indexOf("</w:p>", re.lastIndex);
+      if (fin < 0) break;
+      out.push(docxParrafo(s.slice(m.index, fin + 6), ctx));
+      re.lastIndex = fin + 6;
+    }
+  }
+  return out;
+}
+
+/** Lee un .docx como documento: bloques y las imágenes que usa (cada una hasta maxImg bytes, 4×maxImg en total). */
+export async function leerDocxDoc(bytes: Uint8Array, maxImg: number): Promise<DocxDoc> {
+  const ent: Record<string, EntradaZip> = {};
+  for (const e of zipEntradas(bytes).entradas) ent[e.nombre] = e;
+  if (!ent["word/document.xml"]) throw new Error("no parece un archivo .docx válido.");
+  const dec = new TextDecoder("utf-8");
+  const txt: Record<string, string> = {};
+  for (const n of ["word/document.xml", "word/styles.xml", "word/numbering.xml", "word/_rels/document.xml.rels"]) {
+    const d = ent[n] ? await zipExtraer(bytes, ent[n], 20 * 1024 * 1024) : null;
+    txt[n] = d ? dec.decode(d) : "";
+  }
+  if (!txt["word/document.xml"]) throw new Error("no se pudo leer el contenido del .docx.");
+  const ctx: DocxCtx = { estilos: docxEstilos(txt["word/styles.xml"]), numeracion: docxNumeracion(txt["word/numbering.xml"]), rels: docxRelaciones(txt["word/_rels/document.xml.rels"]) };
+  const bloques = docxBloques(txt["word/document.xml"], ctx);
+  const imagenes: Record<string, Uint8Array> = {};
+  let total = 0;
+  for (const id in ctx.rels) {
+    const ruta = ctx.rels[id];
+    const e = ent[ruta];
+    if (!e || imagenes[ruta] || e.tam > maxImg || total + e.tam > maxImg * 4) continue;
+    const d = await zipExtraer(bytes, e, maxImg);
+    if (d) { imagenes[ruta] = d; total += d.length; }
+  }
+  return { bloques, imagenes };
+}
+
 /** Decodifica las entidades XML básicas (y numéricas). */
 export function xmlTexto(s: string): string {
   return String(s).replace(/&(#x[0-9a-fA-F]+|#[0-9]+|lt|gt|amp|quot|apos);/g, (m, e) => {
