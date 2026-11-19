@@ -6,7 +6,7 @@ import { enSencillo, esc, fechaLarga, shell, type Meta } from "./layout";
 
 const TEXTOS: Record<string, { etiqueta: string; titulo: string; significa: string }> = {
   B02: { etiqueta: "Buscar", titulo: "Las obras de salud más caras de Piura", significa: "Cada barra es una obra y su largo es lo que cuesta hoy. La primera es la más cara. La búsqueda devuelve hasta 20 y dice cuántas hay en total, así que la IA no tiene que adivinar ni contar a ojo." },
-  D04: { etiqueta: "Detalle de una obra", titulo: "Una obra: lo aprobado frente a lo que cuesta hoy", significa: "La barra gris es lo que se aprobó al inicio y la roja, lo que cuesta hoy. Si la roja es mucho más larga, la obra se encareció. Es una señal para mirarla con atención, no una prueba de que algo esté mal." },
+  D05: { etiqueta: "Detalle de una obra", titulo: "Una obra: lo aprobado frente a lo que cuesta hoy", significa: "La barra gris es lo que se aprobó al inicio y la roja, lo que cuesta hoy. Si la roja es mucho más larga, la obra se encareció. Es una señal para mirarla con atención, no una prueba de que algo esté mal." },
   A07: { etiqueta: "Alertas", titulo: "Obras con más meses sin gastar", significa: "Cada barra es una obra con avance parcial que lleva muchos meses sin registrar gasto. Cuanto más larga la barra, más tiempo detenida. Es un indicio de posible paralización, no una acusación." },
   R03: { etiqueta: "Resumen", titulo: "Un grupo de obras en tres cifras", significa: "Las barras suman en soles todas las obras del grupo: lo que cuestan, lo que falta por ejecutar y lo que ya se gastó este año. Las cifras de abajo cuentan cuántas obras tienen alertas." },
 };
