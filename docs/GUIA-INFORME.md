@@ -373,7 +373,7 @@ Fuente: elaboración propia con datos de MEF (2026a, 2026b) y Congreso de la Rep
 | `detalle_inversion` frente a la base | 30 de 30 fichas idénticas; 810 de 810 campos |
 | `resumen_inversiones` frente a la base | 10 de 10 filtros; 60 de 60 cifras |
 | `alertas_inversion` frente a la base | 14 de 14 totales iguales |
-| Rendimiento (20 llamadas por herramienta desde Lima) | 100 % de éxito; mediana 2,1 s (`buscar_inversiones`), 1,4 s (`detalle_inversion`), 2,0 s (`alertas_inversion`), 1,4 s (`resumen_inversiones`); máximo 3,1 s |
+| Rendimiento (30 llamadas por herramienta, n = 120, desde Lima) | 100 % de éxito; mediana 1,4 s (`buscar_inversiones`), 1,0 s (`detalle_inversion`), 1,3 s (`alertas_inversion`), 1,0 s (`resumen_inversiones`); P90 máximo 1,5 s; asistente completo (24 preguntas): mediana 9,0 s, P90 16,2 s, 4 de 24 correctas |
 
 Fuente: elaboración propia (Anexo 01, carpeta `metricas/resultados/`). Medición del 20/11/2026 (`python metricas/pruebas.py`).
 

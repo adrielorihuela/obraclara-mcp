@@ -1,6 +1,6 @@
 // GENERADO por metricas/exportar_sitio.mjs a partir de metricas/resultados/. No editar a mano: vuelve a ejecutar `node metricas/exportar_sitio.mjs`.
 export const METRICAS = {
- "generado": "2026-11-20T14:47:30+00:00",
+ "generado": "2026-11-20T19:05:27+00:00",
  "corte": {
   "total_inversiones": "150574",
   "alertas_sobrecosto": "26387",
@@ -325,57 +325,75 @@ export const METRICAS = {
  "rendimiento": [
   {
    "prueba": "buscar_inversiones",
-   "llamadas": 20,
-   "exitosas": 20,
+   "llamadas": 30,
+   "exitosas": 30,
    "exito": 100,
-   "p50": 2104.9,
-   "p95": 2602.8,
-   "max": 2792.8
+   "p50": 1359.1,
+   "p90": 1472.9,
+   "p95": 1527.2,
+   "min": 1303.4,
+   "max": 2067.9,
+   "errores": 0
   },
   {
    "prueba": "detalle_inversion",
-   "llamadas": 20,
-   "exitosas": 20,
+   "llamadas": 30,
+   "exitosas": 30,
    "exito": 100,
-   "p50": 1360.2,
-   "p95": 1774.8,
-   "max": 2063.9
+   "p50": 981,
+   "p90": 1081.7,
+   "p95": 1085.5,
+   "min": 937.2,
+   "max": 1091.1,
+   "errores": 0
   },
   {
    "prueba": "alertas_inversion",
-   "llamadas": 20,
-   "exitosas": 20,
+   "llamadas": 30,
+   "exitosas": 30,
    "exito": 100,
-   "p50": 2025.1,
-   "p95": 2707,
-   "max": 3096.2
+   "p50": 1338.6,
+   "p90": 1394.7,
+   "p95": 1413.4,
+   "min": 1282.7,
+   "max": 1466.2,
+   "errores": 0
   },
   {
    "prueba": "resumen_inversiones",
-   "llamadas": 20,
-   "exitosas": 20,
+   "llamadas": 30,
+   "exitosas": 30,
    "exito": 100,
-   "p50": 1366.6,
-   "p95": 1866.3,
-   "max": 2019
+   "p50": 982.4,
+   "p90": 1008.4,
+   "p95": 1119.8,
+   "min": 948.1,
+   "max": 1182.6,
+   "errores": 0
   },
   {
    "prueba": "tools/list",
    "llamadas": 10,
    "exitosas": 10,
    "exito": 100,
-   "p50": 516.8,
-   "p95": 692.2,
-   "max": 696
+   "p50": 312.1,
+   "p90": 417.5,
+   "p95": 440.1,
+   "min": 277,
+   "max": 462.7,
+   "errores": 0
   },
   {
    "prueba": "GET /salud",
    "llamadas": 10,
    "exitosas": 10,
    "exito": 100,
-   "p50": 964.9,
-   "p95": 1084.8,
-   "max": 1165.5
+   "p50": 634.2,
+   "p90": 705.8,
+   "p95": 732.2,
+   "min": 619.1,
+   "max": 758.7,
+   "errores": 0
   }
  ],
  "exactitud": {
@@ -412,6 +430,81 @@ export const METRICAS = {
   "saldo_por_ejecutar_total": 996957917142.24,
   "monto_viable_total": 1101241320190.99,
   "pim_anio_total": 68120359780
+ },
+ "asistenteExt": [
+  {
+   "grupo": "todas",
+   "preguntas": 24,
+   "conRespuesta": 24,
+   "errores": 0,
+   "correctas": 4,
+   "pctCorrectas": 16.7,
+   "pctCorrectasTotal": 16.7,
+   "media": 10.8,
+   "p50": 9,
+   "p90": 16.2,
+   "min": 4.8,
+   "max": 27.4
+  },
+  {
+   "grupo": "busqueda",
+   "preguntas": 6,
+   "conRespuesta": 6,
+   "errores": 0,
+   "correctas": 0,
+   "pctCorrectas": 0,
+   "pctCorrectasTotal": 0,
+   "media": 11.1,
+   "p50": 9.8,
+   "p90": 16.2,
+   "min": 4.8,
+   "max": 16.2
+  },
+  {
+   "grupo": "detalle",
+   "preguntas": 6,
+   "conRespuesta": 6,
+   "errores": 0,
+   "correctas": 1,
+   "pctCorrectas": 16.7,
+   "pctCorrectasTotal": 16.7,
+   "media": 12.2,
+   "p50": 9.4,
+   "p90": 27.4,
+   "min": 6.7,
+   "max": 27.4
+  },
+  {
+   "grupo": "alertas",
+   "preguntas": 6,
+   "conRespuesta": 6,
+   "errores": 0,
+   "correctas": 1,
+   "pctCorrectas": 16.7,
+   "pctCorrectasTotal": 16.7,
+   "media": 10.1,
+   "p50": 7.8,
+   "p90": 21.3,
+   "min": 6.3,
+   "max": 21.3
+  },
+  {
+   "grupo": "resumen",
+   "preguntas": 6,
+   "conRespuesta": 6,
+   "errores": 0,
+   "correctas": 2,
+   "pctCorrectas": 33.3,
+   "pctCorrectasTotal": 33.3,
+   "media": 9.8,
+   "p50": 9,
+   "p90": 14.5,
+   "min": 6.3,
+   "max": 14.5
+  }
+ ],
+ "asistenteModelos": {
+  "IA del servidor": 24
  },
  "asistente": [
   {

@@ -11,5 +11,6 @@ if [ "${1:-}" != "--sin-red" ]; then
   $PY exactitud.py
   $PY alertas_check.py
   $PY asistente.py || echo "asistente: no medido"
+  node asistente_extenso.mjs || echo "asistente extenso: no medido"  # 24 preguntas en serie (~10 min); usa el Node de Cortex si `node` no está
 fi
 $PY consolidar.py

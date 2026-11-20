@@ -46,7 +46,7 @@ const D = {
   alertasTopDepartamentos: csv('alertas_por_departamento_top10.csv').map((r) => ({ departamento: r.departamento, sobrecosto: N(r.sobrecosto), pctSobrecosto: N(r.pct_sobrecosto), paralizacion: N(r.paralizacion), pctParalizacion: N(r.pct_paralizacion) })),
   histSobrecosto: csv('alertas_hist_sobrecosto.csv').map((r) => ({ tramo: r.tramo, inversiones: N(r.inversiones), pct: N(r.pct) })),
   histMeses: csv('alertas_hist_meses_sin_devengado.csv').map((r) => ({ tramo: r.tramo, inversiones: N(r.inversiones), pct: N(r.pct) })),
-  rendimiento: csv('rendimiento_mcp.csv').map((r) => ({ prueba: r.prueba, llamadas: N(r.llamadas), exitosas: N(r.exitosas), exito: N(r.tasa_exito_pct), p50: N(r.lat_p50_ms), p95: N(r.lat_p95_ms), max: N(r.lat_max_ms) })),
+  rendimiento: csv('rendimiento_mcp.csv').map((r) => ({ prueba: r.prueba, llamadas: N(r.llamadas), exitosas: N(r.exitosas), exito: N(r.tasa_exito_pct), p50: N(r.lat_p50_ms), p90: N(r.lat_p90_ms), p95: N(r.lat_p95_ms), min: N(r.lat_min_ms), max: N(r.lat_max_ms), errores: N(r.errores) })),
   exactitud: {
     detalle: { casos: N(exh[0].casos), coinciden: N(exh[0].coinciden), campos: N(exh[0].campos_comparados), camposIguales: N(exh[0].campos_iguales) },
     resumen: { casos: N(exh[1].casos), coinciden: N(exh[1].coinciden), campos: N(exh[1].campos_comparados), camposIguales: N(exh[1].campos_iguales) },
@@ -55,6 +55,8 @@ const D = {
   },
   pruebas: { total: N(tot.pruebas), pasan: N(tot.pasan), fallan: N(tot.fallan), archivos: pruebas.length - 1, coberturaLineas: N(cob.find((r) => r.archivo === 'TOTAL').lineas_pct), coberturaLogica: N(cob.find((r) => r.archivo.startsWith('TOTAL solo')).lineas_pct) },
   montos: Object.fromEntries(csv('calidad_montos_totales.csv').map((r) => [r.indicador, N(r.soles)])),
+  asistenteExt: csv('asistente_extenso_resumen.csv').map((r) => ({ grupo: r.grupo, preguntas: N(r.preguntas), conRespuesta: N(r.con_respuesta), errores: N(r.errores), correctas: N(r.correctas), pctCorrectas: N(r.pct_correctas), pctCorrectasTotal: N(r.pct_correctas_sobre_total), media: N(r.media_s), p50: N(r.mediana_s), p90: N(r.p90_s), min: N(r.min_s), max: N(r.max_s) })),
+  asistenteModelos: JSON.parse(fs.readFileSync(path.join(RES, 'partes', 'asistente_extenso.json'), 'utf8')).modelos,
   asistente: csv('asistente_resumen.csv').map((r) => ({ modo: r.modo, preguntas: N(r.preguntas), exitosas: N(r.exitosas), media: N(r.media_s), p50: N(r.p50_s), max: N(r.max_s) })),
 };
 fs.writeFileSync(SALIDA, '// GENERADO por metricas/exportar_sitio.mjs a partir de metricas/resultados/. No editar a mano: vuelve a ejecutar `node metricas/exportar_sitio.mjs`.\nexport const METRICAS = ' + JSON.stringify(D, null, 1) + ' as const;\n');

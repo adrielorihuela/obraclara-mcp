@@ -35,12 +35,12 @@ Se calcula con SQL sobre la tabla `inversiones` (corte del MEF 2026-11-10, guard
 - Limitación a mencionar: `avance_fisico` está vacío en el 57 % de las inversiones; la alerta de paralización solo se puede evaluar donde existe.
 
 ## 2. Rendimiento del MCP (`rendimiento_mcp.csv`)
-Para cada herramienta, 20 llamadas JSON-RPC (`tools/call`) a `https://obraclara.adrielorihuela.net/mcp` con argumentos variados:
-los 10 de `eval/preguntas.csv` de esa herramienta más 10 variantes (`limite: 5` en buscar/alertas, 10 códigos aleatorios con semilla 42 en detalle,
-otros departamentos en resumen). Además 10 llamadas a `tools/list` y 10 a `GET /salud`. Columnas: media, p50, p95, máximo y mínimo en ms,
+Para cada herramienta, 30 llamadas JSON-RPC (n = 120; la primera medición, con 20, queda en `rendimiento_mcp_previo_n20.csv`) (`tools/call`) a `https://obraclara.adrielorihuela.net/mcp` con argumentos variados:
+los 10 de `eval/preguntas.csv` de esa herramienta más 20 variantes (`limite: 5` y `limite: 10` en buscar/alertas, 20 códigos aleatorios con semilla 42 en detalle,
+otros departamentos en resumen). Además 10 llamadas a `tools/list` y 10 a `GET /salud`. Columnas: media, p50, p90, p95, máximo y mínimo en ms, errores,
 tasa de éxito (HTTP 200 y sin `isError`), tamaño medio y máximo de la respuesta en bytes. La fecha y hora de inicio y fin están en `metricas.json`.
 **La latencia incluye la red desde Lima** (DNS, TLS y conexión nueva en cada llamada, sin reutilizar), no solo el cómputo del Worker; por eso incluso `/salud` tarda ~1 s.
-Una llamada de calentamiento previa no se cuenta.
+Una llamada de calentamiento previa no se cuenta. Cada llamada queda en `rendimiento_mcp_crudo.csv`.
 
 ## 3. Exactitud (`exactitud_*.csv`)
 - `exactitud_detalle.csv`: 30 códigos únicos al azar (semilla 2026) → `detalle_inversion` por MCP frente a la fila SQLite. Se comparan 27 campos
@@ -64,6 +64,13 @@ El detalle y la forma de puntuar están en `eval/resultados/resumen.md`.
 Tiempo de punta a punta (desde Lima) de `POST /api/chat` con 5 preguntas conceptuales cortas (sin herramientas) y de `POST /api/agente` con 2 preguntas
 de datos (flujo real con herramientas). Es un servicio compartido con cola; si una llamada falla o expira, la tabla dice «no medido». Muestra pequeña (5 y 2):
 úsese como orden de magnitud, no como percentil. El límite del chat es 20 preguntas por minuto, por eso hay pausas de 4-5 s.
+
+### 6b. Asistente de punta a punta con 24 preguntas (`asistente_extenso*.csv`)
+`node metricas/asistente_extenso.mjs [--por-tipo 6] [--pausa 8]` (~10 min). Envía en serie 24 preguntas del banco de 40 (6 por tipo, reparto uniforme) a `POST /api/agente` con `mcp: true`
+(igual que el panel «con conexión» de `/demo`), con pausa de 8 s. Mide segundos, modelo que respondió y si la respuesta es correcta con la regla «exacta» de `eval/score_eval.mjs`
+(valor oficial con tolerancia 1 %, entidad esperada o «sin datos»). Si un proveedor llega a su límite no se esquiva: queda como error y se sigue. Salida: `asistente_extenso.csv`
+(una fila por pregunta, con la respuesta recortada a 400 caracteres), `asistente_extenso_resumen.csv` (todas y por tipo: mediana, P90, mín., máx., correctas) y `partes/asistente_extenso.json`.
+Resultado del 20/11/2026: 24 de 24 con respuesta, mediana 9,0 s, P90 16,2 s, 4 de 24 correctas (la IA del servidor decide si consulta el registro y muchas veces no lo hizo).
 
 ## Cómo leer los CSV para gráficos
 Una fila por categoría y una columna por medida; las tablas `*_top10` y `*_hist_*` están ordenadas para barras directas. Las latencias crudas de cada

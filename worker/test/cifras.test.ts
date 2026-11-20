@@ -6,7 +6,7 @@ const html = paginaSitio("/", meta) ?? "";
 
 describe("franja de cifras del inicio", () => {
   it("muestra cifras reales de los datos generados, con enlace", () => {
-    for (const t of ["150 574", "26 387", "16 502", "1,37", "40</span><span> de 40", "810</span><span> de 810", "80</span><span> de 80"]) expect(html, t).toContain(t);
+    for (const t of ["150 574", "26 387", "16 502", "1,37", "40</span><span> de 40", "810</span><span> de 810", "120</span><span> de 120"]) expect(html, t).toContain(t);
     expect(html).toContain('href="/evaluacion"');
     expect(html).toContain('href="/proyecto#metricas"');
   });

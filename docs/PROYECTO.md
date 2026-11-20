@@ -380,18 +380,18 @@ La base tiene **150 574 inversiones** sin repetidos.
 
 ### Rendimiento del servidor MCP
 
-Se llamó 20 veces a cada herramienta y 10 veces a la lista de herramientas y al estado del servicio, desde Lima, contra el servidor público.
+Se llamó 30 veces a cada una de las 4 herramientas (**n = 120 llamadas**) y 10 veces a la lista de herramientas y al estado del servicio (140 llamadas en total), una tras otra, desde Lima, contra el servidor público. Con argumentos variados: las 10 preguntas de la evaluación de cada herramienta más variantes. La primera medición (20 llamadas por herramienta) está guardada en `metricas/resultados/rendimiento_mcp_previo_n20.csv`.
 
-| Prueba | Llamadas | Éxito | Mediana | P95 | Máximo |
-|---|---:|---:|---:|---:|---:|
-| `buscar_inversiones` | 20 | 100 % | 2,1 s | 2,6 s | 2,8 s |
-| `detalle_inversion` | 20 | 100 % | 1,4 s | 1,8 s | 2,1 s |
-| `alertas_inversion` | 20 | 100 % | 2,0 s | 2,7 s | 3,1 s |
-| `resumen_inversiones` | 20 | 100 % | 1,4 s | 1,9 s | 2,0 s |
-| `tools/list` | 10 | 100 % | 0,5 s | 0,7 s | 0,7 s |
-| `GET /salud` | 10 | 100 % | 1,0 s | 1,1 s | 1,2 s |
+| Prueba | Llamadas (n) | Éxito | Mediana | P90 | Mínimo | Máximo |
+|---|---:|---:|---:|---:|---:|---:|
+| `buscar_inversiones` | 30 | 100 % | 1,4 s | 1,5 s | 1,3 s | 2,1 s |
+| `detalle_inversion` | 30 | 100 % | 1,0 s | 1,1 s | 0,9 s | 1,1 s |
+| `alertas_inversion` | 30 | 100 % | 1,3 s | 1,4 s | 1,3 s | 1,5 s |
+| `resumen_inversiones` | 30 | 100 % | 1,0 s | 1,0 s | 0,9 s | 1,2 s |
+| `tools/list` | 10 | 100 % | 0,3 s | 0,4 s | 0,3 s | 0,5 s |
+| `GET /salud` | 10 | 100 % | 0,6 s | 0,7 s | 0,6 s | 0,8 s |
 
-**Qué significa:** todas las llamadas funcionaron (100 % de éxito) y casi todas se respondieron en menos de 3 segundos; «P95» es el tiempo por debajo del cual quedó el 95 % de las respuestas.
+**Qué significa:** las 140 llamadas funcionaron (100 % de éxito, 0 errores) y la mitad de las consultas se respondió en 1,0 a 1,4 s; el 90 % tardó menos de 1,5 s. «P90» es el tiempo por debajo del cual quedó el 90 % de las respuestas. Los datos crudos de cada llamada están en `metricas/resultados/rendimiento_mcp_crudo.csv`. La primera medición (n = 20 por herramienta) dio medianas de 1,4 a 2,1 s: la diferencia probablemente se deba a la red de ese momento (la medición incluye el viaje desde Lima); no se cambió el servidor para mejorarla.
 
 ### ¿Las herramientas dicen lo mismo que la base de datos?
 
@@ -407,14 +407,19 @@ Se llamó 20 veces a cada herramienta y 10 veces a la lista de herramientas y al
 
 **Qué significa:** una prueba automática es un programa que revisa que otro funciona; «cobertura» es la parte del código que se ejecutó al probar.
 
-### Asistente del sitio
+### Asistente del sitio, de punta a punta
 
-| Modo | Preguntas | Exitosas | Media | Máximo |
-|---|---:|---:|---:|---:|
-| chat | 5 | 5 | 7,2 s | 10,0 s |
-| agente | 2 | 2 | 9,2 s | 9,5 s |
+Se hicieron **24 preguntas variadas** (6 de cada tipo del banco de 40), de una en una con pausa de 8 s, al asistente completo con las herramientas conectadas (`POST /api/agente` con `mcp: true`, igual que el panel «con conexión»). Cada respuesta se comparó con el dato oficial del MEF usando la regla de «exacta» de la evaluación. Respondió siempre la IA del servidor (24 de 24; ningún proveedor de respaldo ni límite de uso). Script: `metricas/asistente_extenso.mjs`; datos: `asistente_extenso.csv` (con la respuesta recortada de cada pregunta).
 
-**Qué significa:** responde en unos 7 a 10 segundos; es una muestra pequeña y sirve como orden de magnitud.
+| Tipo de pregunta | Preguntas (n) | Con respuesta | Correctas | Mediana | P90 | Mínimo | Máximo |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Todas | 24 | 24 | 4 (16,7 %) | 9 s | 16,2 s | 4,8 s | 27,4 s |
+| Búsqueda | 6 | 6 | 0 (0 %) | 9,8 s | 16,2 s | 4,8 s | 16,2 s |
+| Detalle de una obra | 6 | 6 | 1 (16,7 %) | 9,4 s | 27,4 s | 6,7 s | 27,4 s |
+| Alertas | 6 | 6 | 1 (16,7 %) | 7,8 s | 21,3 s | 6,3 s | 21,3 s |
+| Resumen | 6 | 6 | 2 (33,3 %) | 9 s | 14,5 s | 6,3 s | 14,5 s |
+
+**Qué significa:** la mitad de las preguntas se respondió en 9,0 s o menos y el 90 % en menos de 16,2 s (máximo 27,4 s). Pero el asistente acertó solo **4 de 24 (16,7 %)**. No es un fallo del servidor MCP (sus 140 llamadas salieron bien y la evaluación de 40 preguntas con la conexión dio 40 de 40): en esta prueba la IA del servidor decide si consulta el registro, y en muchas respuestas contestó que no podía confirmar el dato o usó otras fuentes (Contraloría, presupuesto). Es una limitación medida: conviene revisarla antes de afirmar que el asistente del sitio acierta tanto como en la evaluación. La primera medición del asistente (5 preguntas sin herramientas y 2 con ellas) fue demasiado pequeña y queda reemplazada por esta.
 
 ## 11. Pruebas
 
