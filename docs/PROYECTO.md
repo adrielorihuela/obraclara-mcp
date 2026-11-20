@@ -403,7 +403,7 @@ Se llamó 20 veces a cada herramienta y 10 veces a la lista de herramientas y al
 
 ### Pruebas de software
 
-**115 de 115** pruebas automáticas pasan, en 10 archivos. Cobertura de código: 84,0 % de las líneas (81,4 % en la lógica del servidor, sin las páginas).
+**149 de 149** pruebas automáticas pasan, en 15 archivos. Cobertura de código: 80,3 % de las líneas (75,5 % en la lógica del servidor, sin las páginas).
 
 **Qué significa:** una prueba automática es un programa que revisa que otro funciona; «cobertura» es la parte del código que se ejecutó al probar.
 
@@ -418,7 +418,7 @@ Se llamó 20 veces a cada herramienta y 10 veces a la lista de herramientas y al
 
 ## 11. Pruebas
 
-**115 pruebas en 10 archivos** (`cd worker && npx vitest run`), todas pasan; además `npx tsc --noEmit` y `npx wrangler deploy --dry-run`.
+**149 pruebas en 15 archivos** (`cd worker && npx vitest run`), todas pasan; además `npx tsc --noEmit` y `npx wrangler deploy --dry-run`.
 
 | Archivo | Pruebas | Qué cubre |
 |---|---|---|

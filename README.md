@@ -220,12 +220,12 @@ Lee `eval/resultados/resultados.csv` (generado por `score_eval.mjs`) y escribe e
 ```bash
 cd worker
 npm ci
-npx vitest run            # 115 pruebas en 10 archivos, todas pasan
+npx vitest run            # 149 pruebas en 15 archivos, todas pasan
 npx tsc --noEmit          # verificación de tipos, sin errores
 npx wrangler deploy --dry-run   # empaqueta el Worker sin desplegar
 ```
 
-Cobertura de las 115 pruebas (`worker/test/`): `adjuntos` (16: lectura de ZIP y .docx para la vista previa, texto frente a binario), `agente` (42: llamadas JSON a herramientas, flujo SSE, vista previa de .xlsx/.csv y que el panel es un cliente de la API), `compartir` (14: chats compartidos), `queries` (14: normalización, `buscar`, `detalle`, `alertas`, `resumen` sobre una D1 simulada), `cadena` (13: cadena de proveedores de IA y validación con imágenes), `agenteapi` (2: forma de la petición), `remotedb` (4: la consulta usa el conector y cae a D1 si no responde), `mcp` (3: lista exactamente las 4 herramientas, cada respuesta trae datos, fuente, URL y fecha, y se informa cuando no hay resultados) `gptjobs` (2: validación de mensajes) y `sitio` (5: la página `/proyecto` y que el sitio no exponga datos internos).
+Cobertura de las pruebas (`worker/test/`): `adjuntos` (16: lectura de ZIP y .docx para la vista previa, texto frente a binario), `agente` (42: llamadas JSON a herramientas, flujo SSE, vista previa de .xlsx/.csv y que el panel es un cliente de la API), `compartir` (14: chats compartidos), `queries` (14: normalización, `buscar`, `detalle`, `alertas`, `resumen` sobre una D1 simulada), `cadena` (13: cadena de proveedores de IA y validación con imágenes), `agenteapi` (2: forma de la petición), `remotedb` (4: la consulta usa el conector y cae a D1 si no responde), `mcp` (3: lista exactamente las 4 herramientas, cada respuesta trae datos, fuente, URL y fecha, y se informa cuando no hay resultados) `gptjobs` (2: validación de mensajes) y `sitio` (5: la página `/proyecto` y que el sitio no exponga datos internos).
 
 Prueba manual contra el servidor público con MCP Inspector:
 

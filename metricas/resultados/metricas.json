@@ -1,5 +1,5 @@
 {
-  "generado": "2026-11-18T16:49:20+00:00",
+  "generado": "2026-11-20T14:47:30+00:00",
   "corte_datos": {
     "total_inversiones": "150574",
     "alertas_sobrecosto": "26387",
@@ -1481,112 +1481,147 @@
       ]
     },
     "pruebas": {
-      "generado": "2026-11-18T16:49:20+00:00",
+      "generado": "2026-11-20T14:47:26+00:00",
       "comando": "cd worker && npx vitest run --coverage",
       "exito": true,
-      "pruebas_total": 115,
-      "pasan": 115,
+      "pruebas_total": 149,
+      "pasan": 149,
       "fallan": 0,
-      "archivos": 10,
-      "suites_describe": 47,
-      "duracion_suite_ms": 491.3,
-      "duracion_pared_con_cobertura_s": 1.2,
+      "archivos": 15,
+      "suites_describe": 63,
+      "duracion_suite_ms": 763.7,
+      "duracion_pared_con_cobertura_s": 1.7,
       "por_archivo": [
         {
           "archivo": "adjuntos.test.ts",
-          "pruebas": 16,
-          "pasan": 16,
+          "pruebas": 18,
+          "pasan": 18,
           "fallan": 0,
-          "duracion_ms": 66.6
+          "duracion_ms": 86.1
         },
         {
           "archivo": "agente.test.ts",
           "pruebas": 42,
           "pasan": 42,
           "fallan": 0,
-          "duracion_ms": 76.8
+          "duracion_ms": 93.0
         },
         {
           "archivo": "agenteapi.test.ts",
-          "pruebas": 2,
-          "pasan": 2,
+          "pruebas": 4,
+          "pasan": 4,
           "fallan": 0,
-          "duracion_ms": 5.6
+          "duracion_ms": 19.3
         },
         {
           "archivo": "cadena.test.ts",
           "pruebas": 13,
           "pasan": 13,
           "fallan": 0,
-          "duracion_ms": 51.6
+          "duracion_ms": 53.8
+        },
+        {
+          "archivo": "cifras.test.ts",
+          "pruebas": 3,
+          "pasan": 3,
+          "fallan": 0,
+          "duracion_ms": 3.7
         },
         {
           "archivo": "compartir.test.ts",
           "pruebas": 14,
           "pasan": 14,
           "fallan": 0,
-          "duracion_ms": 59.3
+          "duracion_ms": 63.5
+        },
+        {
+          "archivo": "demo.test.ts",
+          "pruebas": 8,
+          "pasan": 8,
+          "fallan": 0,
+          "duracion_ms": 19.4
+        },
+        {
+          "archivo": "evaluacion-md.test.ts",
+          "pruebas": 4,
+          "pasan": 4,
+          "fallan": 0,
+          "duracion_ms": 9.8
         },
         {
           "archivo": "gptjobs.test.ts",
           "pruebas": 2,
           "pasan": 2,
           "fallan": 0,
-          "duracion_ms": 4.5
+          "duracion_ms": 2.4
+        },
+        {
+          "archivo": "grafico.test.ts",
+          "pruebas": 7,
+          "pasan": 7,
+          "fallan": 0,
+          "duracion_ms": 12.5
         },
         {
           "archivo": "mcp.test.ts",
           "pruebas": 3,
           "pasan": 3,
           "fallan": 0,
-          "duracion_ms": 67.0
+          "duracion_ms": 116.1
         },
         {
           "archivo": "queries.test.ts",
           "pruebas": 14,
           "pasan": 14,
           "fallan": 0,
-          "duracion_ms": 23.6
+          "duracion_ms": 17.4
         },
         {
           "archivo": "remotedb.test.ts",
           "pruebas": 4,
           "pasan": 4,
           "fallan": 0,
-          "duracion_ms": 43.3
+          "duracion_ms": 46.2
         },
         {
           "archivo": "sitio.test.ts",
+          "pruebas": 8,
+          "pasan": 8,
+          "fallan": 0,
+          "duracion_ms": 13.4
+        },
+        {
+          "archivo": "sugerencias.test.ts",
           "pruebas": 5,
           "pasan": 5,
           "fallan": 0,
-          "duracion_ms": 9.6
+          "duracion_ms": 87.8
         }
       ],
       "cobertura_total": {
         "lines": {
-          "total": 1203,
-          "covered": 1010,
+          "total": 1783,
+          "covered": 1432,
           "skipped": 0,
-          "pct": 83.95
+          "pct": 80.31
         },
         "statements": {
-          "total": 1704,
-          "covered": 1359,
+          "total": 2578,
+          "covered": 1934,
           "skipped": 0,
-          "pct": 79.75
+          "pct": 75.01
         },
         "functions": {
-          "total": 317,
-          "covered": 278,
+          "total": 481,
+          "covered": 397,
           "skipped": 0,
-          "pct": 87.69
+          "pct": 82.53
         },
         "branches": {
-          "total": 1390,
-          "covered": 931,
+          "total": 2219,
+          "covered": 1359,
           "skipped": 0,
-          "pct": 66.97
+          "pct": 61.24
         },
         "branchesTrue": {
           "total": 0,
@@ -1596,20 +1631,20 @@
         }
       },
       "cobertura_solo_logica_pct": {
-        "lines": 81.37,
-        "statements": 75.89,
-        "functions": 84.36,
-        "branches": 66.67
+        "lines": 75.54,
+        "statements": 68.74,
+        "functions": 69.6,
+        "branches": 58.19
       },
       "cobertura_por_archivo": [
         {
           "archivo": "src/cola.ts",
-          "lineas_pct": 7.6,
-          "sentencias_pct": 5.03,
+          "lineas_pct": 7.54,
+          "sentencias_pct": 4.93,
           "funciones_pct": 0,
           "ramas_pct": 0,
-          "lineas_cubiertas": 7,
-          "lineas_totales": 92
+          "lineas_cubiertas": 8,
+          "lineas_totales": 106
         },
         {
           "archivo": "src/compartido.ts",
@@ -1626,35 +1661,44 @@
           "sentencias_pct": 100,
           "funciones_pct": 100,
           "ramas_pct": 100,
-          "lineas_cubiertas": 13,
-          "lineas_totales": 13
+          "lineas_cubiertas": 21,
+          "lineas_totales": 21
         },
         {
-          "archivo": "src/index.ts",
-          "lineas_pct": 42.85,
-          "sentencias_pct": 35.46,
-          "funciones_pct": 50,
-          "ramas_pct": 30.96,
-          "lineas_cubiertas": 42,
-          "lineas_totales": 98
-        },
-        {
-          "archivo": "src/lib/agente.ts",
-          "lineas_pct": 98.7,
-          "sentencias_pct": 92.96,
-          "funciones_pct": 96.42,
-          "ramas_pct": 80.4,
-          "lineas_cubiertas": 457,
-          "lineas_totales": 463
-        },
-        {
-          "archivo": "src/lib/agenteapi.ts",
+          "archivo": "src/grafico-js.ts",
           "lineas_pct": 100,
           "sentencias_pct": 100,
           "funciones_pct": 100,
-          "ramas_pct": 97.14,
-          "lineas_cubiertas": 10,
-          "lineas_totales": 10
+          "ramas_pct": 100,
+          "lineas_cubiertas": 2,
+          "lineas_totales": 2
+        },
+        {
+          "archivo": "src/index.ts",
+          "lineas_pct": 40.56,
+          "sentencias_pct": 33.77,
+          "funciones_pct": 50,
+          "ramas_pct": 29.37,
+          "lineas_cubiertas": 43,
+          "lineas_totales": 106
+        },
+        {
+          "archivo": "src/lib/agente.ts",
+          "lineas_pct": 83.6,
+          "sentencias_pct": 74.97,
+          "funciones_pct": 66.91,
+          "ramas_pct": 64.19,
+          "lineas_cubiertas": 612,
+          "lineas_totales": 732
+        },
+        {
+          "archivo": "src/lib/agenteapi.ts",
+          "lineas_pct": 41.93,
+          "sentencias_pct": 42.62,
+          "funciones_pct": 60,
+          "ramas_pct": 40.49,
+          "lineas_cubiertas": 13,
+          "lineas_totales": 31
         },
         {
           "archivo": "src/lib/cadena.ts",
@@ -1684,6 +1728,15 @@
           "lineas_totales": 1
         },
         {
+          "archivo": "src/lib/grafico.ts",
+          "lineas_pct": 100,
+          "sentencias_pct": 96.73,
+          "funciones_pct": 100,
+          "ramas_pct": 87.96,
+          "lineas_cubiertas": 55,
+          "lineas_totales": 55
+        },
+        {
           "archivo": "src/lib/queries.ts",
           "lineas_pct": 97.29,
           "sentencias_pct": 98.03,
@@ -1702,11 +1755,20 @@
           "lineas_totales": 16
         },
         {
+          "archivo": "src/lib/sugerencias.ts",
+          "lineas_pct": 100,
+          "sentencias_pct": 97.29,
+          "funciones_pct": 100,
+          "ramas_pct": 89.65,
+          "lineas_cubiertas": 22,
+          "lineas_totales": 22
+        },
+        {
           "archivo": "src/pagina.ts",
           "lineas_pct": 83.33,
           "sentencias_pct": 83.33,
           "funciones_pct": 50,
-          "ramas_pct": 50,
+          "ramas_pct": 75,
           "lineas_cubiertas": 5,
           "lineas_totales": 6
         },
@@ -1729,12 +1791,21 @@
           "lineas_totales": 14
         },
         {
+          "archivo": "src/sitio/cifras.ts",
+          "lineas_pct": 100,
+          "sentencias_pct": 100,
+          "funciones_pct": 100,
+          "ramas_pct": 85.29,
+          "lineas_cubiertas": 31,
+          "lineas_totales": 31
+        },
+        {
           "archivo": "src/sitio/conectar.ts",
-          "lineas_pct": 37.5,
-          "sentencias_pct": 37.5,
-          "funciones_pct": 0,
-          "ramas_pct": 0,
-          "lineas_cubiertas": 6,
+          "lineas_pct": 81.25,
+          "sentencias_pct": 81.25,
+          "funciones_pct": 66.66,
+          "ramas_pct": 57.14,
+          "lineas_cubiertas": 13,
           "lineas_totales": 16
         },
         {
@@ -1745,6 +1816,24 @@
           "ramas_pct": 0,
           "lineas_cubiertas": 3,
           "lineas_totales": 7
+        },
+        {
+          "archivo": "src/sitio/demo-datos.ts",
+          "lineas_pct": 100,
+          "sentencias_pct": 100,
+          "funciones_pct": 100,
+          "ramas_pct": 100,
+          "lineas_cubiertas": 2,
+          "lineas_totales": 2
+        },
+        {
+          "archivo": "src/sitio/demo-pagina.ts",
+          "lineas_pct": 100,
+          "sentencias_pct": 100,
+          "funciones_pct": 100,
+          "ramas_pct": 92.85,
+          "lineas_cubiertas": 24,
+          "lineas_totales": 24
         },
         {
           "archivo": "src/sitio/estilos.ts",
@@ -1765,22 +1854,49 @@
           "lineas_totales": 1
         },
         {
+          "archivo": "src/sitio/evaluacion-md.ts",
+          "lineas_pct": 77.33,
+          "sentencias_pct": 75.23,
+          "funciones_pct": 86.36,
+          "ramas_pct": 77.38,
+          "lineas_cubiertas": 58,
+          "lineas_totales": 75
+        },
+        {
+          "archivo": "src/sitio/evaluacion-tabla.ts",
+          "lineas_pct": 100,
+          "sentencias_pct": 100,
+          "funciones_pct": 100,
+          "ramas_pct": 100,
+          "lineas_cubiertas": 2,
+          "lineas_totales": 2
+        },
+        {
+          "archivo": "src/sitio/evaluacion.ts",
+          "lineas_pct": 100,
+          "sentencias_pct": 100,
+          "funciones_pct": 100,
+          "ramas_pct": 86.84,
+          "lineas_cubiertas": 34,
+          "lineas_totales": 34
+        },
+        {
           "archivo": "src/sitio/inicio.ts",
-          "lineas_pct": 55.55,
-          "sentencias_pct": 45.45,
-          "funciones_pct": 0,
-          "ramas_pct": 0,
-          "lineas_cubiertas": 5,
-          "lineas_totales": 9
+          "lineas_pct": 100,
+          "sentencias_pct": 100,
+          "funciones_pct": 100,
+          "ramas_pct": 50,
+          "lineas_cubiertas": 8,
+          "lineas_totales": 8
         },
         {
           "archivo": "src/sitio/layout.ts",
           "lineas_pct": 100,
-          "sentencias_pct": 96.77,
-          "funciones_pct": 90,
-          "ramas_pct": 73.07,
-          "lineas_cubiertas": 25,
-          "lineas_totales": 25
+          "sentencias_pct": 100,
+          "funciones_pct": 100,
+          "ramas_pct": 81.25,
+          "lineas_cubiertas": 39,
+          "lineas_totales": 39
         },
         {
           "archivo": "src/sitio/metricas-datos.ts",
@@ -1820,19 +1936,19 @@
         },
         {
           "archivo": "TOTAL",
-          "lineas_pct": 83.95,
-          "sentencias_pct": 79.75,
-          "funciones_pct": 87.69,
-          "ramas_pct": 66.97,
-          "lineas_cubiertas": 1010,
-          "lineas_totales": 1203
+          "lineas_pct": 80.31,
+          "sentencias_pct": 75.01,
+          "funciones_pct": 82.53,
+          "ramas_pct": 61.24,
+          "lineas_cubiertas": 1432,
+          "lineas_totales": 1783
         },
         {
           "archivo": "TOTAL solo logica (sin sitio/ ni pagina.ts: HTML y CSS en cadenas)",
-          "lineas_pct": 81.37,
-          "sentencias_pct": 75.89,
-          "funciones_pct": 84.36,
-          "ramas_pct": 66.67,
+          "lineas_pct": 75.54,
+          "sentencias_pct": 68.74,
+          "funciones_pct": 69.6,
+          "ramas_pct": 58.19,
           "lineas_cubiertas": "",
           "lineas_totales": ""
         }
@@ -2044,7 +2160,7 @@
     "inversiones": 150574,
     "alertas_sobrecosto": 26387,
     "alertas_paralizacion": 16502,
-    "pruebas": 115,
-    "cobertura_lineas_pct": 83.95
+    "pruebas": 149,
+    "cobertura_lineas_pct": 80.31
   }
 }

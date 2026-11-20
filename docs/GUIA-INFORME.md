@@ -369,13 +369,13 @@ Fuente: elaboración propia con datos de MEF (2026a, 2026b) y Congreso de la Rep
 | Prueba | Resultado |
 |---|---|
 | Pruebas automáticas | 149 de 149 pasan, en 15 archivos (20/11/2026) |
-| Cobertura de código | 84,0 % de las líneas (81,4 % en la lógica sin páginas) |
+| Cobertura de código | 80,3 % de las líneas (75,5 % en la lógica sin páginas) |
 | `detalle_inversion` frente a la base | 30 de 30 fichas idénticas; 810 de 810 campos |
 | `resumen_inversiones` frente a la base | 10 de 10 filtros; 60 de 60 cifras |
 | `alertas_inversion` frente a la base | 14 de 14 totales iguales |
 | Rendimiento (20 llamadas por herramienta desde Lima) | 100 % de éxito; mediana 2,1 s (`buscar_inversiones`), 1,4 s (`detalle_inversion`), 2,0 s (`alertas_inversion`), 1,4 s (`resumen_inversiones`); máximo 3,1 s |
 
-Fuente: elaboración propia (Anexo 01, carpeta `metricas/resultados/`). Ojo: `pruebas.csv` aún dice 115 pruebas (medición anterior, que es la de la cobertura); el 20/11/2026 `cd worker && npx vitest run` da 149. Si antes de entregar se ejecuta `python metricas/pruebas.py`, usen las cifras nuevas de ambos archivos.
+Fuente: elaboración propia (Anexo 01, carpeta `metricas/resultados/`). Medición del 20/11/2026 (`python metricas/pruebas.py`).
 
 ### 3.7 Diseño de la evaluación (Piero, ½ a 1 página)
 
