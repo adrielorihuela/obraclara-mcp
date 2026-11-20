@@ -105,7 +105,7 @@ ${lista.length > 1 ? `<span class="pts" aria-hidden="true">${lista.map((_, i) =>
   return `<section class="cifras" id="cifras" aria-label="Cifras de la base de datos y de la evaluación"><div class="wrap">
 <dl aria-live="polite">${casillas.map(casilla).join("")}</dl>
 ${marquesina(cinta, "Más cifras")}
-<div class="cifras-p"><p>Cifras de la base cargada el ${esc(fecha)} desde el archivo oficial del MEF; las de calidad y evaluación, de las mediciones publicadas en el repositorio.</p><button class="copiar cf-pausa" type="button" aria-pressed="false" hidden>Pausar</button></div>
+<div class="cifras-p"><p>Cifras de la base cargada el ${esc(fecha)} desde el archivo oficial del MEF; las de calidad y evaluación, de las mediciones publicadas en el repositorio.</p></div>
 </div></section>`;
 }
 
@@ -138,7 +138,7 @@ export const cifrasCss = String.raw`
 
 .mq{border-top:1px solid var(--line);overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
 .mq-t{display:flex;width:max-content;animation:mq var(--mq-dur,160s) linear infinite}
-.mq:hover .mq-t,.mq:focus-within .mq-t,.cf-quieto .mq-t{animation-play-state:paused}
+.cf-quieto .mq-t{animation-play-state:paused}
 .mq-g{display:flex;list-style:none;margin:0;padding:0}
 .mq-g li{display:flex;align-items:center;white-space:nowrap;padding:14px 0;font-size:var(--s-1);color:var(--ink-2)}
 .mq-g li::after{content:"";width:4px;height:4px;border-radius:50%;background:var(--line-2);margin:0 22px}
@@ -164,7 +164,7 @@ export const cifrasCss = String.raw`
 .cifras.rm .mq-g li.fuera{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 `;
 
-// Rota una casilla a la vez (escalonado), pausa al pasar el mouse, al enfocar, fuera de pantalla, con la pestaña oculta
+// Rota una casilla a la vez (escalonado), siempre activo; solo se detiene fuera de pantalla o con la pestaña oculta
 // o con el botón. Con movimiento reducido (clase rm): fundido cruzado sin conteo y cinta por páginas cada 4 s.
 export const cifrasScript = String.raw`(function(){
 var s=document.getElementById('cifras');if(!s)return;
@@ -196,14 +196,14 @@ function girar(r){var its=r.querySelectorAll('.it'),pts=r.querySelectorAll('.pts
  b.classList.add('on');b.removeAttribute('aria-hidden');b.inert=false;
  if(pts[i])pts[i].classList.remove('on');if(pts[n])pts[n].classList.add('on');
  var num=b.querySelector('.n');if(num&&!rm){var f=Number(num.getAttribute('data-n'));contar(num,f*.7)}}
-function quieto(){return hover||foco||!visto||manual||document.hidden}
+function quieto(){return !visto||document.hidden}
 function tic(){tim=null;if(quieto())return;if(rots.length){girar(rots[k%rots.length]);k++}programar()}
 function programar(){if(!tim&&!quieto())tim=setTimeout(tic,PASO)}
-function estado(){s.classList.toggle('cf-quieto',manual);if(quieto()){clearTimeout(tim);tim=null;clearTimeout(ptim);ptim=null}else{programar();pprog()}}
-s.addEventListener('mouseenter',function(){hover=true;estado()});s.addEventListener('mouseleave',function(){hover=false;estado()});
-s.addEventListener('focusin',function(){foco=true;estado()});s.addEventListener('focusout',function(e){if(!s.contains(e.relatedTarget)){foco=false;estado()}});
+function estado(){s.classList.toggle('cf-quieto',quieto());if(quieto()){clearTimeout(tim);tim=null;clearTimeout(ptim);ptim=null}else{programar();pprog()}}
+
+
 document.addEventListener('visibilitychange',estado);
-if(btn){btn.hidden=false;btn.addEventListener('click',function(){manual=!manual;btn.setAttribute('aria-pressed',String(manual));btn.textContent=manual?'Reanudar':'Pausar';estado()})}
+
 if(rm&&g){paginar();var rt=null;addEventListener('resize',function(){clearTimeout(rt);rt=setTimeout(paginar,200)});
  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(paginar);
  g.addEventListener('focusin',function(e){var li=e.target.closest('li');for(var i=0;i<pags.length;i++)if(pags[i].indexOf(li)>=0&&i!==pi){g.classList.remove('cf-fade');mostrar(i)}})}
