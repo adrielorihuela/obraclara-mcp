@@ -78,7 +78,7 @@ export default {
       const v = url.pathname === "/api/agente/rehacer" ? validarRehacer(cuerpo) : url.pathname === "/api/agente/rama" ? validarRama(cuerpo) : rec ? validarRecuperar(cuerpo) : validarAgente(cuerpo);
       if (!v.ok) return json({ error: v.error }, 400);
       const r = await cola.fetch("https://cola/agente", { method: "POST", body: JSON.stringify(v.valor) });
-      return new Response(r.body, { status: r.status, headers: { "content-type": "application/json; charset=utf-8", "access-control-allow-origin": "*" } });
+      return new Response(r.body, { status: r.status, headers: { "content-type": "application/json; charset=utf-8", "access-control-allow-origin": "*", "x-dbg": Object.keys(v.valor).join(",") } });
     }
     // Progreso en vivo del turno: lo empuja el conector desde la API del agente y se guarda en memoria (sin D1).
     if (url.pathname === "/api/agente/eventos" && req.method === "GET") {
