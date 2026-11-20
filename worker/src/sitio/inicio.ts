@@ -1,17 +1,18 @@
 import { arquitecturaAncha, arquitecturaCss, arquitecturaVertical } from "./arquitectura";
-import { enSencillo, esc, fechaLarga, MCP_URL, num, REPO, shell, type Meta } from "./layout";
+import { enSencilloAncho, esc, fechaLarga, MCP_URL, num, REPO, shell, type Meta } from "./layout";
 
 // Consulta real hecha al servidor el 2026-11-10 (alertas_inversion, Cusco, Salud, paralización, límite 3).
 const TRAZA_FECHA = "10 de noviembre de 2026";
 
 const css = String.raw`
-.hero{padding:clamp(40px,7vw,96px) 0 clamp(56px,8vw,112px)}
+.hero{padding:clamp(40px,7vw,96px) 0 clamp(48px,6vw,80px)}
 .hero .wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.02fr);gap:clamp(32px,5vw,72px);align-items:center}
 .hero h1{max-width:13ch}
 .hero .lead{margin-top:24px}
 .hero .acc{display:flex;flex-wrap:wrap;gap:12px;margin-top:32px}
 .hero .url{margin-top:28px;display:grid;grid-template-columns:minmax(0,1fr);justify-items:start;gap:8px}
 .hero .url .small{color:var(--mut)}
+.hero .sencillo{grid-column:1/-1}
 .pulso{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 0 var(--accent);animation:pulso 2.4s infinite}
 @keyframes pulso{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--accent) 50%,transparent)}70%,100%{box-shadow:0 0 0 8px transparent}}
 @media (max-width:960px){.hero .wrap{grid-template-columns:minmax(0,1fr)}.hero h1{max-width:16ch}}
@@ -40,14 +41,14 @@ const css = String.raw`
 
 .cifras{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--bg-2)}
 .cifras dl{margin:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
-.cifras div{padding:clamp(28px,4vw,48px) clamp(16px,2.4vw,32px)}
-.cifras div+div{border-left:1px solid var(--line)}
-.cifras div:first-child{padding-left:0}
+.cifras dl>div{padding:clamp(28px,4vw,48px) clamp(16px,2.4vw,32px)}
+.cifras dl>div+div{border-left:1px solid var(--line)}
+.cifras dl>div:first-child{padding-left:0}
 .cifras dt{font:600 clamp(2rem,1.3rem + 2.6vw,3.4rem)/1 var(--serif);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .cifras dd{margin:12px 0 0;color:var(--ink-2);font-size:var(--s-1);max-width:26ch}
 .cifras .w dt{color:var(--warn)}.cifras .r dt{color:var(--risk)}
 .cifras-p{padding:14px 0;font-size:var(--s-1);color:var(--mut)}
-@media (max-width:860px){.cifras dl{grid-template-columns:repeat(2,minmax(0,1fr))}.cifras div:nth-child(3){border-left:0}.cifras div:nth-child(3){padding-left:0}.cifras div:nth-child(n+3){border-top:1px solid var(--line)}}
+@media (max-width:860px){.cifras dl{grid-template-columns:repeat(2,minmax(0,1fr))}.cifras dl>div:nth-child(3){border-left:0;padding-left:0}.cifras dl>div:nth-child(n+3){border-top:1px solid var(--line)}}
 
 .pasos{list-style:none;margin:0 0 clamp(48px,6vw,80px);padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;counter-reset:p}
 .pasos li{padding:24px 24px 0 0;border-top:1px solid var(--line-2);position:relative}
@@ -141,12 +142,11 @@ export function inicio(m: Meta): string {
 </div>
 <figcaption>Herramienta y resultados reales del servidor, consultados el ${TRAZA_FECHA}. La respuesta final es un ejemplo de redacción del asistente.</figcaption>
 </figure>
-</div></section>
-
-<section class="sec" style="padding-bottom:0"><div class="wrap">${enSencillo(
+${enSencilloAncho(
   "Cuando una obra pública se retrasa o cuesta mucho más de lo previsto, saberlo no debería exigir descargar un archivo gigante ni ser experto. ObraClara deja que cualquier persona pregunte, por ejemplo, «¿qué obras de salud en Cusco llevan seis meses sin gastar dinero?».",
   "Un asistente de IA normalmente responde de memoria, como alguien que contesta sin mirar ningún papel, y a veces se equivoca o inventa. Con ObraClara, el asistente primero revisa el registro oficial del MEF y luego te cuenta lo que encontró, mostrando de dónde sacó cada dato. En una prueba de 40 preguntas, sin esta conexión el asistente acertó 3; con ella acertó las 40.",
-  "Las «alertas» son señales para mirar una obra con más atención. <b>No prueban que haya algo malo.</b>")}</div></section>
+  "Las «alertas» son señales para mirar una obra con más atención. <b>No prueban que haya algo malo.</b>")}
+</div></section>
 
 <section class="cifras" aria-label="Cifras de la base de datos"><div class="wrap">
 <dl>
@@ -170,7 +170,7 @@ export function inicio(m: Meta): string {
 </ol>
 <figure class="arq-fig rv">${arquitecturaAncha()}${arquitecturaVertical()}
 <figcaption>Dibujo técnico del recorrido de un dato: del archivo del MEF al asistente. Todo funciona con servicios gratuitos de Cloudflare más un computador del grupo. Si ese computador está apagado, el servidor usa una copia de respaldo y el sitio sigue funcionando.</figcaption></figure>
-<p class="que rv" style="margin-inline:0"><b>Qué significa:</b> entre tu pregunta y la respuesta hay un paso de revisión del registro oficial; sin ese paso, el asistente solo adivina.</p>
+<p class="que rv" style="margin:20px 0 0;max-width:none"><b>Qué significa:</b> entre tu pregunta y la respuesta hay un paso de revisión del registro oficial; sin ese paso, el asistente solo adivina.</p>
 </div></section>
 
 <section class="sec"><div class="wrap">

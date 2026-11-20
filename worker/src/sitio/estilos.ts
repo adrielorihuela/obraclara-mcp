@@ -178,6 +178,10 @@ code,kbd,pre{font-family:var(--mono);font-size:.88em}
 .sencillo{border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:var(--r);background:var(--accent-soft);padding:18px 22px;margin:28px 0 0;max-width:780px}
 .sencillo h2{font:600 var(--s1)/1.3 var(--sans);margin:0 0 8px;color:var(--ink)}
 .sencillo p{color:var(--ink);margin:0}.sencillo p+p{margin-top:10px}
+.sencillo.ancho{max-width:none;margin:0;padding:clamp(22px,3vw,36px) clamp(22px,3vw,40px);columns:2;column-gap:clamp(28px,4vw,56px)}
+.sencillo.ancho h2{column-span:all;margin:0 0 12px}
+.sencillo.ancho p{orphans:3;widows:3}
+@media (max-width:860px){.sencillo.ancho{columns:1}}
 .que{margin:12px auto 0;max-width:62ch;padding:10px 14px;border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 8px 8px 0;font-size:var(--s-1);color:var(--ink);text-align:left}
 details.det{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:0 18px;margin:18px 0}
 details.det{transition:border-color .2s var(--ease),box-shadow .25s var(--ease)}
@@ -242,6 +246,7 @@ figcaption{margin-top:12px;font-size:var(--s-1);color:var(--mut)}
 /* Aparición al desplazarse */
 .js .rv{opacity:0;transform:translateY(14px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
 .js .rv.in{opacity:1;transform:none}
+@media print{.js .rv{opacity:1;transform:none}}
 .js .rv.d1{transition-delay:.08s}.js .rv.d2{transition-delay:.16s}.js .rv.d3{transition-delay:.24s}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.js .rv{opacity:1;transform:none}#carga{display:none!important}::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}}
 `;

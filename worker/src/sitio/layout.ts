@@ -95,6 +95,10 @@ if('IntersectionObserver' in window){var io=new IntersectionObserver(function(es
  t.classList.add('in');crecer(t);if(t.hasAttribute('data-count'))contar(t);if(t.hasAttribute('data-cuenta'))contarTexto(t);if(t.hasAttribute('data-play'))t.dispatchEvent(new CustomEvent('play'));io.unobserve(t)})},{rootMargin:'0px 0px -8% 0px',threshold:.12});
  els.forEach(function(el){if(el.hasAttribute('data-count'))el.textContent='0';io.observe(el)})}
 else els.forEach(function(el){el.classList.add('in');crecer(el);if(el.hasAttribute('data-play'))el.dispatchEvent(new CustomEvent('play'))});
+// Respaldo: si el observador no dispara (bloques muy altos, pestañas en segundo plano, impresión), nada queda invisible.
+var revelar=function(todo){d.querySelectorAll('.rv:not(.in)').forEach(function(el){if(todo||el.getBoundingClientRect().top<innerHeight){el.classList.add('in');crecer(el)}})};
+var rvPend=false;addEventListener('scroll',function(){if(rvPend)return;rvPend=true;setTimeout(function(){rvPend=false;revelar(false)},300)},{passive:true});
+setTimeout(function(){revelar(false)},1600);addEventListener('beforeprint',function(){revelar(true)});
 // Pulsación al hacer clic (onda) en botones.
 if(!rm)d.addEventListener('pointerdown',function(e){var b=e.target.closest&&e.target.closest('.btn,.b-comp,.nueva,.chips button,.adj-b,.pl-d,.b-onda');if(!b||b.disabled)return;
  var r=b.getBoundingClientRect(),s=Math.max(r.width,r.height)*2,o=d.createElement('span');o.className='onda';o.setAttribute('aria-hidden','true');o.style.width=o.style.height=s+'px';o.style.left=(e.clientX-r.left-s/2)+'px';o.style.top=(e.clientY-r.top-s/2)+'px';
@@ -170,5 +174,8 @@ ${pie}
 }
 
 // Bloque «En pocas palabras» que abre cada página: lenguaje cotidiano, sin términos técnicos sin explicar.
-export const enSencillo = (...parrafos: string[]) =>
-  `<aside class="sencillo rv" aria-label="Explicación sencilla"><h2>En palabras sencillas</h2>${parrafos.map((p) => `<p>${p}</p>`).join("")}</aside>`;
+const bloqueSencillo = (clase: string, parrafos: string[]) =>
+  `<aside class="${clase} rv" aria-label="Explicación sencilla"><h2>En palabras sencillas</h2>${parrafos.map((p) => `<p>${p}</p>`).join("")}</aside>`;
+export const enSencillo = (...parrafos: string[]) => bloqueSencillo("sencillo", parrafos);
+// Variante a todo el ancho del contenedor, con los párrafos en columnas (inicio).
+export const enSencilloAncho = (...parrafos: string[]) => bloqueSencillo("sencillo ancho", parrafos);
