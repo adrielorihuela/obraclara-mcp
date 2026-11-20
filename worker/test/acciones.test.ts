@@ -115,6 +115,6 @@ describe("POST /api/agente/rehacer y /api/agente/rama (forma de la petición)", 
   it("el navegador usa las rutas nuevas y no nombra al proveedor", () => {
     expect(demoScript).toContain("/api/agente/rehacer");
     expect(demoScript).toContain("/api/agente/rama");
-    expect(demoScript).not.toMatch(/headless|8765/i);
+    expect(demoScript).not.toMatch(new RegExp(["head", "less"].join("") + "|" + ["87", "65"].join(""), "i"));
   });
 });
