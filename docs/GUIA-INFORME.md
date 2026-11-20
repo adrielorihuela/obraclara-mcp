@@ -33,7 +33,7 @@ Todos escriben en **un solo Word compartido** hecho desde la plantilla, con cont
 | Vie 20/11 – Sáb 21/11 | Leer esta guía; reunión de 30 min: confirmar reparto, aprobar el glosario (D) y crear el Word compartido con las secciones vacías | Todos |
 | Dom 22/11 – Mar 24/11 | Primer borrador de cada sección propia; bajar los CSV; hacer tablas | Cada uno |
 | Mar 24/11 | Figuras dibujadas (draw.io y Excel) e insertadas con número, título, nota y fuente | Cada uno |
-| Mié 25/11 | Revisión manual de los 20 casos «revisar» (sección 6, apartado 6.7) | Camila y Piero |
+| Mié 25/11 | Revisión manual de los 20 casos «revisar» (apartado 4.7 de la sección 7 de esta guía) | Camila y Piero |
 | Jue 26/11 | **Borrador completo** (todo menos Resumen y Conclusiones) | Todos |
 | Vie 27/11 | Revisión cruzada con la lista de verificación de cada sección: Camila revisa a Adriel, Adriel a Sebastián, Sebastián a Piero, Piero a Camila | Todos |
 | Sáb 28/11 | Reunión: Resumen y Conclusiones con las cifras finales; Anexo 02; cruce citas ↔ referencias; numerar tablas y figuras | Todos |
