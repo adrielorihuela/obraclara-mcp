@@ -1,5 +1,6 @@
 import { arquitecturaAncha, arquitecturaCss, arquitecturaVertical } from "./arquitectura";
-import { enSencilloAncho, esc, fechaLarga, MCP_URL, num, REPO, shell, type Meta } from "./layout";
+import { cifrasCss, cifrasScript, franjaCifras } from "./cifras";
+import { enSencilloAncho, MCP_URL, num, REPO, shell, type Meta } from "./layout";
 
 // Consulta real hecha al servidor el 2026-11-10 (alertas_inversion, Cusco, Salud, paralización, límite 3).
 const TRAZA_FECHA = "10 de noviembre de 2026";
@@ -38,17 +39,6 @@ const css = String.raw`
 .js .traza li.paso{opacity:0;transform:translateY(6px);transition:opacity .5s,transform .5s}
 .js .traza li.paso.ver{opacity:1;transform:none}
 @media (max-width:520px){.traza li{grid-template-columns:minmax(0,1fr);gap:4px}.traza ol{min-height:0}.traza .res td.ent{display:none}}
-
-.cifras{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--bg-2)}
-.cifras dl{margin:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
-.cifras dl>div{padding:clamp(28px,4vw,48px) clamp(16px,2.4vw,32px)}
-.cifras dl>div+div{border-left:1px solid var(--line)}
-.cifras dl>div:first-child{padding-left:0}
-.cifras dt{font:600 clamp(2rem,1.3rem + 2.6vw,3.4rem)/1 var(--serif);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-.cifras dd{margin:12px 0 0;color:var(--ink-2);font-size:var(--s-1);max-width:26ch}
-.cifras .w dt{color:var(--warn)}.cifras .r dt{color:var(--risk)}
-.cifras-p{padding:14px 0;font-size:var(--s-1);color:var(--mut)}
-@media (max-width:860px){.cifras dl{grid-template-columns:repeat(2,minmax(0,1fr))}.cifras dl>div:nth-child(3){border-left:0;padding-left:0}.cifras dl>div:nth-child(n+3){border-top:1px solid var(--line)}}
 
 .pasos{list-style:none;margin:0 0 clamp(48px,6vw,80px);padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;counter-reset:p}
 .pasos li{padding:24px 24px 0 0;border-top:1px solid var(--line-2);position:relative}
@@ -93,6 +83,7 @@ const css = String.raw`
 .final .acc{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
 @media (max-width:860px){.final{grid-template-columns:minmax(0,1fr)}}
 ${arquitecturaCss}
+${cifrasCss}
 `;
 
 // Animación de la traza del hero: escribe la pregunta y muestra los pasos en orden. Con movimiento reducido, todo visible.
@@ -113,8 +104,7 @@ const icoFlecha = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" st
 const icoAviso = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v4M12 17.2v.1"/></svg>`;
 
 export function inicio(m: Meta): string {
-  const total = Number(m.total_inversiones ?? 0), sob = Number(m.alertas_sobrecosto ?? 0), par = Number(m.alertas_paralizacion ?? 0);
-  const fecha = fechaLarga(m.fecha_descarga);
+  const total = Number(m.total_inversiones ?? 0);
   const cuerpo = `
 <section class="hero"><div class="wrap">
 <div>
@@ -148,15 +138,7 @@ ${enSencilloAncho(
   "Las «alertas» son señales para mirar una obra con más atención. <b>No prueban que haya algo malo.</b>")}
 </div></section>
 
-<section class="cifras" aria-label="Cifras de la base de datos"><div class="wrap">
-<dl>
-<div><dt data-count="${total}">${num(total)}</dt><dd>obras y proyectos públicos registrados por el MEF</dd></div>
-<div class="w"><dt data-count="${sob}">${num(sob)}</dt><dd>con alerta de sobrecosto: hoy cuestan la mitad o más de lo aprobado al inicio</dd></div>
-<div class="r"><dt data-count="${par}">${num(par)}</dt><dd>con alerta de posible paralización: van entre 40 % y 99 % de avance y llevan 6 meses sin gastar dinero</dd></div>
-<div><dt>4</dt><dd>«herramientas» (funciones que el asistente puede usar), sin cuenta ni clave</dd></div>
-</dl>
-<p class="cifras-p">Cifras de la base cargada el ${esc(fecha)}. La carga se repite cada lunes desde el CSV oficial.</p>
-</div></section>
+${franjaCifras(m)}
 
 <section class="sec" id="como"><div class="wrap">
 <div class="head rv"><p class="eyebrow"><b>01</b> Cómo funciona</p>
@@ -234,6 +216,6 @@ ${enSencilloAncho(
     cuerpo,
     m,
     cssExtra: css,
-    scriptExtra: script,
+    scriptExtra: script + cifrasScript,
   });
 }

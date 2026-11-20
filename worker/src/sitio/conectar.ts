@@ -131,7 +131,7 @@ ${tabla(FILTROS)}
 <tr><td>/mcp</td><td>60 solicitudes por minuto por dirección IP.</td></tr>
 <tr><td>panel web</td><td>20 preguntas por minuto a la IA del servidor. Con tu propia clave, el límite es el de tu proveedor.</td></tr>
 <tr><td>resultados</td><td>Hasta 20 inversiones por consulta; <code>total</code> indica cuántas coinciden.</td></tr>
-<tr><td>datos</td><td>Corte del ${esc(fechaLarga(m.fecha_descarga))}. Se recargan cada lunes; durante la recarga, unos minutos, las consultas pueden devolver menos resultados.</td></tr>
+<tr><td>datos</td><td>Corte del ${esc(fechaLarga(m.fecha_descarga))}. No se actualizan solos: el grupo vuelve a cargarlos a mano con el ETL desde el archivo oficial. Durante una recarga de la copia en la nube, unos minutos, las consultas pueden devolver menos resultados.</td></tr>
 </tbody></table>
 <p style="margin-top:20px">Estado del servidor y fecha de los datos: <a href="/salud"><code>/salud</code></a>. Código y ETL: <a href="${REPO}">GitHub</a>.</p>
 </section>
@@ -190,7 +190,7 @@ export function acerca(m: Meta): string {
 <li>Los datos se actualizan una vez por semana y pueden no reflejar el estado más reciente en el MEF.</li>
 <li>Las alertas son aproximaciones con reglas simples: son señales para revisar, no prueban irregularidades.</li>
 <li>La IA del panel corre en un computador del grupo: es compartida, tiene límite de uso y puede estar apagada (entonces responde un respaldo).</li>
-<li>Durante la recarga semanal, por unos minutos, las consultas pueden devolver pocos resultados.</li></ul></div>
+<li>Durante una recarga manual de los datos, por unos minutos, las consultas pueden devolver pocos resultados.</li></ul></div>
 <h2>Código</h2><div><p>Abierto con licencia MIT en <a href="${REPO}">github.com/adrielorihuela/obraclara-mcp</a>: ETL en Python, Worker en TypeScript, pruebas y banco de preguntas de evaluación.</p></div>
 <h2>Uso de IA</h2><div><p>El código se desarrolló con ayuda de IA generativa y fue revisado y probado por el grupo.</p></div>
 <h2>Curso</h2><div><p>Universidad de Lima · Inteligencia Artificial Aplicada · sección 356 · Grupo 1.</p></div>

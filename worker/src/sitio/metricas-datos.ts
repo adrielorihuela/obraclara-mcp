@@ -406,6 +406,13 @@ export const METRICAS = {
   "coberturaLineas": 83.95,
   "coberturaLogica": 81.37
  },
+ "montos": {
+  "costo_actualizado_total": 1373424266565.26,
+  "devengado_anio_total": 43691317724.5,
+  "saldo_por_ejecutar_total": 996957917142.24,
+  "monto_viable_total": 1101241320190.99,
+  "pim_anio_total": 68120359780
+ },
  "asistente": [
   {
    "modo": "chat",

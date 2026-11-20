@@ -107,13 +107,13 @@ La Ley N.° 31589 considera paralizada una obra con 40 % o más de avance y seis
 Porque no es confiable. En BIRD, un banco de pruebas de consultas a bases de datos, ChatGPT acertó 40,08 % frente a 92,96 % de las personas (Li et al., 2023). Por eso la IA solo elige una de cuatro herramientas y el servidor ejecuta una consulta fija y segura.
 
 **13. ¿Qué datos usan y son confiables?**
-Una sola fuente oficial: el archivo «Información de inversiones públicas» del MEF, datos abiertos con licencia ODC-BY. Descargado el 10 de noviembre de 2026 y recargado cada semana. Tiene vacíos (por ejemplo, falta el avance físico en 57,3 % de las obras) y lo decimos.
+Una sola fuente oficial: el archivo «Información de inversiones públicas» del MEF, datos abiertos con licencia ODC-BY. Descargado y cargado el 10 de noviembre de 2026; no se actualiza solo: el grupo lo vuelve a cargar a mano con el ETL. Tiene vacíos (por ejemplo, falta el avance físico en 57,3 % de las obras) y lo decimos.
 
 **14. ¿Y la privacidad y la seguridad?**
 Todos los datos son públicos y de entidades, no de personas; el servidor no pide cuenta ni clave. Las herramientas solo leen (no modifican nada), los parámetros se validan y hay un límite de 60 solicitudes por minuto por cliente. El conector del grupo no abre puertos: se conecta hacia afuera.
 
 **15. ¿Qué pasa si se cae la IA?**
-El sitio sigue funcionando: la búsqueda directa de `/datos` no usa IA. Si se apaga el computador del grupo que atiende al asistente, el chat usa un respaldo automático, y el servidor consulta una copia de la base en la nube. Lo malo: ese respaldo puede dar menos resultados durante la recarga semanal.
+El sitio sigue funcionando: la búsqueda directa de `/datos` no usa IA. Si se apaga el computador del grupo que atiende al asistente, el chat usa un respaldo automático, y el servidor consulta una copia de la base en la nube. Lo malo: ese respaldo puede dar menos resultados durante una recarga manual.
 
 **16. ¿Cuánto cuesta?**
 Nada: usamos el plan gratuito de Cloudflare y un computador del grupo. Es la razón por la que hay límites de uso y por la que el asistente gratuito puede estar ocupado.

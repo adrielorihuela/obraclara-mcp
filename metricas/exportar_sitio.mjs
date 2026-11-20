@@ -54,6 +54,7 @@ const D = {
     resumenes: exr.length, detalles: exd.length,
   },
   pruebas: { total: N(tot.pruebas), pasan: N(tot.pasan), fallan: N(tot.fallan), archivos: pruebas.length - 1, coberturaLineas: N(cob.find((r) => r.archivo === 'TOTAL').lineas_pct), coberturaLogica: N(cob.find((r) => r.archivo.startsWith('TOTAL solo')).lineas_pct) },
+  montos: Object.fromEntries(csv('calidad_montos_totales.csv').map((r) => [r.indicador, N(r.soles)])),
   asistente: csv('asistente_resumen.csv').map((r) => ({ modo: r.modo, preguntas: N(r.preguntas), exitosas: N(r.exitosas), media: N(r.media_s), p50: N(r.p50_s), max: N(r.max_s) })),
 };
 fs.writeFileSync(SALIDA, '// GENERADO por metricas/exportar_sitio.mjs a partir de metricas/resultados/. No editar a mano: vuelve a ejecutar `node metricas/exportar_sitio.mjs`.\nexport const METRICAS = ' + JSON.stringify(D, null, 1) + ' as const;\n');
