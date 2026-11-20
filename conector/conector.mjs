@@ -179,7 +179,6 @@ async function recuperar(ws, chat, tarea, sub) {
 }
 
 async function agente(ws, tarea) {
-  log("DBG claves", Object.keys(tarea).join(","));
   const t0 = Date.now();
   const chat = /^[A-Za-z0-9_-]{1,64}$/.test(String(tarea.chat_id)) ? tarea.chat_id : "";
   // Cambiar de versión (`rama`): POST /v1/agente/chats/:id/ramas/:k/activar; no hay turno ni eventos.
