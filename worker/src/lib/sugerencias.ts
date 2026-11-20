@@ -13,7 +13,7 @@ export const ETIQUETAS_SUGERENCIA: Record<TipoSugerencia, string> = {
   docx: "Informe Word",
   pdf: "PDF con gráficos",
   pptx: "Presentación",
-  rapida: "Pregunta rápida",
+  rapida: "Respuesta + gráfico",
 };
 
 export const SUGERENCIAS: Sugerencia[] = [
@@ -61,16 +61,16 @@ export const SUGERENCIAS: Sugerencia[] = [
   { t: "pptx", texto: "Hazme diapositivas (PowerPoint) del saneamiento en La Libertad: resumen, gráfico del saldo y las obras con alerta" },
   { t: "pptx", texto: "Un PowerPoint de 5 diapositivas sobre la inversión pública en Junín en salud, educación, transporte y saneamiento, con gráficos" },
   // Preguntas rápidas
-  { t: "rapida", texto: "¿Qué obras de salud en Cusco llevan 6 meses o más sin gasto?" },
-  { t: "rapida", texto: "Resume las inversiones de la Municipalidad Provincial de Piura" },
-  { t: "rapida", texto: "¿Cuál es el avance de la inversión 2716769?" },
-  { t: "rapida", texto: "¿Cuántas obras con alerta de sobrecosto hay en Arequipa?" },
-  { t: "rapida", texto: "¿Cuánto falta por ejecutar en las obras del Gobierno Regional de Puno?" },
-  { t: "rapida", texto: "¿Qué obras de educación están paralizadas en Ayacucho?" },
-  { t: "rapida", texto: "¿Cuáles son las 5 obras de transporte más costosas de Loreto?" },
-  { t: "rapida", texto: "¿Cuántas obras tiene el nivel nacional en Tacna y cuánto cuestan en total?" },
-  { t: "rapida", texto: "¿Hay obras de saneamiento con sobrecosto en Lambayeque?" },
-  { t: "rapida", texto: "¿Cuánto se ha gastado este año en obras de salud en Lima?" },
+  { t: "rapida", texto: "¿Qué obras de salud en Cusco llevan 6 meses o más sin gasto? Muéstralo con un gráfico de meses sin gasto" },
+  { t: "rapida", texto: "Resume las inversiones de la Municipalidad Provincial de Piura con un gráfico de costo y saldo por ejecutar" },
+  { t: "rapida", texto: "¿Cuál es el avance de la inversión 2716769? Compara en un gráfico lo aprobado, lo que cuesta hoy y lo que falta ejecutar" },
+  { t: "rapida", texto: "¿Cuántas obras con alerta de sobrecosto hay en Arequipa? Grafica las de mayor sobrecosto" },
+  { t: "rapida", texto: "¿Cuánto falta por ejecutar en las obras del Gobierno Regional de Puno? Muéstralo en un gráfico frente al costo total" },
+  { t: "rapida", texto: "¿Qué obras de educación están paralizadas en Ayacucho? Grafica sus meses sin gasto" },
+  { t: "rapida", texto: "¿Cuáles son las 5 obras de transporte más costosas de Loreto? Muéstralas en un gráfico de barras" },
+  { t: "rapida", texto: "Compara en un gráfico cuántas obras y cuánto cuestan en Tacna por nivel de gobierno" },
+  { t: "rapida", texto: "¿Hay obras de saneamiento con sobrecosto en Lambayeque? Grafica su sobrecosto" },
+  { t: "rapida", texto: "¿Cuánto se ha gastado este año en obras de salud en Lima? Compáralo en un gráfico con lo que falta ejecutar" },
 ];
 
 /** Mezcla `a` en su lugar (Fisher-Yates) con `azar` en [0, 1) y la devuelve. */
