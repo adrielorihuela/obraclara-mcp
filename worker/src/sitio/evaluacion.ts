@@ -148,6 +148,18 @@ export function evaluacion(m: Meta): string {
   const sin = g("sin_mcp"), con = g("con_mcp");
   const n = EVAL.preguntas, ok = (p: number) => Math.round((p * n) / 100);
   const rc = (x: typeof sin) => x.recall, pr = (x: typeof sin) => pc(x.precision);
+  const tipoPedido = (t: string) => (t === "conteo" ? "Conteo" : t === "top1" ? "Ranking" : "Sin datos");
+  const pcelda = (v: number | null) => (v == null ? "–" : `${v} %`);
+  // Una fila por pregunta con recall: sin y con MCP, recall y precisión (eval/resultados/graficos_recall.csv).
+  const recallTabla = (): string => {
+    const ids = [...new Set(EVAL.recallPreguntas.map((r) => r.id))];
+    const celda = (id: string, cond: string) => EVAL.recallPreguntas.find((r) => r.id === id && r.condicion === cond)!;
+    const filas = ids.map((id) => {
+      const s = celda(id, "sin_mcp"), c = celda(id, "con_mcp");
+      return `<tr><th scope="row">${id}</th><td>${tipoPedido(c.tipoPedido)}</td><td>${pcelda(s.recall)}</td><td>${pcelda(c.recall)}</td><td>${pcelda(s.precision)}</td><td>${pcelda(c.precision)}</td></tr>`;
+    }).join("");
+    return `<div class="tbw"><table class="tb"><thead><tr><th scope="col">Pregunta</th><th scope="col">Qué pedía</th><th scope="col">Recall sin MCP</th><th scope="col">Recall con MCP</th><th scope="col">Precisión sin MCP</th><th scope="col">Precisión con MCP</th></tr></thead><tbody>${filas}</tbody></table></div>`;
+  };
   const cuerpo = `
 <section class="ev-h"><div class="wrap">
 <p class="eyebrow">Benchmarks</p>
@@ -158,8 +170,8 @@ ${enSencillo("El proyecto es el MCP: el «enchufe» que deja a un asistente de I
 <div class="kpis">${kpi(`${ok(sin.exactitud)} de ${n}`, `acertó <b>sin MCP</b> (${sin.exactitud} %)`)}${kpi(`${ok(con.exactitud)} de ${n}`, `acertó <b>con MCP</b> (${con.exactitud} %)`, "con")}${kpi(`${ok(sin.inventada)} de ${n}`, `respuestas con cifras que no coinciden, sin MCP`)}${kpi(`${ok(con.citacion)} de ${n}`, `respuestas con fuente y fecha, con MCP (sin MCP: ${ok(sin.citacion)})`, "con")}</div>
 <p class="small mut">Con la regla estricta (ninguna cifra sin respaldo): ${ok(sin.estricta)} de ${n} sin MCP y ${ok(con.estricta)} de ${n} con MCP. Mediana de tiempo por respuesta: ${nf(EVAL.latencia[0].mediana, 1)} s sin MCP y ${nf(EVAL.latencia[1].mediana, 1)} s con MCP. Datos al corte del 10 de noviembre de 2026; una sola corrida, puntuación automática.</p>
 
-<div class="kpis">${kpi(`${rc(con)} %`, `de las obras que debía encontrar, las encontró <b>con MCP</b> (sin MCP: ${rc(sin)} %)`, "con")}${kpi(`${pr(con)}`, `de las obras que nombró con MCP eran correctas (sin MCP: ${pr(sin)})`, "con")}</div>
-<p class="small mut">Recall y precisión se miden en las ${con.conReferencia} preguntas que piden contar o listar obras; ver «Qué se midió».</p>
+<div class="kpis">${kpi(`${rc(con)} %`, `de lo que la pregunta pedía encontrar, cuánto encontró <b>con MCP</b> (recall; sin MCP: ${rc(sin)} %)`, "con")}${kpi(`${pr(con)}`, `de lo que afirmó con MCP, cuánto era correcto (precisión; sin MCP: ${pr(sin)})`, "con")}</div>
+<p class="small mut">Recall y precisión se miden en las ${con.conReferencia} preguntas de búsqueda y alertas que piden contar o nombrar una obra; ver «Qué se midió».</p>
 </div></section>
 <div class="wrap">
 <section class="ev-s"><h2>Qué se midió</h2>
@@ -167,8 +179,8 @@ ${enSencillo("El proyecto es el MCP: el «enchufe» que deja a un asistente de I
 <li><b>Estricta:</b> es exacta y ninguna otra cifra de la respuesta queda sin respaldo en la fuente.</li>
 <li><b>Cita:</b> dice de dónde salió el dato (MEF) y la fecha de corte.</li>
 <li><b>Inventada:</b> da cifras que no coinciden con la referencia (es un máximo: incluye cifras reales de otras fuentes).</li>
-<li><b>Recall:</b> de las obras que la respuesta debía encontrar, qué porcentaje encontró (aciertos entre obras esperadas). Es la métrica que el profesor destacó.</li>
-<li><b>Precisión:</b> de las obras que nombró, qué porcentaje es correcto (aciertos entre obras nombradas).</li>
+<li><b>Recall:</b> de lo que la pregunta pedía encontrar, cuánto encontró. Es la métrica que el profesor preguntó en la exposición del 20/11.</li>
+<li><b>Precisión:</b> de lo que la respuesta afirmó, cuánto era correcto.</li>
 <li><b>Tiempo:</b> cuánto tarda en responder; consultar el registro toma más que responder de memoria.</li></ul>
 <p class="small mut">Reglas completas y limitaciones en <a href="/proyecto#evaluacion">El proyecto, sección Evaluación</a>.</p></section>
 <section class="ev-s" id="graficos"><h2>Resultados en gráficos</h2>
@@ -176,9 +188,14 @@ ${enSencillo("El proyecto es el MCP: el «enchufe» que deja a un asistente de I
 <h3 style="margin-top:28px">Por tipo de pregunta</h3><p class="small mut">Hay 10 preguntas de cada tipo.</p>
 <div class="figs">${graficosPorTipo().replace(/<p class="que">.*?<\/p>/g, "")}</div>${leyenda}</section>
 <section class="ev-s" id="recall"><h2>Recall y precisión: ¿encontró las obras?</h2>
-<p>En las ${con.conReferencia} preguntas que piden <b>contar o listar obras</b>, medimos cuántas de las obras que debía encontrar apareció en la respuesta (<b>recall</b>) y cuántas de las que nombró eran correctas (<b>precisión</b>). La lista esperada son los códigos que devuelve la herramienta con los filtros correctos (máximo 20 por consulta). Una respuesta que solo da el total y no nombra obras tiene recall 0, porque no «encontró» ninguna.</p>
-<div class="figs"><figure>${barrasAgrupadas("gR", "Recall, precisión y F1, sin y con la conexión (MCP)", `Barras agrupadas sobre ${con.conReferencia} preguntas de conteo o lista. Recall: ${sin.recall} % sin la conexión y ${con.recall} % con ella. Precisión: ${pc(sin.precision)} y ${pc(con.precision)}. F1: ${sin.f1} % y ${con.f1} %.`, [{ etiqueta: "Recall", sin: sin.recall, con: con.recall }, { etiqueta: "Precisión", sin: sin.precision ?? 0, con: con.precision ?? 0 }, { etiqueta: "F1", sin: sin.f1, con: con.f1 }], [400, 260], 36)}<figcaption>Porcentaje medio entre las ${con.conReferencia} preguntas de conteo o lista</figcaption></figure></div>${leyenda}
-<p class="small mut">Precisión: solo cuenta las respuestas que nombran al menos una obra. F1 = 2 · precisión · recall / (precisión + recall).</p></section>
+<p>Hay 20 preguntas de búsqueda y alertas. En <b>${con.conReferencia} de ellas</b> se puede medir: 13 piden <b>contar</b> («¿cuántos…?») y 5 piden <b>la primera obra de un ranking</b> («¿cuál es la más cara…?»). Las otras 2 (B10 y A10) no tienen obras que encontrar.</p>
+<p><b>Recall</b> es «de lo que la pregunta pedía encontrar, ¿cuánto encontró?». En una pregunta de conteo vale 1 si la respuesta da exactamente el total oficial; en una de ranking, si aparece la obra correcta.<br><b>Precisión</b> es «de lo que afirmó, ¿cuánto era correcto?». Vale 1 si el número (o la primera obra nombrada) es el correcto; si la respuesta no da ningún número, no tiene precisión.</p><div class="figs"><figure>${barrasAgrupadas("gR", "Recall, precisión y F1, sin y con la conexión (MCP)", `Barras agrupadas sobre ${con.conReferencia} preguntas de conteo o lista. Recall: ${sin.recall} % sin la conexión y ${con.recall} % con ella. Precisión: ${pc(sin.precision)} y ${pc(con.precision)}. F1: ${sin.f1} % y ${con.f1} %.`, [{ etiqueta: "Recall", sin: sin.recall, con: con.recall }, { etiqueta: "Precisión", sin: sin.precision ?? 0, con: con.precision ?? 0 }, { etiqueta: "F1", sin: sin.f1, con: con.f1 }], [400, 260], 36)}<figcaption>Porcentaje medio entre las ${con.conReferencia} preguntas de conteo o ranking</figcaption></figure></div>${leyenda}
+<p class="small mut">F1 = 2 · precisión · recall / (precisión + recall). Precisión: solo cuenta las respuestas que dan un número o nombran una obra; sin MCP, 14 de las 18 preguntas tienen precisión (las otras no dieron ningún número ni obra).</p>
+<h3 style="margin-top:28px">Recall y precisión por pregunta</h3>
+<p class="small mut">«–» = no aplica (sin obras o sin número ni obra en la respuesta).</p>
+${recallTabla()}
+<h3 style="margin-top:28px">Primera definición (hasta el 20/11)</h3>
+<p class="small mut">Medía códigos listados sobre hasta 20 esperados. Salía bajo porque las preguntas de conteo se responden con un total, sin listar códigos. Sin MCP: recall 1 %, precisión 17 %. Con MCP: recall 10 %, precisión 100 %.</p></section>
 ${modelosHtml()}
 <section class="ev-s" id="preguntas"><h2>Las ${n} preguntas, una por una</h2>
 <p>Filtra por tipo, busca una palabra (una región, un código, «Cusco») y abre «Ver respuesta» para comparar lo que contestó la IA sola con lo que contestó con MCP. ✓ y ✗ indican si se cumplió cada criterio; en «Inventada», ✓ es lo malo.</p>

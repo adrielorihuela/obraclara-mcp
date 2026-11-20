@@ -200,6 +200,19 @@ TypeScript y Zod; Cloudflare Workers, D1 y Durable Objects; MCP SDK y Agents SDK
 
 La herramienta esperada se usó en 37 de 40 preguntas con MCP.
 
+**Tabla única, sin y con MCP** (IA del servidor, las mismas 40 preguntas; cifras de `eval/resultados/resultados.csv` y `resumen.md`):
+
+| Medida | Sin MCP (n de 40) | Con MCP (n de 40) |
+|---|---|---|
+| Exactas (cifra o entidad correcta, ±1 %) | **3** (8 %) | **40** (100 %) |
+| Exactas estrictas (además, ninguna cifra sin respaldo) | **2** (5 %) | **39** (98 %) |
+| Con fuente y fecha de corte | **4** (10 %) | **40** (100 %) |
+| Inventadas (cifras que no coinciden; máximo) | **21** (53 %) | **0** (0 %) |
+| Con al menos una cifra sin respaldo | **22** (55 %) | **1** (3 %) |
+| Fecha de la corrida | 10/11/2026 (R02, R03 y R07–R10: 18/11) | 10/11/2026 (R02, R03 y R07–R10: 18/11) |
+
+**Por qué el 3 % no contradice «40 de 40»:** «exacta» acepta una respuesta si una de sus cifras coincide con el dato oficial. La pregunta D04 con MCP cita el dato correcto (S/ 40 682 184,89), pero además escribe un incremento que no sale de la fuente (S/ 40 279 184,89). Por eso D04 es exacta y a la vez tiene una cifra sin respaldo: es el único caso de las 40. Esa cifra sin respaldo es una **resta mal hecha por la IA**: los datos del servidor eran correctos (S/ 47 715 860,89 − S/ 7 033 676,00 = S/ 40 682 184,89) y el modelo escribió S/ 40 279 184,89 en su primera frase. Es decir, el «≈3 %» dicho en la exposición es **1 respuesta de 40 (2,5 %, redondeado a 3 %)** con un error de cálculo del modelo; no es una tasa general de errores de suma o resta (no se midió cuántas respuestas hacen cálculos) ni un error del servidor. La medida estricta da 39 de 40, que es el 98 %.
+
 **Exacta estricta y cifras no sustentadas** (métricas añadidas; las anteriores no cambian; `graficos_global.csv`)
 
 | Condición | Exacta | Exacta estricta | Cifras no sustentadas |
@@ -270,16 +283,26 @@ Si un proveedor alcanza su límite de uso, el ejecutor se detiene tras 3 fallos 
 
 | Modelo | Condición | Exacta | Estricta | Cita | Inventada | Respondidas | Recall | Precisión |
 |---|---|---|---|---|---|---|---|---|
-| IA del servidor | sin MCP | 8 % | 5 % | 10 % | 53 % | 40/40 | 1 % | 17 % |
-| IA del servidor | con MCP | 100 % | 98 % | 100 % | 0 % | 40/40 | 10 % | 100 % |
-| gpt-oss-120b (Groq) | sin MCP | 3 % | 3 % | 0 % | 93 % | 40/40 | 0 % | – |
-| gpt-oss-120b (Groq) | con MCP | 25 % | 25 % | 25 % | 55 % | 36/40 | 0 % | – |
-| Gemini 3.5 Flash-Lite (Google) | sin MCP | 0 % | 0 % | 0 % | 45 % | 40/40 | 0 % | – |
-| Gemini 3.5 Flash-Lite (Google) | con MCP | 95 % | 93 % | 100 % | 3 % | 40/40 | 0 % | – |
+| IA del servidor | sin MCP | 8 % | 5 % | 10 % | 53 % | 40/40 | 0 % | 0 % (14 de 18 preguntas) |
+| IA del servidor | con MCP | 100 % | 98 % | 100 % | 0 % | 40/40 | 100 % | 100 % |
+| gpt-oss-120b (Groq) | sin MCP | 3 % | 3 % | 0 % | 93 % | 40/40 | 6 % | 8 % |
+| gpt-oss-120b (Groq) | con MCP | 25 % | 25 % | 25 % | 55 % | 36/40 | 17 % | 27 % |
+| Gemini 3.5 Flash-Lite (Google) | sin MCP | 0 % | 0 % | 0 % | 45 % | 40/40 | 0 % | 0 % |
+| Gemini 3.5 Flash-Lite (Google) | con MCP | 95 % | 93 % | 100 % | 3 % | 40/40 | 94 % | 94 % |
 
-Los modelos de otros proveedores se ejecutaron fijos (sin cadena de respaldo) el 19/11/2026. Lectura: con MCP las respuestas exactas suben en los tres modelos, pero el tamaño de la mejora depende del modelo: gpt-oss-120b contestó muchas preguntas sin llamar a la herramienta (inventando el resultado) y 4 respuestas llegaron vacías, así que sube de 3 % a 25 %, mientras que Gemini sube de 0 % a 95 %. Los modelos nuevos casi nunca nombran obras, por eso su recall es 0.
+Recall y precisión son la **definición vigente** (lo que la pregunta pide; sección siguiente). La primera definición (códigos listados) se conserva en `eval/resultados/resumen.md` y `eval/resultados/modelos/*/resumen.md`.
 
-**Recall y precisión de elementos** (métrica pedida por el profesor en la clase del 18/11). Se calculan en las preguntas de búsqueda y alertas que piden contar o listar obras (13 con referencia; B10 y A10 no tienen obras y solo cuentan para la precisión). La lista esperada son los códigos únicos que devuelve la herramienta con los filtros correctos (`eval/reconstruir_referencia.mjs` → `eval/resultados/referencia_items.json`; máximo 20 por consulta). Mencionados = códigos de 7 dígitos de la respuesta. **Recall** = aciertos / esperados («de las obras que debía encontrar, encontró X %»); **precisión** = aciertos / mencionados («de las que nombró, X % eran correctas»); **F1** = 2·P·R / (P + R). Una respuesta que solo da el total tiene recall 0. Las columnas están en `graficos_*.csv` y el detalle por pregunta en `graficos_recall.csv`; en el sitio, sección «Recall y precisión» de `/evaluacion`.
+Los modelos de otros proveedores se ejecutaron fijos (sin cadena de respaldo) el 19/11/2026. Lectura: con MCP las respuestas exactas suben en los tres modelos, pero el tamaño de la mejora depende del modelo: gpt-oss-120b contestó muchas preguntas sin llamar a la herramienta (inventando el resultado) y 4 respuestas llegaron vacías, así que sube de 3 % a 25 %, mientras que Gemini sube de 0 % a 95 %. Sin MCP ningún modelo encuentra las obras (recall de 0 a 6 %); con MCP, Gemini llega a 94 % y gpt-oss-120b a 17 %.
+
+**Recall y precisión** (métrica pedida por el profesor en la exposición del 20/11). En sencillo: el **recall** responde «de lo que la pregunta pedía encontrar, ¿cuánto encontró?» y la **precisión** responde «de lo que afirmó, ¿cuánto era correcto?». Se miden en las 20 preguntas de búsqueda y alertas: 18 se pueden medir y 2 (B10 y A10) no tienen obras que encontrar.
+
+- **Preguntas de conteo** (13, «¿cuántos…?»): recall = 1 si la respuesta da exactamente el total oficial; precisión = 1 si el número que da es el correcto. Si no da ningún número, no tiene precisión.
+- **Primera obra de un ranking** (5, «¿cuál es la más cara…?»): recall = 1 si aparece el código correcto; precisión = 1 si el primer código que nombra es el correcto.
+- **F1** = 2 · precisión · recall / (precisión + recall), promedio por pregunta.
+
+**Por qué antes salía casi 0.** La primera definición contaba los códigos de obra que la respuesta listaba, sobre hasta 20 esperados. Pero las preguntas de conteo se responden con un total («74 proyectos»): una respuesta correcta no lista 20 códigos y obtenía casi 0. Esa definición se conserva como **primera definición** por transparencia: sin MCP, recall 1 % y precisión 17 %; con MCP, recall 10 % y precisión 100 %.
+
+Resultado de la definición vigente, IA del servidor: sin MCP, recall 0 % y precisión 0 % (14 de las 18 preguntas tienen precisión); con MCP, recall 100 % y precisión 100 %. El detalle por pregunta está en `eval/resultados/graficos_recall.csv`, en `resumen.md` (sección «Precisión y recall») y en `/evaluacion`.
 
 
 ## Métricas
@@ -384,14 +407,14 @@ Se llamó 30 veces a cada una de las 4 herramientas (**n = 120 llamadas**) y 10 
 
 | Prueba | Llamadas (n) | Éxito | Mediana | P90 | Mínimo | Máximo |
 |---|---:|---:|---:|---:|---:|---:|
-| `buscar_inversiones` | 30 | 100 % | 1,4 s | 1,5 s | 1,3 s | 2,1 s |
-| `detalle_inversion` | 30 | 100 % | 1,0 s | 1,1 s | 0,9 s | 1,1 s |
-| `alertas_inversion` | 30 | 100 % | 1,3 s | 1,4 s | 1,3 s | 1,5 s |
-| `resumen_inversiones` | 30 | 100 % | 1,0 s | 1,0 s | 0,9 s | 1,2 s |
+| `buscar_inversiones` | 30 | 100 % | 1,4 s | 1,4 s | 1,3 s | 1,6 s |
+| `detalle_inversion` | 30 | 100 % | 1,0 s | 1,1 s | 1,0 s | 1,1 s |
+| `alertas_inversion` | 30 | 100 % | 1,3 s | 1,4 s | 1,3 s | 1,8 s |
+| `resumen_inversiones` | 30 | 100 % | 1,0 s | 1,0 s | 0,9 s | 1,1 s |
 | `tools/list` | 10 | 100 % | 0,3 s | 0,4 s | 0,3 s | 0,5 s |
-| `GET /salud` | 10 | 100 % | 0,6 s | 0,7 s | 0,6 s | 0,8 s |
+| `GET /salud` | 10 | 100 % | 0,6 s | 0,8 s | 0,6 s | 1,0 s |
 
-**Qué significa:** las 140 llamadas funcionaron (100 % de éxito, 0 errores) y la mitad de las consultas se respondió en 1,0 a 1,4 s; el 90 % tardó menos de 1,5 s. «P90» es el tiempo por debajo del cual quedó el 90 % de las respuestas. Los datos crudos de cada llamada están en `metricas/resultados/rendimiento_mcp_crudo.csv`. La primera medición (n = 20 por herramienta) dio medianas de 1,4 a 2,1 s: la diferencia probablemente se deba a la red de ese momento (la medición incluye el viaje desde Lima); no se cambió el servidor para mejorarla.
+**Qué significa:** las 140 llamadas funcionaron (100 % de éxito, 0 errores) y la mitad de las consultas se respondió en 1,0 a 1,4 s; el 90 % tardó menos de 1,4 s (P90 de las 120 consultas de búsqueda: 1,39 s). «P90» es el tiempo por debajo del cual quedó el 90 % de las respuestas. Los datos crudos de cada llamada están en `metricas/resultados/rendimiento_mcp_crudo.csv`. La primera medición (n = 20 por herramienta) dio medianas de 1,4 a 2,1 s: la diferencia probablemente se deba a la red de ese momento (la medición incluye el viaje desde Lima); no se cambió el servidor para mejorarla.
 
 ### ¿Las herramientas dicen lo mismo que la base de datos?
 
@@ -403,40 +426,75 @@ Se llamó 30 veces a cada una de las 4 herramientas (**n = 120 llamadas**) y 10 
 
 ### Pruebas de software
 
-**149 de 149** pruebas automáticas pasan, en 15 archivos. Cobertura de código: 80,3 % de las líneas (75,5 % en la lógica del servidor, sin las páginas).
+**170 de 170** pruebas automáticas pasan, en 17 archivos. Cobertura de código: 87,5 % de las líneas (85,1 % en la lógica del servidor, sin las páginas). Medido el 20/11/2026 con `metricas/pruebas.py` (`metricas/resultados/pruebas.csv` y `cobertura.csv`).
 
 **Qué significa:** una prueba automática es un programa que revisa que otro funciona; «cobertura» es la parte del código que se ejecutó al probar.
 
 ### Asistente del sitio, de punta a punta
 
-Se hicieron **24 preguntas variadas** (6 de cada tipo del banco de 40), de una en una con pausa de 8 s, al asistente completo con las herramientas conectadas (`POST /api/agente` con `mcp: true`, igual que el panel «con conexión»). Cada respuesta se comparó con el dato oficial del MEF usando la regla de «exacta» de la evaluación. Respondieron la IA del servidor (2) y su respaldo automático Gemini 3.5 Flash-Lite (22); ningún error ni límite de uso. Script: `metricas/asistente_extenso.mjs`; datos: `asistente_extenso.csv` (con la respuesta recortada de cada pregunta).
+Se hicieron **24 preguntas variadas** (6 de cada tipo del banco de 40), de una en una con pausa de 8 s, al asistente completo con las herramientas conectadas (`POST /api/agente` con `mcp: true`, igual que el panel «con conexión»). Cada respuesta se comparó con el dato oficial del MEF usando la regla de «exacta» de la evaluación. Respondieron la IA del servidor (3), Gemini 3.5 Flash-Lite (19) y Gemini 3.1 Flash-Lite (2), según el respaldo automático; el campo de error quedó vacío en las 24. Script: `metricas/asistente_extenso.mjs`; datos: `asistente_extenso.csv` (con la respuesta recortada de cada pregunta).
 
 | Tipo de pregunta | Preguntas (n) | Con respuesta | Correctas | Mediana | P90 | Mínimo | Máximo |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| Todas | 24 | 24 | 21 (87,5 %) | 6,9 s | 22,4 s | 4,6 s | 26,2 s |
-| Búsqueda | 6 | 6 | 5 (83,3 %) | 8,6 s | 26,2 s | 5,6 s | 26,2 s |
-| Detalle de una obra | 6 | 6 | 6 (100 %) | 5,5 s | 16,3 s | 4,6 s | 16,3 s |
-| Alertas | 6 | 6 | 5 (83,3 %) | 6 s | 22,4 s | 5,7 s | 22,4 s |
-| Resumen | 6 | 6 | 5 (83,3 %) | 5,8 s | 23,6 s | 4,9 s | 23,6 s |
+| Todas | 24 | 24 | 20 (83,3 %) | 7,2 s | 19,4 s | 4,5 s | 30,1 s |
+| Búsqueda | 6 | 6 | 5 (83,3 %) | 9,6 s | 24,5 s | 4,8 s | 24,5 s |
+| Detalle de una obra | 6 | 6 | 5 (83,3 %) | 5,6 s | 19,4 s | 4,5 s | 19,4 s |
+| Alertas | 6 | 6 | 6 (100 %) | 6,8 s | 16 s | 6,1 s | 16 s |
+| Resumen | 6 | 6 | 4 (66,7 %) | 6,4 s | 30,1 s | 5,4 s | 30,1 s |
 
-**Qué significa:** la mitad de las preguntas se respondió en 6,9 s o menos y el 90 % en menos de 22,4 s (máximo 26,2 s). El asistente acertó **21 de 24 (87,5 %)**, y en las 24 llamó a las herramientas al menos una vez. Una primera medición del mismo día dio solo 4 de 24: la IA del servidor respondía sin consultar el registro (de memoria o con otras fuentes, como la Contraloría). Se corrigió en el servidor de IA: si hay herramientas conectadas y la pregunta pide datos de su tema, no se acepta una respuesta que no las haya consultado. Las 3 fallas que quedan son una respuesta que dijo no poder confirmar el dato, una que habló de archivos en vez de responder y una con una cifra distinta de la oficial; por eso la evaluación de 40 preguntas (40 de 40) sigue siendo la medida de la conexión y no conviene decir «el asistente siempre acierta». La primera medición del asistente (5 preguntas sin herramientas y 2 con ellas) fue demasiado pequeña y queda reemplazada por esta.
+**Qué significa:** la mitad de las preguntas se respondió en 7,2 s o menos y el 90 % en menos de 19,4 s (máximo 30,1 s). El asistente acertó **20 de 24 (83,3 %)**. Las tres respuestas de la IA del servidor dijeron que no tenían acceso a las herramientas MCP y no consultaron el dato (B01, D01, R09); la cuarta falla fue una respuesta de Gemini que no coincidió con la referencia (R02). Esta medición se repitió el mismo día: la primera vuelta dio 21 de 24 y no se conservó el archivo; la de `asistente_extenso.csv` dio 20 de 24. Conviene repetirla antes de citar un número. Sin medir: qué herramientas usó cada respuesta (la corrida no lo guardó; `asistente_extenso.mjs` lo registrará en la siguiente medición). Una primera medición del mismo día dio solo 4 de 24: la IA del servidor respondía sin consultar el registro (de memoria o con otras fuentes, como la Contraloría). Se corrigió en el servidor de IA: si hay herramientas conectadas y la pregunta pide datos de su tema, no se acepta una respuesta que no las haya consultado. Las fallas de la última corrida están descritas arriba; por eso la evaluación de 40 preguntas (40 de 40) sigue siendo la medida de la conexión y no conviene decir «el asistente siempre acierta». La primera medición del asistente (5 preguntas sin herramientas y 2 con ellas) fue demasiado pequeña y queda reemplazada por esta.
+
+### Cambios del 20/11: conexión, memoria y seguridad del asistente
+
+**En sencillo:** el día de la exposición el asistente se cayó en vivo. Después de eso cambiamos cuatro cosas: que no se asuste ante un corte pasajero, que no pierda lo que se estaba respondiendo, que muestre qué está haciendo mientras piensa y que su memoria no pueda ser manipulada desde el chat.
+
+- **Reconexión sin «modo de emergencia».** Si se corta la conexión con el servidor, el asistente muestra «Reconectando…». El modo de emergencia (que pasa a una versión más simple) solo se activa si la conexión sigue caída más de unos 15 segundos. Un error de una respuesta muestra el error en ese mensaje y el botón «Reintentar»; ya no cambia todo el chat.
+- **Recuperar respuestas.** Si una respuesta se corta a mitad, el asistente puede recuperarla desde el servidor. Si un mensaje quedó sin atender, aparece como «No atendido» con el botón «Reenviar». Los mensajes que llegan mientras el asistente responde ya no se pierden si esa respuesta falla.
+- **Línea de tiempo del proceso.** Mientras trabaja, el asistente muestra sus pasos (consultar el registro, armar la tabla, etc.). Al terminar, los pasos se pliegan en una sola línea: «Proceso · N pasos · X s · modelo», para que quien lo quiera pueda abrirla.
+- **Memoria en el navegador.** Lo que el asistente recuerda de cada persona se guarda en su propio navegador (IndexedDB), no en el servidor. Se borra con los datos del navegador. En «Acerca del asistente» se ve la memoria y se puede borrar todo con «Borrar toda». Ya no existe una memoria global compartida por todos los visitantes.
+- **Seguridad frente a engaños.** Durante una prueba, una persona logró que la memoria compartida guardara una afirmación falsa sobre quién había creado al asistente. Por eso: la memoria pasó a ser por navegador, el asistente tiene reglas fijas que una afirmación en el chat no cambia, y se hizo una batería de 6 intentos de engaño: los 6 fueron bloqueados (6 de 6).
+
+**Rendimiento del servidor de datos (MCP).** 120 llamadas, 30 por herramienta (las cuatro herramientas), con 100 % de éxito y mediana de 1,0 a 1,4 s por consulta; ver la sección «Rendimiento del servidor MCP» más arriba.
+
+### Tiempo de carga de las páginas
+
+Se descargó 20 veces el HTML de cada página pública (n = 20 por página, 140 descargas), una tras otra y con pausa, desde Lima, el 20/11/2026. Fuente: `metricas/resultados/paginas_sitio.csv` (cada descarga, en `paginas_sitio_crudo.csv`).
+
+| Página | Descargas (n) | Éxito | Mediana | P90 | Tamaño (KB) |
+|---|---:|---:|---:|---:|---:|
+| `/` | 20 | 100 % | 0,7 s | 0,8 s | 63 |
+| `/proyecto` | 20 | 100 % | 0,8 s | 1,0 s | 142 |
+| `/evaluacion` | 20 | 100 % | 0,9 s | 1,1 s | 221 |
+| `/demo` | 20 | 100 % | 0,8 s | 1,0 s | 138 |
+| `/datos` | 20 | 100 % | 0,7 s | 0,7 s | 26 |
+| `/acerca` | 20 | 100 % | 0,7 s | 0,7 s | 20 |
+| `/conectar` | 20 | 100 % | 0,7 s | 0,8 s | 27 |
+
+**Qué significa:** las 140 descargas funcionaron. La mitad de las veces cada página llegó en 0,7 a 0,9 s y el 90 % en menos de 1,2 s («P90»). Las páginas más pesadas (Evaluación, Proyecto) tardan un poco más. Mide solo la descarga del HTML desde este equipo en Lima (incluye la red), no lo que tarda el navegador en dibujarla.
 
 ## 11. Pruebas
 
-**149 pruebas en 15 archivos** (`cd worker && npx vitest run`), todas pasan; además `npx tsc --noEmit` y `npx wrangler deploy --dry-run`.
+**170 pruebas en 17 archivos** (`cd worker && npx vitest run`), todas pasan; además `npx tsc --noEmit` y `npx wrangler deploy --dry-run`. Cifras del 20/11/2026 (`metricas/resultados/pruebas.csv`).
 
 | Archivo | Pruebas | Qué cubre |
 |---|---|---|
-| `adjuntos` | 16 | ZIP y .docx para la vista previa, texto frente a binario |
+| `acciones` | 12 | versiones de los mensajes al editar o reintentar, fijados y recorte de mensajes antiguos |
+| `adjuntos` | 18 | ZIP y .docx para la vista previa, texto frente a binario |
 | `agente` | 42 | llamadas JSON a herramientas, SSE, vista previa de .xlsx/.csv y panel como cliente de la API |
-| `compartir` | 14 | chats compartidos |
-| `queries` | 14 | normalización, buscar, detalle, alertas y resumen sobre D1 simulada |
+| `agenteapi` | 6 | forma de la petición a la API del agente |
 | `cadena` | 13 | cadena de proveedores de IA y validación con imágenes |
-| `agenteapi` | 2 | forma de la petición a la API del agente |
-| `remotedb` | 4 | usa el conector y cae a D1 si no responde |
-| `mcp` | 3 | 4 herramientas, respuesta con datos, fuente, URL y fecha, sin resultados |
+| `cifras` | 3 | franja de cifras del inicio: datos reales y accesibles |
+| `compartir` | 14 | chats compartidos |
+| `demo` | 9 | datos de /demo generados desde la evaluación y la página /demo |
+| `evaluacion-md` | 4 | Markdown seguro de las respuestas de /evaluacion |
 | `gptjobs` | 2 | validación de mensajes |
-| `sitio` | 5 | `/proyecto` responde con todas las secciones, cifras y gráficos accesibles |
+| `grafico` | 7 | validación de gráficos del asistente y formato de cifras |
+| `mcp` | 3 | 4 herramientas, respuesta con datos, fuente, URL y fecha, sin resultados |
+| `queries` | 14 | normalización, buscar, detalle, alertas y resumen sobre D1 simulada |
+| `reconexion` | 5 | peticiones al agente tras una caída del conector y línea de tiempo del proceso |
+| `remotedb` | 4 | usa el conector y cae a D1 si no responde |
+| `sitio` | 9 | /proyecto con todas sus secciones y datos internos no expuestos |
+| `sugerencias` | 5 | banco de sugerencias, sin repetir, barajado entre visitas |
 
 ## 12. Limitaciones y trabajo futuro
 

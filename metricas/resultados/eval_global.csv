@@ -1,3 +1,3 @@
-condicion,exactitud_pct,citacion_pct,inventada_pct,ejecutadas,preguntas
-sin_mcp,8,10,53,40,40
-con_mcp,100,100,0,40,40
+condicion,exactitud_pct,citacion_pct,inventada_pct,ejecutadas,preguntas,exacta_estricta_pct,no_sustentadas_pct,recall_pct,precision_pct,f1_pct,preguntas_con_referencia,recall_listado_pct,precision_listado_pct,f1_listado_pct,preguntas_listado
+sin_mcp,8,10,53,40,40,5,55,0,0,0,18,1,17,2,13
+con_mcp,100,100,0,40,40,98,3,100,100,100,18,10,100,12,13

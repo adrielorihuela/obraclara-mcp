@@ -107,16 +107,23 @@ const REFERENCIAS: string[] = [
 ];
 
 const PRUEBAS: [string, number, string][] = [
-  ["adjuntos", 16, "lectura de ZIP y .docx para la vista previa, texto frente a binario"],
+  ["acciones", 12, "versiones de los mensajes al editar o reintentar, fijados y recorte de mensajes antiguos"],
+  ["adjuntos", 18, "lectura de ZIP y .docx para la vista previa, texto frente a binario"],
   ["agente", 42, "llamadas JSON a herramientas, flujo SSE, vista previa de .xlsx y .csv, y que el panel es un cliente de la API del agente"],
-  ["compartir", 14, "chats compartidos: guardar, leer, borrar con token y página pública"],
-  ["queries", 14, "normalización, <code>buscar</code>, <code>detalle</code>, <code>alertas</code> y <code>resumen</code> sobre una D1 simulada"],
+  ["agenteapi", 6, "forma de la petición a la API del agente: mensaje obligatorio, archivos y versiones tal cual"],
   ["cadena", 13, "cadena de proveedores de IA y validación con imágenes"],
-  ["agenteapi", 2, "forma de la petición a la API del agente"],
-  ["remotedb", 4, "la consulta usa el conector y cae a D1 si no responde"],
-  ["mcp", 3, "lista exactamente las 4 herramientas; cada respuesta trae datos, fuente, URL y fecha; se informa cuando no hay resultados"],
+  ["cifras", 3, "franja de cifras del inicio: datos reales, accesible, sin afirmar una recarga semanal"],
+  ["compartir", 14, "chats compartidos: guardar, leer, borrar con token y página pública"],
+  ["demo", 9, "datos de /demo generados desde la evaluación (un caso por herramienta) y la página /demo"],
+  ["evaluacion-md", 4, "Markdown seguro de las respuestas de /evaluacion: escapa el HTML y muestra tablas y tarjetas"],
   ["gptjobs", 2, "validación de mensajes"],
-  ["sitio", 5, "<code>/proyecto</code> responde con todas las secciones, tablas y gráficos, y el sitio no expone datos internos"],
+  ["grafico", 7, "validación de gráficos del asistente (JSON roto o incoherente) y formato de cifras"],
+  ["mcp", 3, "lista exactamente las 4 herramientas; cada respuesta trae datos, fuente, URL y fecha; se informa cuando no hay resultados"],
+  ["queries", 14, "normalización, <code>buscar</code>, <code>detalle</code>, <code>alertas</code> y <code>resumen</code> sobre una D1 simulada"],
+  ["reconexion", 5, "peticiones al agente tras una caída del conector y línea de tiempo del proceso"],
+  ["remotedb", 4, "la consulta usa el conector y cae a D1 si no responde"],
+  ["sitio", 9, "<code>/proyecto</code> responde con todas las secciones, tablas y gráficos, y el sitio no expone datos internos"],
+  ["sugerencias", 5, "banco de sugerencias: al menos 40, sin repetir, y se barajan entre visitas"],
 ];
 const TOTAL_PRUEBAS = PRUEBAS.reduce((s, p) => s + p[1], 0);
 
@@ -149,10 +156,11 @@ const css = String.raw`
 .tbw{overflow-x:auto;margin:16px 0;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
 .tb{width:100%;border-collapse:collapse;font-size:var(--s-1);min-width:480px}
 .tb th,.tb td{padding:10px 14px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
-.tb thead th{background:var(--surface-2);font:500 12px/1.3 var(--mono);color:var(--mut);white-space:nowrap}
+.tb thead th{background:var(--surface-2);font:500 12px/1.3 var(--mono);color:var(--mut);white-space:normal}
 .tb tbody th{font-weight:600;color:var(--ink)}
 .tb tr:last-child>*{border-bottom:0}
-.tb.nw td{white-space:nowrap}.tb .num{text-align:right;font-variant-numeric:tabular-nums}
+.tb.nw td{white-space:nowrap}
+.tb.compacta{min-width:0}.tb .num{text-align:right;font-variant-numeric:tabular-nums}
 .fx{font:500 14px/1.7 var(--mono);padding:12px 14px;background:var(--surface-2);border-radius:8px;margin:12px 0;overflow-x:auto;color:var(--ink)}
 .herr{display:grid;gap:18px;margin-top:18px}
 .hc{border:1px solid var(--line);border-radius:var(--r-l);background:var(--surface);padding:20px;min-width:0}
@@ -326,6 +334,19 @@ ${tabla(["Condición", "Exacta", "Exacta estricta", "No sustentadas", "Cita", "I
     ["Con MCP", `${con.exactitud} %`, `${con.estricta} %`, `${con.noSustentadas} %`, `${con.citacion} %`, `${con.inventada} %`, String(con.revisar), `${nf(con.latTotal, 1)} s`, `${nf(con.latSinReintentos, 1)} s`, nf(con.llamadas, 1), con.ejecutadas],
   ], "nw")}
 <p>Con la conexión, la herramienta esperada se usó en ${EVAL.herramientaEsperada.usada} de ${EVAL.herramientaEsperada.total} preguntas. Con MCP el modelo tardó más (${nf(con.latSinReintentos, 1)} s frente a ${nf(sin.latSinReintentos, 1)} s sin reintentos), porque consulta al servidor antes de responder.</p>
+<h3>Las cifras, en una sola tabla</h3>
+<p><b>En sencillo:</b> cada cifra se cuenta sobre las mismas ${EVAL.preguntas} preguntas. Un número como «3 de 40» es más claro que un porcentaje. Corte del registro: 10 de noviembre de 2026.</p>
+${tabla(["Medida", "Sin MCP", "Con MCP"], [
+    ["Exactas (cifra u obra correcta)", `${ok(sin, "exactitud")} de ${EVAL.preguntas} (${sin.exactitud} %)`, `${ok(con, "exactitud")} de ${EVAL.preguntas} (${con.exactitud} %)`],
+    ["Exactas estrictas (ninguna cifra sin respaldo)", `${ok(sin, "estricta")} de ${EVAL.preguntas} (${sin.estricta} %)`, `${ok(con, "estricta")} de ${EVAL.preguntas} (${con.estricta} %)`],
+    ["Con fuente y fecha de corte", `${ok(sin, "citacion")} de ${EVAL.preguntas} (${sin.citacion} %)`, `${ok(con, "citacion")} de ${EVAL.preguntas} (${con.citacion} %)`],
+    ["Inventadas (máximo)", `${ok(sin, "inventada")} de ${EVAL.preguntas} (${sin.inventada} %)`, `${ok(con, "inventada")} de ${EVAL.preguntas} (${con.inventada} %)`],
+    ["Con alguna cifra sin respaldo", `${ok(sin, "noSustentadas")} de ${EVAL.preguntas} (${sin.noSustentadas} %)`, `${ok(con, "noSustentadas")} de ${EVAL.preguntas} (${con.noSustentadas} %)`],
+    ["Recall (18 preguntas de conteo o ranking)", `${sin.recall} %`, `${con.recall} %`],
+    ["Precisión (18 preguntas)", `${sin.precision} %`, `${con.precision} %`],
+  ], "compacta")}
+<p class="small mut">Recall y precisión: <b>recall</b> = de lo que la pregunta pedía encontrar, cuánto encontró; <b>precisión</b> = de lo que afirmó, cuánto era correcto. En las preguntas de conteo cuenta el total exacto; en las de ranking, la obra correcta. Antes se medía la lista de códigos, que salía casi 0 porque las preguntas piden contar; esa primera definición está en <a href="https://github.com/adrielorihuela/obraclara-mcp/blob/main/eval/resultados/resumen.md">eval/resultados/resumen.md</a>.</p>
+<p class="small mut"><b>Sobre el «≈3 %» de la exposición:</b> es 1 respuesta de 40 con MCP (D04, 2,5 %, redondeado a 3 %). El servidor dio las cifras correctas, pero el modelo restó mal: escribió S/ 40 279 184,89 en vez de 47 715 860,89 − 7 033 676,00 = S/ 40 682 184,89. No es una tasa general de errores de suma o resta ni un error del servidor; por eso la medida estricta da 39 de 40.</p>
 <h3>Una medida más exigente: exacta estricta</h3>
 <p><b>En sencillo:</b> la regla original da por buena una respuesta si <i>una</i> de sus cifras coincide con la oficial, aunque otra cifra esté mal. Una revisión externa lo señaló con un caso real (pregunta D04): el asistente con la conexión escribió que el costo subió «S/ 40 279 184,89» y, más abajo, «S/ 40 682 184,89»; solo la segunda es correcta, pero la respuesta contó como exacta por el 578,39 % que sí coincidía. Por eso añadimos dos medidas, sin quitar las anteriores para poder compararlas.</p>
 <p>Con la regla estricta, sin la conexión el asistente acertó ${ok(sin, "estricta")} de ${EVAL.preguntas} (${sin.estricta} %) y con la conexión ${ok(con, "estricta")} de ${EVAL.preguntas} (${con.estricta} %). ${sin.noSustentadas} % de las respuestas sin la conexión (${ok(sin, "noSustentadas")} de ${EVAL.preguntas}) traían al menos una cifra sin respaldo en la fuente; con la conexión, ${con.noSustentadas} % (${ok(con, "noSustentadas")} de ${EVAL.preguntas}).</p>
@@ -376,7 +397,9 @@ npx wrangler deploy --dry-run</pre>
 
   const ia = sec("ia", `
 <p><b>En sencillo:</b> la IA nos ayudó a escribir el programa (y lo declaramos); la redacción del informe, el workflow, los gráficos del informe y el póster los hizo el grupo sin IA. El PPT puede hacerse con ayuda de IA si se declara.</p>
-<p><b>El código</b> se desarrolló con ayuda de IA generativa y fue <b>revisado y probado por el grupo</b> (pruebas automáticas, verificación de tipos y evaluación contra datos oficiales). <b>La redacción del informe, el workflow, los gráficos del informe y el póster</b> los hace el grupo sin IA. En el chat del panel, el modelo solo redacta: todas las cifras y alertas salen de las herramientas y del ETL.</p>`);
+<p><b>El código</b> se desarrolló con ayuda de IA generativa y fue <b>revisado y probado por el grupo</b> (pruebas automáticas, verificación de tipos y evaluación contra datos oficiales). <b>La redacción del informe, el workflow, los gráficos del informe y el póster</b> los hace el grupo sin IA. En el chat del panel, el modelo solo redacta: todas las cifras y alertas salen de las herramientas y del ETL.</p>
+<p><b>Cómo se trabajó con la IA.</b> El programa se hizo conversando con un asistente de programación (Claude Code) en muchos mensajes cortos, no con un solo prompt. Esas conversaciones se resumen o se borran porque, con demasiado contexto, la IA rinde peor y gasta más; la continuidad la dan la documentación y un archivo de instrucciones para agentes. Por recomendación del profesor (20/11/2026) lo documentamos y generamos, a partir del código, un prompt que permite reconstruir la aplicación desde cero.</p>
+<ul><li><a href="${REPO}/blob/main/docs/PROCESO-IA.md">Cómo se desarrolló con IA (docs/PROCESO-IA.md)</a>: método y síntesis por etapas con fechas.</li><li><a href="${REPO}/blob/main/docs/PROMPT-RECONSTRUCCION.md">Prompt de reconstrucción (docs/PROMPT-RECONSTRUCCION.md)</a>. <i>Prompt reconstruido a partir del proyecto desarrollado; no corresponde necesariamente a las instrucciones originales.</i></li><li><a href="${REPO}/blob/main/AGENTS.md">Guía para agentes de IA (AGENTS.md)</a>.</li></ul>`);
 
   const glosario = sec("glosario", `<p>Los términos técnicos, explicados en una línea.</p><dl class="glos">${GLOSARIO.map(([t, d]) => `<dt>${t}</dt><dd>${d}</dd>`).join("")}</dl>`);
 

@@ -1,5 +1,5 @@
 {
-  "generado": "2026-11-20T19:21:25+00:00",
+  "generado": "2026-11-20T22:57:49+00:00",
   "corte_datos": {
     "total_inversiones": "150574",
     "alertas_sobrecosto": "26387",
@@ -7,7 +7,7 @@
   },
   "bloques": {
     "asistente": {
-      "generado": "2026-11-18T15:04:12+00:00",
+      "generado": "2026-11-20T19:38:26+00:00",
       "estado_servicio": {
         "conectado": true,
         "sql": true,
@@ -20,17 +20,17 @@
           "modo": "chat",
           "preguntas": 5,
           "exitosas": 5,
-          "media_s": 7.21,
-          "p50_s": 7.25,
-          "max_s": 10.01
+          "media_s": 4.93,
+          "p50_s": 5.32,
+          "max_s": 6.08
         },
         {
           "modo": "agente",
           "preguntas": 2,
           "exitosas": 2,
-          "media_s": 9.2,
-          "p50_s": 9.2,
-          "max_s": 9.48
+          "media_s": 6.17,
+          "p50_s": 6.17,
+          "max_s": 6.63
         }
       ],
       "detalle": [
@@ -39,9 +39,9 @@
           "pregunta": "¿Qué es una inversión pública?",
           "estado_http": 200,
           "exito": true,
-          "segundos": 10.01,
-          "segundos_intento": 10.01,
-          "bytes": 2305,
+          "segundos": 6.08,
+          "segundos_intento": 6.08,
+          "bytes": 2056,
           "modelo": "IA del servidor",
           "error": ""
         },
@@ -50,9 +50,9 @@
           "pregunta": "¿Qué significa «posible paralización»?",
           "estado_http": 200,
           "exito": true,
-          "segundos": 7.25,
-          "segundos_intento": 7.25,
-          "bytes": 825,
+          "segundos": 4.06,
+          "segundos_intento": 4.06,
+          "bytes": 818,
           "modelo": "IA del servidor",
           "error": ""
         },
@@ -61,9 +61,9 @@
           "pregunta": "¿De dónde vienen los datos de ObraClara?",
           "estado_http": 200,
           "exito": true,
-          "segundos": 6.35,
-          "segundos_intento": 6.35,
-          "bytes": 843,
+          "segundos": 5.32,
+          "segundos_intento": 5.32,
+          "bytes": 1198,
           "modelo": "IA del servidor",
           "error": ""
         },
@@ -72,8 +72,8 @@
           "pregunta": "Explica en una frase qué es el sobrecosto.",
           "estado_http": 200,
           "exito": true,
-          "segundos": 4.96,
-          "segundos_intento": 4.96,
+          "segundos": 3.34,
+          "segundos_intento": 3.34,
           "bytes": 180,
           "modelo": "IA del servidor",
           "error": ""
@@ -83,9 +83,9 @@
           "pregunta": "¿Qué es el devengado?",
           "estado_http": 200,
           "exito": true,
-          "segundos": 7.48,
-          "segundos_intento": 7.48,
-          "bytes": 1506,
+          "segundos": 5.87,
+          "segundos_intento": 5.87,
+          "bytes": 1850,
           "modelo": "IA del servidor",
           "error": ""
         },
@@ -94,10 +94,10 @@
           "pregunta": "¿Cuántas inversiones con alerta de sobrecosto hay en Tacna?",
           "estado_http": 200,
           "exito": true,
-          "segundos": 9.48,
-          "segundos_intento": 9.48,
-          "bytes": 242,
-          "modelo": "",
+          "segundos": 5.7,
+          "segundos_intento": 5.7,
+          "bytes": 502,
+          "modelo": "ChatGPT",
           "error": ""
         },
         {
@@ -105,24 +105,25 @@
           "pregunta": "¿Cuántas inversiones hay en Moquegua?",
           "estado_http": 200,
           "exito": true,
-          "segundos": 8.92,
-          "segundos_intento": 8.92,
-          "bytes": 587,
-          "modelo": "",
+          "segundos": 6.63,
+          "segundos_intento": 6.63,
+          "bytes": 736,
+          "modelo": "ChatGPT",
           "error": ""
         }
       ],
       "nota": "Mide el tiempo de punta a punta desde Lima. Incluye la cola de la IA del servidor, que puede esperar hasta 60 s; es un servicio compartido, no un servidor dedicado. «no medido» = la llamada falló o expiró."
     },
     "asistente_extenso": {
-      "inicio": "2026-11-20T19:12:16.308Z",
-      "fin": "2026-11-20T19:19:27.578Z",
+      "inicio": "2026-11-20T19:38:26.053Z",
+      "fin": "2026-11-20T19:45:31.295Z",
       "url": "https://obraclara.adrielorihuela.net",
       "endpoint": "POST /api/agente (mcp: true)",
       "pausa_s": 8,
       "modelos": {
-        "IA del servidor": 2,
-        "Gemini 3.5 Flash-Lite": 22
+        "IA del servidor": 3,
+        "Gemini 3.5 Flash-Lite": 19,
+        "Gemini 3.1 Flash-Lite": 2
       },
       "resumen": [
         {
@@ -130,14 +131,14 @@
           "preguntas": 24,
           "con_respuesta": 24,
           "errores": 0,
-          "correctas": 21,
-          "pct_correctas": 87.5,
-          "pct_correctas_sobre_total": 87.5,
-          "media_s": 10,
-          "mediana_s": 6.9,
-          "p90_s": 22.4,
-          "min_s": 4.6,
-          "max_s": 26.2
+          "correctas": 20,
+          "pct_correctas": 83.3,
+          "pct_correctas_sobre_total": 83.3,
+          "media_s": 9.7,
+          "mediana_s": 7.2,
+          "p90_s": 19.4,
+          "min_s": 4.5,
+          "max_s": 30.1
         },
         {
           "grupo": "busqueda",
@@ -147,53 +148,53 @@
           "correctas": 5,
           "pct_correctas": 83.3,
           "pct_correctas_sobre_total": 83.3,
-          "media_s": 13,
-          "mediana_s": 8.6,
-          "p90_s": 26.2,
-          "min_s": 5.6,
-          "max_s": 26.2
+          "media_s": 11.1,
+          "mediana_s": 9.6,
+          "p90_s": 24.5,
+          "min_s": 4.8,
+          "max_s": 24.5
         },
         {
           "grupo": "detalle",
           "preguntas": 6,
           "con_respuesta": 6,
           "errores": 0,
-          "correctas": 6,
-          "pct_correctas": 100,
-          "pct_correctas_sobre_total": 100,
-          "media_s": 7.4,
-          "mediana_s": 5.5,
-          "p90_s": 16.3,
-          "min_s": 4.6,
-          "max_s": 16.3
+          "correctas": 5,
+          "pct_correctas": 83.3,
+          "pct_correctas_sobre_total": 83.3,
+          "media_s": 8.2,
+          "mediana_s": 5.6,
+          "p90_s": 19.4,
+          "min_s": 4.5,
+          "max_s": 19.4
         },
         {
           "grupo": "alertas",
           "preguntas": 6,
           "con_respuesta": 6,
           "errores": 0,
-          "correctas": 5,
-          "pct_correctas": 83.3,
-          "pct_correctas_sobre_total": 83.3,
-          "media_s": 9.3,
-          "mediana_s": 6,
-          "p90_s": 22.4,
-          "min_s": 5.7,
-          "max_s": 22.4
+          "correctas": 6,
+          "pct_correctas": 100,
+          "pct_correctas_sobre_total": 100,
+          "media_s": 9.2,
+          "mediana_s": 6.8,
+          "p90_s": 16,
+          "min_s": 6.1,
+          "max_s": 16
         },
         {
           "grupo": "resumen",
           "preguntas": 6,
           "con_respuesta": 6,
           "errores": 0,
-          "correctas": 5,
-          "pct_correctas": 83.3,
-          "pct_correctas_sobre_total": 83.3,
-          "media_s": 10,
-          "mediana_s": 5.8,
-          "p90_s": 23.6,
-          "min_s": 4.9,
-          "max_s": 23.6
+          "correctas": 4,
+          "pct_correctas": 66.7,
+          "pct_correctas_sobre_total": 66.7,
+          "media_s": 10.4,
+          "mediana_s": 6.4,
+          "p90_s": 30.1,
+          "min_s": 5.4,
+          "max_s": 30.1
         }
       ],
       "detalle": [
@@ -202,108 +203,121 @@
           "tipo": "busqueda",
           "estado_http": 200,
           "exito": 1,
-          "segundos": 21.3,
+          "segundos": 24.5,
           "correcta": 0,
           "cita_fuente": 0,
           "modelo": "IA del servidor",
           "error": "",
           "pregunta": "¿Cuántos proyectos de transporte tiene el Gobierno Regional en Cusco?",
-          "respuesta": "No puedo proporcionar un conteo verificado sin acceso efectivo a los datos de ObraClara. Prefiero no darte una cifra inventada."
+          "respuesta": "No se ha podido obtener una respuesta del MCP Obraclara. No proporcionaré una cifra sin verificar los datos de inversiones del MEF."
         },
         {
           "id": "D01",
           "tipo": "detalle",
           "estado_http": 200,
           "exito": 1,
-          "segundos": 16.3,
-          "correcta": 1,
-          "cita_fuente": 1,
+          "segundos": 19.4,
+          "correcta": 0,
+          "cita_fuente": 0,
           "modelo": "IA del servidor",
           "error": "",
           "pregunta": "¿Qué avance físico tiene la obra con código 2194680?",
-          "respuesta": "La obra **“Mejoramiento de la capacidad resolutiva del Hospital de Apoyo San Francisco, segundo nivel de atención”**, ubicada en Ayna, provincia de La Mar, Ayacucho (CUI 2194680), registra un **avance físico de 71.74 %**. Datos complementarios: - **Avance de ejecución financiera:** 72.40 %. - **Costo actualizado:** S/ 233,228,561.74. - **Monto viable:** S/ 76,473,283.00. - **Devengado del año:** S"
+          "respuesta": "No puedo consultar el MCP de ObraClara porque sus herramientas no están disponibles en esta sesión. Por tanto, no puedo confirmar el avance físico del CUI 2194680 sin datos verificables."
         },
         {
           "id": "A01",
           "tipo": "alertas",
           "estado_http": 200,
           "exito": 1,
-          "segundos": 9.4,
+          "segundos": 12.1,
           "correcta": 1,
           "cita_fuente": 1,
           "modelo": "Gemini 3.5 Flash-Lite",
           "error": "",
           "pregunta": "¿Cuántas obras de Ayacucho podrían estar paralizadas?",
-          "respuesta": "Según el registro del Ministerio de Economía y Finanzas (MEF), en el departamento de **Ayacucho** se identifican **815 obras** con alerta de posible paralización (criterio técnico basado en tener un avance físico entre el 40% y el 99% y 6 meses o más sin registro de gasto devengado). A continuación se muestra un resumen de las principales inversiones con esta alerta (ordenadas por costo actualizad"
+          "respuesta": "En el departamento de Ayacucho se registran **815 inversiones** con alerta de paralización (según el criterio técnico del MEF que considera un avance físico entre el 40 % y 99 % y 6 meses o más sin gasto devengado). A continuación se muestran algunas de las principales obras con este indicador: ```grafico {\"tipo\":\"barras\",\"titulo\":\"Costo actualizado de obras con alerta de paralización (Ejemplos en"
         },
         {
           "id": "R01",
           "tipo": "resumen",
           "estado_http": 200,
           "exito": 1,
-          "segundos": 5.8,
+          "segundos": 6.4,
           "correcta": 1,
           "cita_fuente": 1,
           "modelo": "Gemini 3.5 Flash-Lite",
           "error": "",
           "pregunta": "¿Cuánto suman en total las inversiones públicas registradas en Moquegua?",
-          "respuesta": "El total de las inversiones públicas registradas en el departamento de **Moquegua** asciende a **S/ 20,049,064,306.37** (aproximadamente 20.05 mil millones de soles), distribuidos en un total de **1,767 inversiones**. A continuación se detalla el resumen financiero y de ejecución de las inversiones en la región: - **Costo actualizado total:** S/ 20,049,064,306.37 - **Devengado del año actual:** S/"
+          "respuesta": "Las inversiones públicas registradas en el departamento de **Moquegua** suman un costo actualizado total de **S/ 20,049,064,306.37** (aproximadamente 20.05 mil millones de soles), distribuidas en **1,767 inversiones**. A continuación, se detalla el resumen financiero y de alertas obtenido del Ministerio de Economía y Finanzas (MEF): * **Costo actualizado total:** S/ 20,049,064,306.37 * **Cantidad "
         },
         {
           "id": "B02",
           "tipo": "busqueda",
           "estado_http": 200,
           "exito": 1,
-          "segundos": 7.2,
+          "segundos": 9.6,
           "correcta": 1,
           "cita_fuente": 1,
           "modelo": "Gemini 3.5 Flash-Lite",
           "error": "",
           "pregunta": "¿Cuál es la obra de salud más cara en Piura?",
-          "respuesta": "La obra de salud pública con mayor costo actualizado en el departamento de Piura es la creación del **Hospital de Alta Complejidad en el distrito de Veintiséis de Octubre** (Código Único: **2507146**), a cargo del Ministerio de Salud (Gobierno Nacional). ### Detalle de la inversión: * **Nombre:** Creación de los servicios de salud especializados, Hospital de Alta Complejidad en el distrito de Vein"
+          "respuesta": "La obra de salud pública con mayor costo actualizado en el departamento de Piura es la creación de los servicios de salud especializados del **Hospital de Alta Complejidad en el distrito de Veintiséis de Octubre** (CUI: 2507146), a cargo del Ministerio de Salud. ### Detalle de la inversión: - **Costo actualizado:** S/ 955,063,507.44 - **Entidad:** Ministerio de Salud (Gobierno Nacional) - **Ubicac"
         },
         {
           "id": "D02",
           "tipo": "detalle",
           "estado_http": 200,
           "exito": 1,
-          "segundos": 5.5,
+          "segundos": 4.5,
           "correcta": 1,
           "cita_fuente": 1,
           "modelo": "Gemini 3.5 Flash-Lite",
           "error": "",
           "pregunta": "¿Hace cuánto que no se gasta en la inversión 2488996 y está en riesgo de paralización?",
-          "respuesta": "Con base en los datos oficiales del Ministerio de Economía y Finanzas (MEF), la inversión **2488996** (*\"MEJORAMIENTO DE LA PRESTACION DE LOS SERVICIOS DE SALUD EN EL CENTRO DE SALUD I-4 REQUENA\"*): * **Tiempo sin gasto (último devengado):** El último registro de gasto devengado corresponde a **enero de 2026** (`202601`). Han transcurrido **10 meses** sin registrar nuevos devengados. * **Riesgo de"
+          "respuesta": "Para la inversión con código único **2488996** (*«Mejoramiento de la prestación de los servicios de salud en el Centro de Salud I-4 Requena, distrito de Requena - provincia de Requena - departamento de Loreto»*): * **Tiempo sin gasto devengado:** No registra gasto devengado desde hace **10 meses** (su último devengado registrado corresponde a enero de 2026, `202601`). * **Riesgo de paralización:**"
         },
         {
           "id": "A02",
           "tipo": "alertas",
           "estado_http": 200,
           "exito": 1,
-          "segundos": 5.7,
+          "segundos": 7.3,
           "correcta": 1,
           "cita_fuente": 0,
           "modelo": "Gemini 3.5 Flash-Lite",
           "error": "",
           "pregunta": "¿Qué inversión de Junín tiene el mayor sobrecosto?",
-          "respuesta": "La inversión pública en el departamento de Junín con el **mayor sobrecosto porcentual** registrado es: - **Código Único:** `2434018` - **Nombre:** IRI EN LOCAL EDUCATIVO CON CÓDIGO DE LOCAL 764989 - **Entidad:** Ministerio de Educación (Nivel Nacional) - **Función:** Educación - **Monto Viable:** S/ 16,933.00 - **Costo Actualizado:** S/ 2,354,241.42 - **Sobrecosto:** **13,803.27 %** (aproximadamen"
+          "respuesta": "La inversión en el departamento de Junín con el mayor sobrecosto registrado es el **IRI EN LOCAL EDUCATIVO CON CÓDIGO DE LOCAL 764989** (CUI: **2434018**), a cargo del Ministerio de Educación, que presenta un incremento del **13 803,27 %** respecto a su monto viable original. ### Detalle de la inversión principal: * **Código Único (CUI):** 2434018 * **Entidad:** Ministerio de Educación (Nivel Naci"
         },
         {
           "id": "R02",
           "tipo": "resumen",
           "estado_http": 200,
           "exito": 1,
-          "segundos": 8.1,
+          "segundos": 7.4,
           "correcta": 0,
           "cita_fuente": 1,
           "modelo": "Gemini 3.5 Flash-Lite",
           "error": "",
           "pregunta": "¿Cuánto ha gastado este año el Gobierno Regional de Arequipa en sus proyectos?",
-          "respuesta": "En lo que va del año (al corte del **10 de noviembre de 2026**), el **Gobierno Regional de Arequipa** ha registrado un gasto devengado total de **S/ 1,031,034,134.45** (aproximadamente **S/ 1,031 millones**) en sus 666 proyectos de inversión pública registrados en el MEF. El costo actualizado total de cartera de proyectos de la entidad asciende a S/ 20,416,105,477.27, quedando un saldo pendiente p"
+          "respuesta": "Según los datos oficiales del Ministerio de Economía y Finanzas (MEF) a noviembre de 2026, el **Gobierno Regional de Arequipa** registra un gasto devengado acumulado en el año actual de **S/ 1,031,034,134.45** (S/ 1.03 mil millones) en el conjunto de sus 666 proyectos de inversión activos. ### Resumen de Inversiones del Gobierno Regional de Arequipa - **Cantidad de inversiones:** 666 - **Costo act"
         },
         {
           "id": "B04",
           "tipo": "busqueda",
+          "estado_http": 200,
+          "exito": 1,
+          "segundos": 4.8,
+          "correcta": 1,
+          "cita_fuente": 1,
+          "modelo": "Gemini 3.5 Flash-Lite",
+          "error": "",
+          "pregunta": "¿Cuántas inversiones registra la Municipalidad Provincial de Arequipa?",
+          "respuesta": "La **Municipalidad Provincial de Arequipa** registra un total de **266 inversiones** públicas según la información oficial del Ministerio de Economía y Finanzas (MEF). ### Resumen de Inversiones * **Cantidad de inversiones:** 266 * **Costo actualizado total:** S/ 2,124,926,631.33 * **Devengado del año actual:** S/ 85,509,292.41 * **Saldo por ejecutar:** S/ 1,519,877,703.91 * **Alertas de sobrecost"
+        },
+        {
+          "id": "D04",
+          "tipo": "detalle",
           "estado_http": 200,
           "exito": 1,
           "segundos": 5.6,
@@ -311,89 +325,24 @@
           "cita_fuente": 1,
           "modelo": "Gemini 3.5 Flash-Lite",
           "error": "",
-          "pregunta": "¿Cuántas inversiones registra la Municipalidad Provincial de Arequipa?",
-          "respuesta": "La **Municipalidad Provincial de Arequipa** registra un total de **266 inversiones** públicas en el sistema del MEF. A continuación se detalla el resumen de su cartera de inversiones: * **Cantidad de inversiones:** 266 * **Costo actualizado total:** S/ 2,124,926,631.33 * **Devengado del año actual:** S/ 85,509,292.41 * **Saldo por ejecutar:** S/ 1,519,877,703.91 * **Alertas de sobrecosto:** 71 * *"
-        },
-        {
-          "id": "D04",
-          "tipo": "detalle",
-          "estado_http": 200,
-          "exito": 1,
-          "segundos": 5,
-          "correcta": 1,
-          "cita_fuente": 1,
-          "modelo": "Gemini 3.5 Flash-Lite",
-          "error": "",
           "pregunta": "¿Cuánto ha subido el costo de la obra 2226075 respecto a lo aprobado?",
-          "respuesta": "Para la obra **2226075** (*«MEJORAMIENTO Y AMPLIACIÓN DE LA RED PRINCIPAL DE AGUA Y ALCANTARILLADO DEL SECTOR NOR ESTE Y NOR OESTE DEL AA HH LOS CLAVELES PAMPA GRANDE DISTRITO DE TUMBES, PROVINCIA DE TUMBES - TUMBES»*), ejecutada por la **Municipalidad Provincial de Tumbes**: * **Monto viable (aprobado):** S/ 7,033,676.00 * **Costo actualizado:** S/ 47,715,860.89 * **Incremento absoluto:** S/ 40,6"
+          "respuesta": "Para la obra **2226075** (*«MEJORAMIENTO Y AMPLIACIÓN DE LA RED PRINCIPAL DE AGUA Y ALCANTARILLADO DEL SECTOR NOR ESTE Y NOR OESTE DEL AA HH LOS CLAVELES PAMPA GRANDE DISTRITO DE TUMBES, PROVINCIA DE TUMBES - TUMBES»*, ejecutada por la Municipalidad Provincial de Tumbes): - **Monto viable (aprobado):** S/ 7,033,676.00 - **Costo actualizado:** S/ 47,715,860.89 - **Incremento (sobrecosto):** S/ 40,6"
         },
         {
           "id": "A04",
           "tipo": "alertas",
           "estado_http": 200,
           "exito": 1,
-          "segundos": 6,
+          "segundos": 6.1,
           "correcta": 1,
-          "cita_fuente": 0,
+          "cita_fuente": 1,
           "modelo": "Gemini 3.5 Flash-Lite",
           "error": "",
           "pregunta": "¿Cuántas obras municipales en Cajamarca tienen señales de estar paralizadas?",
-          "respuesta": "Según el registro oficial del MEF, existen **622** obras de nivel de gobierno local (municipalidades) en el departamento de Cajamarca que presentan señales de estar **paralizadas** (definidas con un avance físico entre el 40% y el 99% y 6 meses o más sin gasto devengado). A continuación se muestra un resumen de las primeras inversiones paralizadas registradas en el sistema: ```grafico {\"tipo\":\"bar"
+          "respuesta": "En el departamento de Cajamarca, el número total de obras pertenecientes a gobiernos locales (nivel municipal) que presentan señales de **paralización** (es decir, un avance físico entre el 40% y el 99% y 6 meses o más sin gasto devengado registrado) es de **622 proyectos**. A continuación se muestra un resumen de las primeras inversiones con alerta de paralización con mayor costo actualizado: | C"
         },
         {
           "id": "R04",
-          "tipo": "resumen",
-          "estado_http": 200,
-          "exito": 1,
-          "segundos": 12.5,
-          "correcta": 1,
-          "cita_fuente": 1,
-          "modelo": "Gemini 3.5 Flash-Lite",
-          "error": "",
-          "pregunta": "¿Cuántas inversiones públicas tiene registradas Tumbes?",
-          "respuesta": "El departamento de Tumbes tiene registradas **1,673 inversiones públicas** en total, según la información del Ministerio de Economía y Finanzas (MEF) con fecha de corte al **10 de noviembre de 2026**. Resumen de los principales indicadores financieros y de alertas: - **Costo actualizado total:** S/ 12,854,058,303.62 - **Devengado del año actual:** S/ 342,006,385.61 - **Saldo por ejecutar:** S/ 8,8"
-        },
-        {
-          "id": "B06",
-          "tipo": "busqueda",
-          "estado_http": 200,
-          "exito": 1,
-          "segundos": 26.2,
-          "correcta": 1,
-          "cita_fuente": 1,
-          "modelo": "Gemini 3.5 Flash-Lite",
-          "error": "",
-          "pregunta": "¿Cuál es el proyecto educativo de mayor inversión en Madre de Dios?",
-          "respuesta": "El proyecto educativo de mayor inversión en el departamento de Madre de Dios es el **«Mejoramiento del servicio de educación superior tecnológica en Instituto de Educación Superior Tecnológica Jorge Basadre Grohman, distrito de Tambopata, provincia de Tambopata»**, a cargo del Ministerio de Educación (Gobierno Nacional). ### Principales indicadores del proyecto: * **Código Único (CUI):** 2475486 *"
-        },
-        {
-          "id": "D06",
-          "tipo": "detalle",
-          "estado_http": 200,
-          "exito": 1,
-          "segundos": 7.3,
-          "correcta": 1,
-          "cita_fuente": 1,
-          "modelo": "Gemini 3.5 Flash-Lite",
-          "error": "",
-          "pregunta": "¿Cuánto cuesta ahora el proyecto 2340106 del instituto Suiza en Ucayali?",
-          "respuesta": "El proyecto **2340106** (*«Mejoramiento de servicios educativos de las especialidades de Construcción Civil, Mecánica Automotriz, Electrotecnia Industrial, Administración de Recursos Forestales y Producción Agropecuaria del Instituto Superior Tecnológico Público Suiza - Ucayali»*), a cargo del Gobierno Regional de Ucayali, cuenta con la siguiente información económica y de ejecución: - **Costo act"
-        },
-        {
-          "id": "A06",
-          "tipo": "alertas",
-          "estado_http": 200,
-          "exito": 1,
-          "segundos": 22.4,
-          "correcta": 0,
-          "cita_fuente": 0,
-          "modelo": "Gemini 3.5 Flash-Lite",
-          "error": "",
-          "pregunta": "¿Cuántos proyectos de seguridad ciudadana en Lima tienen sobrecostos de 50 % o más?",
-          "respuesta": "No hay ningún archivo pendiente que crear ni se solicitó previamente la creación de un archivo en esta consulta. Si necesitas que genere un documento o informe descargable con los datos sobre los proyectos de seguridad ciudadana en Lima, indícamelo y con gusto lo prepararé para ti."
-        },
-        {
-          "id": "R06",
           "tipo": "resumen",
           "estado_http": 200,
           "exito": 1,
@@ -402,77 +351,103 @@
           "cita_fuente": 1,
           "modelo": "Gemini 3.5 Flash-Lite",
           "error": "",
+          "pregunta": "¿Cuántas inversiones públicas tiene registradas Tumbes?",
+          "respuesta": "El departamento de Tumbes tiene registradas **1,673 inversiones públicas** en total, según la información del Ministerio de Economía y Finanzas (MEF). A continuación, se detalla el resumen financiero y las alertas registradas: * **Costo actualizado total:** S/ 12,854,058,303.62 * **Devengado del año actual:** S/ 342,006,385.61 * **Saldo por ejecutar:** S/ 8,880,391,163.17 * **Alertas de sobrecosto"
+        },
+        {
+          "id": "B06",
+          "tipo": "busqueda",
+          "estado_http": 200,
+          "exito": 1,
+          "segundos": 10.8,
+          "correcta": 1,
+          "cita_fuente": 1,
+          "modelo": "Gemini 3.5 Flash-Lite",
+          "error": "",
+          "pregunta": "¿Cuál es el proyecto educativo de mayor inversión en Madre de Dios?",
+          "respuesta": "El proyecto educativo de mayor inversión en el departamento de Madre de Dios es el **«Mejoramiento del Servicio de Educación Superior Tecnológica en Instituto de Educación Superior Tecnológica Jorge Basadre Grohman»**, ubicado en el distrito y provincia de Tambopata (Código Único: **2475486**). ### Principales datos del proyecto: * **Entidad responsable:** Ministerio de Educación (Gobierno Naciona"
+        },
+        {
+          "id": "D06",
+          "tipo": "detalle",
+          "estado_http": 200,
+          "exito": 1,
+          "segundos": 5.9,
+          "correcta": 1,
+          "cita_fuente": 1,
+          "modelo": "Gemini 3.5 Flash-Lite",
+          "error": "",
+          "pregunta": "¿Cuánto cuesta ahora el proyecto 2340106 del instituto Suiza en Ucayali?",
+          "respuesta": "El proyecto **2340106** (*«Mejoramiento de servicios educativos de las especialidades de Construcción Civil, Mecánica Automotriz, Electrotecnia Industrial, Administración de Recursos Forestales y Producción Agropecuaria del Instituto Superior Tecnológico Público Suiza - Ucayali»*), a cargo del **Gobierno Regional de Ucayali**, presenta los siguientes datos actualizados: - **Costo actualizado:** S/"
+        },
+        {
+          "id": "A06",
+          "tipo": "alertas",
+          "estado_http": 200,
+          "exito": 1,
+          "segundos": 6.8,
+          "correcta": 1,
+          "cita_fuente": 1,
+          "modelo": "Gemini 3.5 Flash-Lite",
+          "error": "",
+          "pregunta": "¿Cuántos proyectos de seguridad ciudadana en Lima tienen sobrecostos de 50 % o más?",
+          "respuesta": "Según los registros del Ministerio de Economía y Finanzas (MEF), existen **125 proyectos** en el departamento de Lima bajo la función de \"Orden Público y Seguridad\" que presentan alertas por sobrecosto (es decir, un costo actualizado que supera en 50 % o más al monto viable original). Como el sistema muestra los primeros 20 resultados ordenados por costo actualizado, a continuación se detallan alg"
+        },
+        {
+          "id": "R06",
+          "tipo": "resumen",
+          "estado_http": 200,
+          "exito": 1,
+          "segundos": 7.6,
+          "correcta": 1,
+          "cita_fuente": 1,
+          "modelo": "Gemini 3.5 Flash-Lite",
+          "error": "",
           "pregunta": "¿Cuál es el costo total de los proyectos de la Municipalidad Provincial de Piura?",
-          "respuesta": "El costo total acumulado de los proyectos de inversión pública de la **Municipalidad Provincial de Piura** asciende a **S/ 4,700,748,018.53** (aproximadamente 4.70 mil millones de soles), distribuidos en un total de **469 inversiones**. A continuación, se detalla el resumen de la situación de estas inversiones según los registros oficiales del MEF: - **Cantidad total de proyectos:** 469 - **Costo "
+          "respuesta": "El costo total actualizado de los proyectos de inversión pública registrados por la **Municipalidad Provincial de Piura** es de **S/ 4,700,748,018.53** (4,700 millones de soles), correspondientes a un total de **469 proyectos**. ### Resumen de la Inversión * **Costo actualizado total:** S/ 4,700,748,018.53 * **Devengado del año actual:** S/ 140,509,259.82 * **Saldo por ejecutar:** S/ 3,712,619,085"
         },
         {
           "id": "B07",
           "tipo": "busqueda",
           "estado_http": 200,
           "exito": 1,
-          "segundos": 9.3,
+          "segundos": 9.6,
           "correcta": 1,
           "cita_fuente": 1,
           "modelo": "Gemini 3.5 Flash-Lite",
           "error": "",
           "pregunta": "¿Cuántos proyectos de turismo hay en el Cusco?",
-          "respuesta": "En el departamento de Cusco se registran **95 proyectos de inversión pública** bajo la función **Turismo**, de acuerdo con la base de datos de inversiones del Ministerio de Economía y Finanzas (MEF). ### Resumen Financiero y de Alertas * **Costo actualizado total:** S/ 524,687,367.33 * **Devengado del año actual:** S/ 9,328,753.50 * **Saldo por ejecutar:** S/ 403,340,902.51 * **Alertas de sobrecos"
+          "respuesta": "Según la información del Ministerio de Economía y Finanzas (MEF), en el departamento de Cusco se registran **95 proyectos** de inversión pública bajo la función **Turismo**. ### Resumen Financiero y de Estado * **Costo actualizado total:** S/ 524,687,367.33 * **Saldo por ejecutar:** S/ 403,340,902.51 * **Alertas de sobrecosto:** 21 proyectos * **Alertas de posible paralización:** 11 proyectos --- "
         },
         {
           "id": "D07",
           "tipo": "detalle",
           "estado_http": 200,
           "exito": 1,
-          "segundos": 4.6,
+          "segundos": 5.5,
           "correcta": 1,
-          "cita_fuente": 1,
+          "cita_fuente": 0,
           "modelo": "Gemini 3.5 Flash-Lite",
           "error": "",
           "pregunta": "¿A cuántas personas beneficia la obra 2178454?",
-          "respuesta": "La obra **2178454** («MEJORAMIENTO DE LA CARRETERA VARIANTE DE UCHUMAYO, ENTRE EL PUENTE SAN ISIDRO Y LA VIA DE EVITAMIENTO, DISTRITOS SACHACA, YANAHUARA Y CERRO COLORADO, PROVINCIA DE AREQUIPA-REGION AREQUIPA», a cargo del Gobierno Regional de Arequipa) beneficia aproximadamente a **1,265,175 habitantes** (población de referencia registrada en la provincia). * **Fuente:** Ministerio de Economía y"
+          "respuesta": "La obra **2178454** («Mejoramiento de la carretera variante de Uchumayo, entre el puente San Isidro y la vía de Evitamiento, distritos Sachaca, Yanahuara y Cerro Colorado, provincia de Arequipa - Región Arequipa») beneficia directamente a **1,265,175 habitantes**, según el registro oficial del Ministerio de Economía y Finanzas (MEF)."
         },
         {
           "id": "A07",
           "tipo": "alertas",
           "estado_http": 200,
           "exito": 1,
-          "segundos": 5.7,
-          "correcta": 1,
-          "cita_fuente": 1,
-          "modelo": "Gemini 3.5 Flash-Lite",
-          "error": "",
-          "pregunta": "En Tacna, ¿cuál es la obra con alerta de paralización que lleva más tiempo sin gastar?",
-          "respuesta": "En el departamento de Tacna, la obra con alerta de paralización que lleva más tiempo sin registrar gasto devengado es la siguiente: * **Código Único:** 2060020 * **Nombre:** CONSTRUCCION DE COMPLEJO DEPORTIVO EN ASOCIACIÓN DE VIVIENDA CUATRO POZOS (VIÑANI), DISTRITO DE CORONEL GREGORIO ALBARRACIN LANCHIPA - TACNA - TACNA * **Entidad:** Municipalidad Distrital de Coronel Gregorio Albarracín * **Mes"
-        },
-        {
-          "id": "R07",
-          "tipo": "resumen",
-          "estado_http": 200,
-          "exito": 1,
-          "segundos": 23.6,
-          "correcta": 1,
-          "cita_fuente": 1,
-          "modelo": "Gemini 3.5 Flash-Lite",
-          "error": "",
-          "pregunta": "¿Cuánto se ha devengado en 2026 en inversiones públicas en San Martín?",
-          "respuesta": "En las inversiones públicas en el departamento de San Martín, el monto devengado en el año actual (2026) asciende a **S/ 1,120,670,910.26** (mil ciento veinte millones, seiscientos setenta mil novecientos diez con 26/100 soles). A continuación se detalla el resumen de las inversiones para el departamento: * **Cantidad de inversiones:** 4,799 * **Costo actualizado total:** S/ 32,371,325,221.28 * **"
-        },
-        {
-          "id": "B09",
-          "tipo": "busqueda",
-          "estado_http": 200,
-          "exito": 1,
-          "segundos": 8.6,
+          "segundos": 6.7,
           "correcta": 1,
           "cita_fuente": 0,
           "modelo": "Gemini 3.5 Flash-Lite",
           "error": "",
-          "pregunta": "¿Cuál es el proyecto de hospital más costoso de Lambayeque?",
-          "respuesta": "El proyecto de inversión en salud y hospital más costoso en el departamento de Lambayeque es el **«Mejoramiento de la capacidad resolutiva de los servicios de salud del Hospital de Ferreñafe»** (Código Único: **2310820**), a cargo del Gobierno Regional de Lambayeque, con un costo actualizado de **S/ 233,406,904.55**. A continuación se detallan los tres proyectos de hospitales con mayor costo actua"
+          "pregunta": "En Tacna, ¿cuál es la obra con alerta de paralización que lleva más tiempo sin gastar?",
+          "respuesta": "En el departamento de Tacna, la obra con alerta de paralización que lleva más tiempo sin registrar gasto devengado es la siguiente: * **Código Único:** 2060020 * **Nombre de la obra:** CONSTRUCCION DE COMPLEJO DEPORTIVO EN ASOCIACIÓN DE VIVIENDA CUATRO POZOS (VIÑANI), DISTRITO DE CORONEL GREGORIO ALBARRACIN LANCHIPA - TACNA - TACNA * **Entidad:** Municipalidad Distrital de Coronel Gregorio Albarra"
         },
         {
-          "id": "D09",
-          "tipo": "detalle",
+          "id": "R07",
+          "tipo": "resumen",
           "estado_http": 200,
           "exito": 1,
           "segundos": 5.6,
@@ -480,40 +455,66 @@
           "cita_fuente": 1,
           "modelo": "Gemini 3.5 Flash-Lite",
           "error": "",
+          "pregunta": "¿Cuánto se ha devengado en 2026 en inversiones públicas en San Martín?",
+          "respuesta": "Según la información oficial de inversiones públicas del Ministerio de Economía y Finanzas (MEF), al **10 de noviembre de 2026**, el monto devengado en el año 2026 para el departamento de **San Martín** asciende a **S/ 1,120,670,910.26** (aproximadamente **S/ 1,121 millones**). ### Resumen de inversiones en San Martín - **Cantidad de inversiones:** 4,799 - **Costo actualizado total:** S/ 32,371,32"
+        },
+        {
+          "id": "B09",
+          "tipo": "busqueda",
+          "estado_http": 200,
+          "exito": 1,
+          "segundos": 7.2,
+          "correcta": 1,
+          "cita_fuente": 0,
+          "modelo": "Gemini 3.5 Flash-Lite",
+          "error": "",
+          "pregunta": "¿Cuál es el proyecto de hospital más costoso de Lambayeque?",
+          "respuesta": "El proyecto de salud más costoso en el departamento de Lambayeque es el **«Mejoramiento de la capacidad resolutiva de los servicios de salud del Hospital de Ferreñafe»** (Código Único: **2310820**), ejecutado por el Gobierno Regional de Lambayeque, con un costo actualizado de **S/ 233,406,904.55**. A continuación, los 5 proyectos de salud con mayor costo actualizado en la región: ```grafico {\"tipo"
+        },
+        {
+          "id": "D09",
+          "tipo": "detalle",
+          "estado_http": 200,
+          "exito": 1,
+          "segundos": 8.1,
+          "correcta": 1,
+          "cita_fuente": 1,
+          "modelo": "Gemini 3.1 Flash-Lite",
+          "error": "",
           "pregunta": "¿Cuál es el presupuesto modificado de este año para el control de desbordes del río Ica (código 2228738)?",
-          "respuesta": "El presupuesto institucional modificado (PIM) para el año en curso destinado a la inversión **\"Control de desbordes e inundaciones en el río Ica y quebrada Cansas/Chanchajalla\"** (Código Único: **2228738**), a cargo del Gobierno Regional de Ica, asciende a **S/ 56,435,765**. ### Detalle de la Inversión - **Costo Actualizado:** S/ 307,464,895.91 (Monto viable inicial: S/ 197,486,381) - **Devengado "
+          "respuesta": "El presupuesto modificado (PIM) para el año 2026 de la inversión \"Control de desbordes e inundaciones en el río Ica y quebrada Cansas/Chanchajalla\" (CUI 2228738) es de **S/ 56,435,765**. * **Fuente:** Ministerio de Economía y Finanzas, Información de inversiones públicas 2001-2026. * **Fecha de corte:** 2026-11-10."
         },
         {
           "id": "A09",
           "tipo": "alertas",
           "estado_http": 200,
           "exito": 1,
-          "segundos": 6.9,
+          "segundos": 16,
           "correcta": 1,
           "cita_fuente": 1,
-          "modelo": "Gemini 3.5 Flash-Lite",
+          "modelo": "Gemini 3.1 Flash-Lite",
           "error": "",
           "pregunta": "¿Cuántas obras de agua y saneamiento del Gobierno Nacional en San Martín podrían estar paralizadas?",
-          "respuesta": "Según los registros del Ministerio de Economía y Finanzas (MEF), se identifican **7 obras** de agua y saneamiento a cargo del **Gobierno Nacional** en el departamento de **San Martín** que presentan alerta de **paralización** (criterio: avance físico entre 40% y 99% y 6 meses o más sin gasto devengado). Todas estas obras son ejecutadas por el **Ministerio de Vivienda, Construcción y Saneamiento**."
+          "respuesta": "Según la información del Ministerio de Economía y Finanzas (MEF), existen **7 obras de agua y saneamiento** a cargo del Gobierno Nacional en el departamento de San Martín que presentan indicios de paralización (avance físico entre 40% y 99% sin gasto devengado en los últimos 6 meses o más). ### Obras de Saneamiento con alerta de paralización (Gobierno Nacional - San Martín) | CUI | Nombre de la ob"
         },
         {
           "id": "R09",
           "tipo": "resumen",
           "estado_http": 200,
           "exito": 1,
-          "segundos": 4.9,
-          "correcta": 1,
-          "cita_fuente": 1,
-          "modelo": "Gemini 3.5 Flash-Lite",
+          "segundos": 30.1,
+          "correcta": 0,
+          "cita_fuente": 0,
+          "modelo": "IA del servidor",
           "error": "",
           "pregunta": "¿Cuánto suman los proyectos de transporte de las municipalidades de Huánuco?",
-          "respuesta": "Los proyectos de la función **Transporte** a nivel **local** (municipalidades provinciales y distritales) en el departamento de **Huánuco** suman un costo actualizado total de **S/ 4,765,314,220.69** (aproximadamente 4.77 mil millones de soles), distribuidos en un total de **1,473 inversiones**. A continuación, se detalla el resumen de la situación de estas inversiones según los registros del MEF:"
+          "respuesta": "No tengo acceso operativo a las herramientas MCP de ObraClara en esta sesión, por lo que no puedo consultar ni verificar el monto. No proporcionaré una cifra inventada."
         }
       ],
       "nota": "Preguntas en serie con pausa; tiempo de punta a punta desde Lima, incluye cola y reintentos de la IA del servidor. Los límites de un proveedor no se esquivan: se registran como error."
     },
     "calidad": {
-      "generado": "2026-11-18T15:04:44+00:00",
+      "generado": "2026-11-20T19:29:12+00:00",
       "base": "{'fecha_descarga': '2026-11-10', 'total_inversiones': '150574', 'alertas_sobrecosto': '26387', 'alertas_paralizacion': '16502', 'fuente': 'Ministerio de Economía y Finanzas, Información de inversiones públicas 2001-2026', 'url': 'https://www.datosabiertos.gob.pe/dataset/informaci%C3%B3n-de-inversiones-p%C3%BAblicas-2001%E2%80%932026-mef'}",
       "filas_totales": 150574,
       "columnas_tabla": 31,
@@ -1272,7 +1273,7 @@
       }
     },
     "evaluacion": {
-      "copiado": "2026-11-18T15:04:46+00:00",
+      "copiado": "2026-11-20T19:29:14+00:00",
       "origen": "eval/resultados/graficos_*.csv (40 preguntas, con y sin MCP); texto completo en eval/resultados/resumen.md",
       "global": [
         {
@@ -1281,7 +1282,17 @@
           "citacion_pct": "10",
           "inventada_pct": "53",
           "ejecutadas": "40",
-          "preguntas": "40"
+          "preguntas": "40",
+          "exacta_estricta_pct": "5",
+          "no_sustentadas_pct": "55",
+          "recall_pct": "0",
+          "precision_pct": "0",
+          "f1_pct": "0",
+          "preguntas_con_referencia": "18",
+          "recall_listado_pct": "1",
+          "precision_listado_pct": "17",
+          "f1_listado_pct": "2",
+          "preguntas_listado": "13"
         },
         {
           "condicion": "con_mcp",
@@ -1289,17 +1300,37 @@
           "citacion_pct": "100",
           "inventada_pct": "0",
           "ejecutadas": "40",
-          "preguntas": "40"
+          "preguntas": "40",
+          "exacta_estricta_pct": "98",
+          "no_sustentadas_pct": "3",
+          "recall_pct": "100",
+          "precision_pct": "100",
+          "f1_pct": "100",
+          "preguntas_con_referencia": "18",
+          "recall_listado_pct": "10",
+          "precision_listado_pct": "100",
+          "f1_listado_pct": "12",
+          "preguntas_listado": "13"
         }
       ],
       "latencia": [
         {
           "condicion": "sin_mcp",
-          "latencia_media_s": "22.1"
+          "latencia_media_s": "22.1",
+          "latencia_mediana_s": "12.9",
+          "latencia_p90_s": "17.9",
+          "latencia_max_s": "199.8",
+          "mediana_sin_reintentos_s": "11.0",
+          "p90_sin_reintentos_s": "13.9"
         },
         {
           "condicion": "con_mcp",
-          "latencia_media_s": "99.9"
+          "latencia_media_s": "99.9",
+          "latencia_mediana_s": "21.0",
+          "latencia_p90_s": "214.2",
+          "latencia_max_s": "401.3",
+          "mediana_sin_reintentos_s": "14.8",
+          "p90_sin_reintentos_s": "20.0"
         }
       ],
       "por_tipo": [
@@ -1310,7 +1341,17 @@
           "citacion_pct": "0",
           "inventada_pct": "80",
           "ejecutadas": "10",
-          "preguntas": "10"
+          "preguntas": "10",
+          "exacta_estricta_pct": "0",
+          "no_sustentadas_pct": "60",
+          "recall_pct": "0",
+          "precision_pct": "0",
+          "f1_pct": "0",
+          "preguntas_con_referencia": "9",
+          "recall_listado_pct": "0",
+          "precision_listado_pct": "0",
+          "f1_listado_pct": "0",
+          "preguntas_listado": "6"
         },
         {
           "tipo": "busqueda",
@@ -1319,7 +1360,17 @@
           "citacion_pct": "100",
           "inventada_pct": "0",
           "ejecutadas": "10",
-          "preguntas": "10"
+          "preguntas": "10",
+          "exacta_estricta_pct": "100",
+          "no_sustentadas_pct": "0",
+          "recall_pct": "100",
+          "precision_pct": "100",
+          "f1_pct": "100",
+          "preguntas_con_referencia": "9",
+          "recall_listado_pct": "0",
+          "precision_listado_pct": "",
+          "f1_listado_pct": "0",
+          "preguntas_listado": "6"
         },
         {
           "tipo": "detalle",
@@ -1328,7 +1379,17 @@
           "citacion_pct": "30",
           "inventada_pct": "20",
           "ejecutadas": "10",
-          "preguntas": "10"
+          "preguntas": "10",
+          "exacta_estricta_pct": "20",
+          "no_sustentadas_pct": "40",
+          "recall_pct": "",
+          "precision_pct": "",
+          "f1_pct": "",
+          "preguntas_con_referencia": "0",
+          "recall_listado_pct": "",
+          "precision_listado_pct": "",
+          "f1_listado_pct": "",
+          "preguntas_listado": "0"
         },
         {
           "tipo": "detalle",
@@ -1337,7 +1398,17 @@
           "citacion_pct": "100",
           "inventada_pct": "0",
           "ejecutadas": "10",
-          "preguntas": "10"
+          "preguntas": "10",
+          "exacta_estricta_pct": "90",
+          "no_sustentadas_pct": "10",
+          "recall_pct": "",
+          "precision_pct": "",
+          "f1_pct": "",
+          "preguntas_con_referencia": "0",
+          "recall_listado_pct": "",
+          "precision_listado_pct": "",
+          "f1_listado_pct": "",
+          "preguntas_listado": "0"
         },
         {
           "tipo": "alertas",
@@ -1346,7 +1417,17 @@
           "citacion_pct": "0",
           "inventada_pct": "70",
           "ejecutadas": "10",
-          "preguntas": "10"
+          "preguntas": "10",
+          "exacta_estricta_pct": "0",
+          "no_sustentadas_pct": "50",
+          "recall_pct": "0",
+          "precision_pct": "0",
+          "f1_pct": "0",
+          "preguntas_con_referencia": "9",
+          "recall_listado_pct": "2",
+          "precision_listado_pct": "33",
+          "f1_listado_pct": "3",
+          "preguntas_listado": "7"
         },
         {
           "tipo": "alertas",
@@ -1355,7 +1436,17 @@
           "citacion_pct": "100",
           "inventada_pct": "0",
           "ejecutadas": "10",
-          "preguntas": "10"
+          "preguntas": "10",
+          "exacta_estricta_pct": "100",
+          "no_sustentadas_pct": "0",
+          "recall_pct": "100",
+          "precision_pct": "100",
+          "f1_pct": "100",
+          "preguntas_con_referencia": "9",
+          "recall_listado_pct": "19",
+          "precision_listado_pct": "100",
+          "f1_listado_pct": "22",
+          "preguntas_listado": "7"
         },
         {
           "tipo": "resumen",
@@ -1364,7 +1455,17 @@
           "citacion_pct": "10",
           "inventada_pct": "40",
           "ejecutadas": "10",
-          "preguntas": "10"
+          "preguntas": "10",
+          "exacta_estricta_pct": "0",
+          "no_sustentadas_pct": "70",
+          "recall_pct": "",
+          "precision_pct": "",
+          "f1_pct": "",
+          "preguntas_con_referencia": "0",
+          "recall_listado_pct": "",
+          "precision_listado_pct": "",
+          "f1_listado_pct": "",
+          "preguntas_listado": "0"
         },
         {
           "tipo": "resumen",
@@ -1373,12 +1474,22 @@
           "citacion_pct": "100",
           "inventada_pct": "0",
           "ejecutadas": "10",
-          "preguntas": "10"
+          "preguntas": "10",
+          "exacta_estricta_pct": "100",
+          "no_sustentadas_pct": "0",
+          "recall_pct": "",
+          "precision_pct": "",
+          "f1_pct": "",
+          "preguntas_con_referencia": "0",
+          "recall_listado_pct": "",
+          "precision_listado_pct": "",
+          "f1_listado_pct": "",
+          "preguntas_listado": "0"
         }
       ]
     },
     "exactitud": {
-      "generado": "2026-11-18T14:59:07+00:00",
+      "generado": "2026-11-20T19:36:05+00:00",
       "semilla_detalle": 2026,
       "resumen": [
         {
@@ -1759,7 +1870,7 @@
       "criterio": "Numéricos iguales con tolerancia 0,005 (montos redondeados a 2 decimales); texto y fechas, igualdad exacta. Resúmenes por departamento: departamento_n igual al normalizado; por entidad: misma regla de palabras que el servidor (todas deben aparecer)."
     },
     "exactitud_alertas": {
-      "generado": "2026-11-18T15:00:49+00:00",
+      "generado": "2026-11-20T19:37:18+00:00",
       "casos": 14,
       "coinciden": 14,
       "pct": 100.0,
@@ -1878,66 +1989,80 @@
         }
       ]
     },
+    "paginas_sitio": {
+      "inicio": "2026-11-20T20:02:15+00:00",
+      "fin": "2026-11-20T20:06:58+00:00",
+      "base": "https://obraclara.adrielorihuela.net",
+      "n": 20,
+      "pausa_s": 1.2
+    },
     "pruebas": {
-      "generado": "2026-11-20T14:47:26+00:00",
+      "generado": "2026-11-20T22:57:49+00:00",
       "comando": "cd worker && npx vitest run --coverage",
       "exito": true,
-      "pruebas_total": 149,
-      "pasan": 149,
+      "pruebas_total": 170,
+      "pasan": 170,
       "fallan": 0,
-      "archivos": 15,
-      "suites_describe": 63,
-      "duracion_suite_ms": 763.7,
-      "duracion_pared_con_cobertura_s": 1.7,
+      "archivos": 17,
+      "suites_describe": 72,
+      "duracion_suite_ms": 697.0,
+      "duracion_pared_con_cobertura_s": 1.6,
       "por_archivo": [
+        {
+          "archivo": "acciones.test.ts",
+          "pruebas": 12,
+          "pasan": 12,
+          "fallan": 0,
+          "duracion_ms": 28.9
+        },
         {
           "archivo": "adjuntos.test.ts",
           "pruebas": 18,
           "pasan": 18,
           "fallan": 0,
-          "duracion_ms": 86.1
+          "duracion_ms": 85.7
         },
         {
           "archivo": "agente.test.ts",
           "pruebas": 42,
           "pasan": 42,
           "fallan": 0,
-          "duracion_ms": 93.0
+          "duracion_ms": 95.0
         },
         {
           "archivo": "agenteapi.test.ts",
-          "pruebas": 4,
-          "pasan": 4,
+          "pruebas": 6,
+          "pasan": 6,
           "fallan": 0,
-          "duracion_ms": 19.3
+          "duracion_ms": 21.8
         },
         {
           "archivo": "cadena.test.ts",
           "pruebas": 13,
           "pasan": 13,
           "fallan": 0,
-          "duracion_ms": 53.8
+          "duracion_ms": 69.5
         },
         {
           "archivo": "cifras.test.ts",
           "pruebas": 3,
           "pasan": 3,
           "fallan": 0,
-          "duracion_ms": 3.7
+          "duracion_ms": 6.0
         },
         {
           "archivo": "compartir.test.ts",
           "pruebas": 14,
           "pasan": 14,
           "fallan": 0,
-          "duracion_ms": 63.5
+          "duracion_ms": 101.7
         },
         {
           "archivo": "demo.test.ts",
-          "pruebas": 8,
-          "pasan": 8,
+          "pruebas": 9,
+          "pasan": 9,
           "fallan": 0,
-          "duracion_ms": 19.4
+          "duracion_ms": 21.0
         },
         {
           "archivo": "evaluacion-md.test.ts",
@@ -1951,75 +2076,82 @@
           "pruebas": 2,
           "pasan": 2,
           "fallan": 0,
-          "duracion_ms": 2.4
+          "duracion_ms": 3.6
         },
         {
           "archivo": "grafico.test.ts",
           "pruebas": 7,
           "pasan": 7,
           "fallan": 0,
-          "duracion_ms": 12.5
+          "duracion_ms": 13.4
         },
         {
           "archivo": "mcp.test.ts",
           "pruebas": 3,
           "pasan": 3,
           "fallan": 0,
-          "duracion_ms": 116.1
+          "duracion_ms": 96.2
         },
         {
           "archivo": "queries.test.ts",
           "pruebas": 14,
           "pasan": 14,
           "fallan": 0,
-          "duracion_ms": 17.4
+          "duracion_ms": 36.7
+        },
+        {
+          "archivo": "reconexion.test.ts",
+          "pruebas": 5,
+          "pasan": 5,
+          "fallan": 0,
+          "duracion_ms": 11.4
         },
         {
           "archivo": "remotedb.test.ts",
           "pruebas": 4,
           "pasan": 4,
           "fallan": 0,
-          "duracion_ms": 46.2
+          "duracion_ms": 39.3
         },
         {
           "archivo": "sitio.test.ts",
-          "pruebas": 8,
-          "pasan": 8,
+          "pruebas": 9,
+          "pasan": 9,
           "fallan": 0,
-          "duracion_ms": 13.4
+          "duracion_ms": 17.6
         },
         {
           "archivo": "sugerencias.test.ts",
           "pruebas": 5,
           "pasan": 5,
           "fallan": 0,
-          "duracion_ms": 87.8
+          "duracion_ms": 61.3
         }
       ],
       "cobertura_total": {
         "lines": {
-          "total": 1783,
-          "covered": 1432,
+          "total": 1847,
+          "covered": 1617,
           "skipped": 0,
-          "pct": 80.31
+          "pct": 87.54
         },
         "statements": {
-          "total": 2578,
-          "covered": 1934,
+          "total": 2697,
+          "covered": 2241,
           "skipped": 0,
-          "pct": 75.01
+          "pct": 83.09
         },
         "functions": {
-          "total": 481,
-          "covered": 397,
+          "total": 519,
+          "covered": 474,
           "skipped": 0,
-          "pct": 82.53
+          "pct": 91.32
         },
         "branches": {
-          "total": 2219,
-          "covered": 1359,
+          "total": 2360,
+          "covered": 1659,
           "skipped": 0,
-          "pct": 61.24
+          "pct": 70.29
         },
         "branchesTrue": {
           "total": 0,
@@ -2029,20 +2161,20 @@
         }
       },
       "cobertura_solo_logica_pct": {
-        "lines": 75.54,
-        "statements": 68.74,
-        "functions": 69.6,
-        "branches": 58.19
+        "lines": 85.13,
+        "statements": 79.35,
+        "functions": 86.36,
+        "branches": 68.71
       },
       "cobertura_por_archivo": [
         {
           "archivo": "src/cola.ts",
-          "lineas_pct": 7.54,
-          "sentencias_pct": 4.93,
+          "lineas_pct": 8.33,
+          "sentencias_pct": 5.42,
           "funciones_pct": 0,
           "ramas_pct": 0,
-          "lineas_cubiertas": 8,
-          "lineas_totales": 106
+          "lineas_cubiertas": 9,
+          "lineas_totales": 108
         },
         {
           "archivo": "src/compartido.ts",
@@ -2073,30 +2205,30 @@
         },
         {
           "archivo": "src/index.ts",
-          "lineas_pct": 40.56,
-          "sentencias_pct": 33.77,
+          "lineas_pct": 40.18,
+          "sentencias_pct": 33.55,
           "funciones_pct": 50,
-          "ramas_pct": 29.37,
+          "ramas_pct": 29.12,
           "lineas_cubiertas": 43,
-          "lineas_totales": 106
+          "lineas_totales": 107
         },
         {
           "archivo": "src/lib/agente.ts",
-          "lineas_pct": 83.6,
-          "sentencias_pct": 74.97,
-          "funciones_pct": 66.91,
-          "ramas_pct": 64.19,
-          "lineas_cubiertas": 612,
-          "lineas_totales": 732
+          "lineas_pct": 98.03,
+          "sentencias_pct": 91.77,
+          "funciones_pct": 96.45,
+          "ramas_pct": 78.39,
+          "lineas_cubiertas": 749,
+          "lineas_totales": 764
         },
         {
           "archivo": "src/lib/agenteapi.ts",
-          "lineas_pct": 41.93,
-          "sentencias_pct": 42.62,
-          "funciones_pct": 60,
-          "ramas_pct": 40.49,
-          "lineas_cubiertas": 13,
-          "lineas_totales": 31
+          "lineas_pct": 100,
+          "sentencias_pct": 83.13,
+          "funciones_pct": 86.66,
+          "ramas_pct": 81.48,
+          "lineas_cubiertas": 42,
+          "lineas_totales": 42
         },
         {
           "archivo": "src/lib/cadena.ts",
@@ -2274,9 +2406,9 @@
           "lineas_pct": 100,
           "sentencias_pct": 100,
           "funciones_pct": 100,
-          "ramas_pct": 86.84,
-          "lineas_cubiertas": 34,
-          "lineas_totales": 34
+          "ramas_pct": 86.95,
+          "lineas_cubiertas": 43,
+          "lineas_totales": 43
         },
         {
           "archivo": "src/sitio/inicio.ts",
@@ -2317,11 +2449,11 @@
         {
           "archivo": "src/sitio/proyecto-metricas.ts",
           "lineas_pct": 100,
-          "sentencias_pct": 100,
-          "funciones_pct": 100,
-          "ramas_pct": 85.71,
-          "lineas_cubiertas": 48,
-          "lineas_totales": 48
+          "sentencias_pct": 98.98,
+          "funciones_pct": 98.24,
+          "ramas_pct": 83.33,
+          "lineas_cubiertas": 57,
+          "lineas_totales": 57
         },
         {
           "archivo": "src/sitio/proyecto.ts",
@@ -2334,19 +2466,19 @@
         },
         {
           "archivo": "TOTAL",
-          "lineas_pct": 80.31,
-          "sentencias_pct": 75.01,
-          "funciones_pct": 82.53,
-          "ramas_pct": 61.24,
-          "lineas_cubiertas": 1432,
-          "lineas_totales": 1783
+          "lineas_pct": 87.54,
+          "sentencias_pct": 83.09,
+          "funciones_pct": 91.32,
+          "ramas_pct": 70.29,
+          "lineas_cubiertas": 1617,
+          "lineas_totales": 1847
         },
         {
           "archivo": "TOTAL solo logica (sin sitio/ ni pagina.ts: HTML y CSS en cadenas)",
-          "lineas_pct": 75.54,
-          "sentencias_pct": 68.74,
-          "funciones_pct": 69.6,
-          "ramas_pct": 58.19,
+          "lineas_pct": 85.13,
+          "sentencias_pct": 79.35,
+          "funciones_pct": 86.36,
+          "ramas_pct": 68.71,
           "lineas_cubiertas": "",
           "lineas_totales": ""
         }
@@ -2354,8 +2486,8 @@
       "nota_cobertura": "Cobertura V8 con @vitest/coverage-v8 5.1.0 (devDependency añadida). El código de src/sitio y pagina.ts es HTML/CSS en cadenas y no tiene pruebas unitarias, por eso se reporta también la cobertura sin ese código. Además index.ts y cola.ts (entrada del Worker y Durable Object) se verifican solo contra producción, no con vitest."
     },
     "rendimiento": {
-      "inicio": "2026-11-20T18:50:34+00:00",
-      "fin": "2026-11-20T18:55:55+00:00",
+      "inicio": "2026-11-20T19:29:14+00:00",
+      "fin": "2026-11-20T19:34:37+00:00",
       "url": "https://obraclara.adrielorihuela.net",
       "nota": "Latencia medida con Python urllib desde Lima (Perú) hacia Cloudflare; incluye DNS, TLS y red (cada llamada abre conexión nueva). Pausa de 1,2 s entre llamadas para respetar el límite de 60/min.",
       "filas": [
@@ -2365,12 +2497,12 @@
           "exitosas": 30,
           "errores": 0,
           "tasa_exito_pct": 100.0,
-          "lat_media_ms": 1400.1,
-          "lat_p50_ms": 1359.1,
-          "lat_p90_ms": 1472.9,
-          "lat_p95_ms": 1527.2,
-          "lat_max_ms": 2067.9,
-          "lat_min_ms": 1303.4,
+          "lat_media_ms": 1379.2,
+          "lat_p50_ms": 1372.2,
+          "lat_p90_ms": 1441.3,
+          "lat_p95_ms": 1496.4,
+          "lat_max_ms": 1578.4,
+          "lat_min_ms": 1299.2,
           "tam_resp_medio_bytes": 6899,
           "tam_resp_max_bytes": 13646
         },
@@ -2380,12 +2512,12 @@
           "exitosas": 30,
           "errores": 0,
           "tasa_exito_pct": 100.0,
-          "lat_media_ms": 993.5,
-          "lat_p50_ms": 981.0,
-          "lat_p90_ms": 1081.7,
-          "lat_p95_ms": 1085.5,
-          "lat_max_ms": 1091.1,
-          "lat_min_ms": 937.2,
+          "lat_media_ms": 1000.5,
+          "lat_p50_ms": 991.2,
+          "lat_p90_ms": 1056.1,
+          "lat_p95_ms": 1090.2,
+          "lat_max_ms": 1098.9,
+          "lat_min_ms": 959.1,
           "tam_resp_medio_bytes": 1431,
           "tam_resp_max_bytes": 1682
         },
@@ -2395,12 +2527,12 @@
           "exitosas": 30,
           "errores": 0,
           "tasa_exito_pct": 100.0,
-          "lat_media_ms": 1351.2,
-          "lat_p50_ms": 1338.6,
-          "lat_p90_ms": 1394.7,
-          "lat_p95_ms": 1413.4,
-          "lat_max_ms": 1466.2,
-          "lat_min_ms": 1282.7,
+          "lat_media_ms": 1366.7,
+          "lat_p50_ms": 1343.9,
+          "lat_p90_ms": 1437.8,
+          "lat_p95_ms": 1447.7,
+          "lat_max_ms": 1800.6,
+          "lat_min_ms": 1291.6,
           "tam_resp_medio_bytes": 6169,
           "tam_resp_max_bytes": 13563
         },
@@ -2410,12 +2542,12 @@
           "exitosas": 30,
           "errores": 0,
           "tasa_exito_pct": 100.0,
-          "lat_media_ms": 994.1,
-          "lat_p50_ms": 982.4,
-          "lat_p90_ms": 1008.4,
-          "lat_p95_ms": 1119.8,
-          "lat_max_ms": 1182.6,
-          "lat_min_ms": 948.1,
+          "lat_media_ms": 996.9,
+          "lat_p50_ms": 990.8,
+          "lat_p90_ms": 1032.1,
+          "lat_p95_ms": 1035.8,
+          "lat_max_ms": 1066.0,
+          "lat_min_ms": 948.6,
           "tam_resp_medio_bytes": 761,
           "tam_resp_max_bytes": 771
         },
@@ -2425,12 +2557,12 @@
           "exitosas": 10,
           "errores": 0,
           "tasa_exito_pct": 100.0,
-          "lat_media_ms": 330.6,
-          "lat_p50_ms": 312.1,
-          "lat_p90_ms": 417.5,
-          "lat_p95_ms": 440.1,
-          "lat_max_ms": 462.7,
-          "lat_min_ms": 277.0,
+          "lat_media_ms": 344.0,
+          "lat_p50_ms": 319.1,
+          "lat_p90_ms": 418.8,
+          "lat_p95_ms": 449.6,
+          "lat_max_ms": 480.3,
+          "lat_min_ms": 282.9,
           "tam_resp_medio_bytes": 4030,
           "tam_resp_max_bytes": 4030
         },
@@ -2440,168 +2572,168 @@
           "exitosas": 10,
           "errores": 0,
           "tasa_exito_pct": 100.0,
-          "lat_media_ms": 652.1,
-          "lat_p50_ms": 634.2,
-          "lat_p90_ms": 705.8,
-          "lat_p95_ms": 732.2,
-          "lat_max_ms": 758.7,
-          "lat_min_ms": 619.1,
+          "lat_media_ms": 689.5,
+          "lat_p50_ms": 644.5,
+          "lat_p90_ms": 753.0,
+          "lat_p95_ms": 901.3,
+          "lat_max_ms": 1049.7,
+          "lat_min_ms": 615.5,
           "tam_resp_medio_bytes": 346,
           "tam_resp_max_bytes": 346
         }
       ],
       "latencias_ms": {
         "buscar_inversiones": [
-          1566.0,
-          1413.6,
-          1479.8,
-          1458.1,
-          2067.9,
-          1360.4,
-          1305.4,
-          1365.6,
-          1333.6,
-          1334.0,
-          1406.5,
-          1303.4,
-          1340.6,
-          1399.4,
-          1313.4,
-          1325.2,
-          1350.0,
-          1338.6,
-          1334.1,
-          1357.8,
-          1446.5,
-          1339.3,
-          1336.2,
-          1472.1,
-          1364.4,
-          1431.1,
-          1405.4,
-          1335.3,
-          1366.0,
-          1354.2
+          1422.7,
+          1342.7,
+          1359.9,
+          1394.9,
+          1377.6,
+          1578.4,
+          1376.8,
+          1529.5,
+          1344.0,
+          1394.9,
+          1372.6,
+          1393.4,
+          1364.5,
+          1455.9,
+          1381.7,
+          1321.8,
+          1299.2,
+          1357.4,
+          1366.6,
+          1327.9,
+          1439.7,
+          1321.3,
+          1365.8,
+          1375.8,
+          1328.8,
+          1391.5,
+          1306.8,
+          1379.8,
+          1371.7,
+          1333.6
         ],
         "detalle_inversion": [
-          973.7,
-          957.7,
-          954.1,
+          993.6,
+          971.0,
+          1018.9,
+          969.7,
+          993.8,
+          962.4,
           1091.1,
-          988.4,
-          937.2,
-          969.1,
-          990.0,
-          1087.4,
-          981.2,
-          989.8,
-          973.5,
-          976.6,
-          973.8,
-          1083.2,
-          982.2,
-          954.6,
-          957.6,
-          985.2,
-          954.7,
-          995.6,
-          1004.7,
-          979.0,
-          1081.5,
-          997.4,
-          980.9,
-          1040.3,
-          952.4,
-          978.5,
-          1033.5
+          1052.4,
+          983.9,
+          1088.9,
+          968.6,
+          992.6,
+          994.2,
+          1021.7,
+          989.7,
+          962.5,
+          1014.0,
+          974.0,
+          970.5,
+          984.4,
+          1015.7,
+          970.2,
+          975.2,
+          1098.9,
+          959.1,
+          975.0,
+          1017.0,
+          986.4,
+          1007.2,
+          1010.8
         ],
         "alertas_inversion": [
-          1338.7,
-          1334.7,
-          1337.6,
-          1419.9,
-          1366.9,
-          1384.2,
-          1326.1,
-          1367.7,
-          1331.3,
-          1309.1,
-          1323.7,
-          1362.0,
-          1319.9,
-          1325.2,
-          1393.5,
-          1386.1,
-          1282.7,
-          1389.3,
-          1338.3,
-          1311.8,
-          1405.4,
-          1337.8,
-          1466.2,
-          1344.5,
-          1350.5,
-          1386.4,
-          1328.9,
-          1341.4,
-          1338.5,
-          1287.7
+          1319.5,
+          1355.9,
+          1385.6,
+          1337.4,
+          1437.1,
+          1355.3,
+          1314.9,
+          1444.2,
+          1430.1,
+          1321.2,
+          1381.1,
+          1321.8,
+          1450.6,
+          1315.9,
+          1351.7,
+          1313.6,
+          1311.2,
+          1353.1,
+          1800.6,
+          1314.4,
+          1307.4,
+          1330.8,
+          1333.3,
+          1336.5,
+          1350.3,
+          1321.9,
+          1393.7,
+          1360.7,
+          1358.4,
+          1291.6
         ],
         "resumen_inversiones": [
-          1003.3,
-          1045.8,
-          996.4,
-          969.5,
-          979.1,
-          1004.3,
-          953.5,
-          978.6,
-          1182.6,
-          1180.4,
-          974.6,
-          982.0,
-          975.0,
-          984.3,
-          970.4,
-          963.6,
-          982.7,
-          986.9,
-          970.4,
+          967.9,
+          1015.0,
+          997.1,
           989.7,
-          985.8,
-          984.8,
-          999.4,
-          990.4,
-          964.7,
-          984.7,
-          965.5,
-          957.0,
-          970.4,
-          948.1
+          1004.5,
+          1018.7,
+          1008.0,
+          989.8,
+          1005.9,
+          1032.9,
+          964.2,
+          986.6,
+          995.8,
+          983.4,
+          984.6,
+          1017.6,
+          1066.0,
+          1032.0,
+          1038.2,
+          983.0,
+          987.5,
+          1005.1,
+          985.9,
+          1009.1,
+          971.9,
+          961.7,
+          980.0,
+          991.9,
+          983.2,
+          948.6
         ],
         "tools/list": [
-          306.4,
-          310.7,
-          314.4,
-          277.0,
-          340.6,
-          288.7,
-          313.4,
-          279.7,
-          462.7,
-          412.5
+          338.3,
+          296.3,
+          354.9,
+          286.8,
+          480.3,
+          291.2,
+          411.9,
+          282.9,
+          397.1,
+          299.8
         ],
         "GET /salud": [
-          628.0,
-          624.7,
-          699.9,
-          758.7,
-          643.7,
-          621.9,
-          640.4,
-          624.0,
-          619.1,
-          660.5
+          631.2,
+          615.5,
+          673.2,
+          720.0,
+          635.9,
+          652.8,
+          644.6,
+          627.2,
+          644.5,
+          1049.7
         ]
       }
     }
@@ -2610,7 +2742,7 @@
     "inversiones": 150574,
     "alertas_sobrecosto": 26387,
     "alertas_paralizacion": 16502,
-    "pruebas": 149,
-    "cobertura_lineas_pct": 80.31
+    "pruebas": 170,
+    "cobertura_lineas_pct": 87.54
   }
 }

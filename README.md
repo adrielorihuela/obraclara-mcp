@@ -198,13 +198,13 @@ La página `/evaluacion` del sitio muestra las 40 preguntas con sus respuestas, 
 
 Resultados por modelo (de 40 preguntas; sin MCP → con MCP; el detalle y la definición de recall y precisión están en `docs/PROYECTO.md`):
 
-| Modelo | Exacta | Estricta | Cita | Inventada | Recall (13 preguntas de conteo o lista) |
-|---|---|---|---|---|---|
-| IA del servidor | 8 % → 100 % | 5 % → 98 % | 10 % → 100 % | 53 % → 0 % | 1 % → 10 % |
-| gpt-oss-120b (Groq) | 3 % → 25 % | 3 % → 25 % | 0 % → 25 % | 93 % → 55 % | 0 % → 0 % |
-| Gemini 3.5 Flash-Lite (Google) | 0 % → 95 % | 0 % → 93 % | 0 % → 100 % | 45 % → 3 % | 0 % → 0 % |
+| Modelo | Exacta | Estricta | Cita | Inventada | Recall (18 preguntas de conteo o ranking) | Precisión |
+|---|---|---|---|---|---|---|
+| IA del servidor | 8 % → 100 % | 5 % → 98 % | 10 % → 100 % | 53 % → 0 % | 0 % → 100 % | 0 % → 100 % |
+| gpt-oss-120b (Groq) | 3 % → 25 % | 3 % → 25 % | 0 % → 25 % | 93 % → 55 % | 6 % → 17 % | 8 % → 27 % |
+| Gemini 3.5 Flash-Lite (Google) | 0 % → 95 % | 0 % → 93 % | 0 % → 100 % | 45 % → 3 % | 0 % → 94 % | 0 % → 94 % |
 
-**Recall** = de las obras que debía encontrar, qué porcentaje encontró; **precisión** = de las obras que nombró, qué porcentaje es correcto (`eval/score_eval.mjs`, `eval/reconstruir_referencia.mjs`).
+**Recall** = de lo que la pregunta pedía encontrar, cuánto encontró (en conteos, si da el total exacto; en rankings, si aparece la obra correcta); **precisión** = de lo que afirmó, cuánto era correcto (`eval/score_eval.mjs`). La primera definición (códigos listados sobre hasta 20 esperados) sale casi 0 porque las preguntas piden contar; se conserva en `eval/resultados/resumen.md` como «primera definición».
 
 ### Tablas para gráficos en Excel
 
@@ -221,12 +221,12 @@ Lee `eval/resultados/resultados.csv` (generado por `score_eval.mjs`) y escribe e
 ```bash
 cd worker
 npm ci
-npx vitest run            # 149 pruebas en 15 archivos, todas pasan
+npx vitest run            # 170 pruebas en 17 archivos, todas pasan (medido el 20/11/2026)
 npx tsc --noEmit          # verificación de tipos, sin errores
 npx wrangler deploy --dry-run   # empaqueta el Worker sin desplegar
 ```
 
-Cobertura de las pruebas (`worker/test/`): `adjuntos` (16: lectura de ZIP y .docx para la vista previa, texto frente a binario), `agente` (42: llamadas JSON a herramientas, flujo SSE, vista previa de .xlsx/.csv y que el panel es un cliente de la API), `compartir` (14: chats compartidos), `queries` (14: normalización, `buscar`, `detalle`, `alertas`, `resumen` sobre una D1 simulada), `cadena` (13: cadena de proveedores de IA y validación con imágenes), `agenteapi` (2: forma de la petición), `remotedb` (4: la consulta usa el conector y cae a D1 si no responde), `mcp` (3: lista exactamente las 4 herramientas, cada respuesta trae datos, fuente, URL y fecha, y se informa cuando no hay resultados) `gptjobs` (2: validación de mensajes) y `sitio` (5: la página `/proyecto` y que el sitio no exponga datos internos).
+Desglose por archivo (`worker/test/`): `metricas/resultados/pruebas.csv`; resumen en `docs/PROYECTO.md`, sección «Pruebas». Cobertura de líneas: 87,5 % (`metricas/resultados/cobertura.csv`).
 
 Prueba manual contra el servidor público con MCP Inspector:
 
@@ -299,6 +299,10 @@ URL: `https://obraclara.adrielorihuela.net/mcp` (Streamable HTTP, sin autenticac
 ## Uso de IA
 
 El código fue desarrollado con ayuda de IA generativa (vibe coding) y **revisado y probado por el grupo** (pruebas automáticas, verificación de tipos, evaluación contra datos oficiales). El informe y los gráficos fueron redactados y elaborados por el grupo. En el chat del panel, el modelo solo redacta: todas las cifras y alertas salen de las herramientas y del ETL.
+
+- **Cómo se trabajó con la IA:** [`docs/PROCESO-IA.md`](docs/PROCESO-IA.md) (método conversacional con Claude Code, por qué no hay un historial completo de prompts y una síntesis por etapas con fechas).
+- **Prompt de reconstrucción:** [`docs/PROMPT-RECONSTRUCCION.md`](docs/PROMPT-RECONSTRUCCION.md), un prompt integral para reconstruir la aplicación desde cero. *Prompt reconstruido a partir del proyecto desarrollado; no corresponde necesariamente a las instrucciones originales.*
+- **Guía para agentes de IA:** [`AGENTS.md`](AGENTS.md) (equivalente al CLAUDE.md de Claude Code).
 
 ## Datos y licencia
 

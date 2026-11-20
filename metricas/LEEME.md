@@ -16,6 +16,7 @@ llamadas (límite del servidor: 60/min). La base local es `~/.local/share/obracl
 | 4. Pruebas y cobertura | `pruebas.py` | `python metricas/pruebas.py` (ejecuta vitest) | `pruebas.csv`, `cobertura.csv` |
 | 5. Evaluación con/sin MCP | `evaluacion.py` | `python metricas/evaluacion.py` | `eval_global.csv`, `eval_por_tipo.csv`, `eval_latencia.csv` |
 | 6. Asistente y agente | `asistente.py` | `python metricas/asistente.py` (~1,5 min) | `asistente_tiempos.csv`, `asistente_resumen.csv` |
+| 7. Tiempo de carga de las páginas | `paginas.py` | `python metricas/paginas.py --n 20` (~3 min) | `paginas_sitio.csv`, `paginas_sitio_crudo.csv` |
 | Unir todo | `consolidar.py` | `python metricas/consolidar.py` | `metricas.json` |
 
 ## 1. Calidad de datos (`calidad_*.csv`, `alertas_*.csv`)
@@ -71,6 +72,11 @@ de datos (flujo real con herramientas). Es un servicio compartido con cola; si u
 (valor oficial con tolerancia 1 %, entidad esperada o «sin datos»). Si un proveedor llega a su límite no se esquiva: queda como error y se sigue. Salida: `asistente_extenso.csv`
 (una fila por pregunta, con la respuesta recortada a 400 caracteres), `asistente_extenso_resumen.csv` (todas y por tipo: mediana, P90, mín., máx., correctas) y `partes/asistente_extenso.json`.
 Resultado del 20/11/2026 (tras la corrección): 24 de 24 con respuesta, mediana 6,9 s, P90 22,4 s, 21 de 24 correctas, y en las 24 hubo llamadas a las herramientas. La primera medición del mismo día dio 4 de 24 porque la IA del servidor respondía sin consultar el registro; el servidor de IA ahora lo exige en preguntas de datos.
+
+## 7. Tiempo de carga de las páginas (`paginas_sitio.csv`)
+Mide cuánto tarda en descargarse el HTML de cada página pública (`/`, `/proyecto`, `/evaluacion`, `/demo`, `/datos`, `/acerca`, `/conectar`): 20 descargas por página (n = 20; 7 páginas, 140 en total), una tras otra y con pausa, desde este equipo en Lima (20/11/2026).
+Columnas: `n`, `exitosas`, `mediana_ms` (la mitad de las descargas tardó menos), `p90_ms` (el 90 % tardó menos; muestra los casos lentos), `minimo_ms`, `maximo_ms`, `bytes_medio` y `bytes_max`. `paginas_sitio_crudo.csv` guarda cada descarga.
+**Limitación:** solo mide la descarga del HTML (incluye red, DNS y TLS desde Lima); no mide lo que tarda el navegador en dibujar la página, cargar imágenes o ejecutar scripts.
 
 ## Cómo leer los CSV para gráficos
 Una fila por categoría y una columna por medida; las tablas `*_top10` y `*_hist_*` están ordenadas para barras directas. Las latencias crudas de cada

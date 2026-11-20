@@ -196,7 +196,7 @@ La revisión externa del 18/11 encontró nombres de herramientas distintos en el
 - (2) Exactitud estricta = (respuestas exactas sin ninguna cifra relevante sin sustento / *N*) × 100
 - (3) Citación = (respuestas que mencionan MEF o el dataset **y** la fecha / *N*) × 100
 - (4) Información inventada = (respuestas que cumplen alguna de las 3 condiciones de D / *N*) × 100
-- (5) Recall = obras correctas mencionadas / obras esperadas; Precisión = obras correctas mencionadas / obras mencionadas
+- (5) Recall y precisión por pregunta, según lo que pide: en conteos, 1 si el total es exacto (recall) y 1 si el número dado es el correcto (precisión); en rankings, 1 si aparece la obra correcta (recall) y 1 si la primera obra nombrada es la correcta (precisión). Promedio entre las 18 preguntas medibles
 - (6) F1 = 2 · Precisión · Recall / (Precisión + Recall)
 
 **Figura opcional del Marco teórico (draw.io, 2 columnas):** columna izquierda «Sin herramientas»: caja «Pregunta del usuario» → flecha → caja «Modelo de lenguaje (responde de memoria)» → flecha → caja «Respuesta sin fuente verificable». Columna derecha «Con MCP»: «Pregunta del usuario» → «Modelo de lenguaje» → flecha rotulada «llama a una herramienta» → «Servidor MCP» → flecha «consulta fija» → cilindro «Datos oficiales del MEF» → flecha de regreso «datos + fuente + fecha» → «Modelo de lenguaje» → «Respuesta con cifra oficial, fuente y fecha». Título: *Respuesta de un modelo de lenguaje sin herramientas y con MCP*. Fuente: elaboración propia a partir de Lewis et al. (2020) y Yao et al. (2023).
@@ -368,12 +368,12 @@ Fuente: elaboración propia con datos de MEF (2026a, 2026b) y Congreso de la Rep
 
 | Prueba | Resultado |
 |---|---|
-| Pruebas automáticas | 149 de 149 pasan, en 15 archivos (20/11/2026) |
-| Cobertura de código | 80,3 % de las líneas (75,5 % en la lógica sin páginas) |
+| Pruebas automáticas | 170 de 170 pasan, en 17 archivos (20/11/2026) |
+| Cobertura de código | 87,5 % de las líneas (85,1 % en la lógica sin páginas) |
 | `detalle_inversion` frente a la base | 30 de 30 fichas idénticas; 810 de 810 campos |
 | `resumen_inversiones` frente a la base | 10 de 10 filtros; 60 de 60 cifras |
 | `alertas_inversion` frente a la base | 14 de 14 totales iguales |
-| Rendimiento (30 llamadas por herramienta, n = 120, desde Lima) | 100 % de éxito; mediana 1,4 s (`buscar_inversiones`), 1,0 s (`detalle_inversion`), 1,3 s (`alertas_inversion`), 1,0 s (`resumen_inversiones`); P90 máximo 1,5 s; asistente completo (24 preguntas): mediana 6,9 s, P90 22,4 s, 21 de 24 correctas |
+| Rendimiento (30 llamadas por herramienta, n = 120, desde Lima) | 100 % de éxito; mediana 1,4 s (`buscar_inversiones`), 1,0 s (`detalle_inversion`), 1,3 s (`alertas_inversion`), 1,0 s (`resumen_inversiones`); P90 máximo 1,4 s; asistente completo (24 preguntas): mediana 7,2 s, P90 19,4 s, 20 de 24 correctas |
 
 Fuente: elaboración propia (Anexo 01, carpeta `metricas/resultados/`). Medición del 20/11/2026 (`python metricas/pruebas.py`).
 
@@ -386,7 +386,7 @@ Fuente: elaboración propia (Anexo 01, carpeta `metricas/resultados/`). Medició
 4. Explican la puntuación automática con las métricas de la Tabla 8 y las ecuaciones de 2.8.
 5. Explican que se añadió la exactitud estricta porque ___ (una revisión externa del 18/11 mostró que la regla original deja pasar una respuesta con una cifra correcta y otra errónea: caso D04).
 6. Explican que, para ver si la mejora depende del modelo, se repitió con ___ (gpt-oss-120b en Groq y Gemini 3.5 Flash-Lite de Google, fijos, el 19/11/2026).
-7. Explican que recall y precisión se calcularon en ___ (13 preguntas de búsqueda y alertas que piden contar o listar obras), comparando los códigos únicos que nombra la respuesta con los que devuelve la herramienta correcta (máximo 20).
+7. Explican que recall y precisión se calcularon en ___ (las 20 preguntas de búsqueda y alertas: 18 se pueden medir, 13 de conteo y 5 de primer lugar de un ranking; B10 y A10 no tienen obras). Expliquen que la medida se cambió el 20/11 y que la primera definición (códigos listados sobre hasta 20 esperados) se conserva por transparencia, con la razón: ___ (las preguntas piden contar y una respuesta correcta da el total sin listar códigos).
 
 **Tabla 8. *Métricas de la evaluación*** (columnas: Métrica · Qué mide · Regla):
 
@@ -397,8 +397,8 @@ Fuente: elaboración propia (Anexo 01, carpeta `metricas/resultados/`). Medició
 | Citación correcta | Si dijo de dónde salió el dato | Menciona MEF o el dataset **y** la fecha de corte o descarga |
 | Información inventada | Si dio datos falsos | Las 3 condiciones de la definición única |
 | Cifras no sustentadas | Si alguna cifra no tiene respaldo | Al menos una cifra relevante que no está en la fuente ni sale de un cálculo simple con ella |
-| Recall | Cuántas de las obras esperadas encontró | Obras correctas mencionadas / esperadas (13 preguntas) |
-| Precisión | Cuántas de las obras nombradas son correctas | Obras correctas / mencionadas |
+| Recall | De lo que la pregunta pedía encontrar, cuánto encontró | Conteo: 1 si da el total exacto. Ranking: 1 si aparece la obra correcta. Sin datos: no se calcula (18 preguntas) |
+| Precisión | De lo que afirmó, cuánto era correcto | Conteo: 1 si el número es el correcto. Ranking: 1 si la primera obra nombrada es la correcta. Sin número ni obra: no se calcula |
 | Tiempo de respuesta | Cuánto tarda | Mediana y percentil 90, en segundos |
 
 Fuente: elaboración propia (Anexo 01, `eval/resultados/resumen.md`).
@@ -476,7 +476,7 @@ Nota: «Respuestas recortadas; texto completo en el Anexo 01 (`eval/resultados/r
 
 **Qué decir:**
 1. Explican con la Tabla 11 (o Figura 8) que con otros dos modelos la exactitud también subió: Gemini 3.5 Flash-Lite de ___ (0 %) a ___ (95 %) y gpt-oss-120b de ___ (3 %) a ___ (25 %); y que la mejora depende de ___ (que el modelo use la herramienta: gpt-oss-120b no la llamó en 33 de 40 respuestas e inventó el resultado, y 4 respuestas no llegaron por el límite de uso: respondió 36 de 40).
-2. Explican que en las 13 preguntas de conteo o lista la precisión con MCP fue ___ (100 %: todas las obras que nombró eran correctas, frente a 17 % sin MCP), pero el recall fue ___ (10 %, frente a 1 %) porque ___ (la herramienta devuelve hasta 20 obras y el modelo suele dar solo el total o unas pocas); el F1 fue ___ (12 % frente a 2 %). Es una mejora pendiente.
+2. Datos para explicar recall y precisión (definición vigente, 18 preguntas): IA del servidor, recall 0 % sin MCP y 100 % con MCP; precisión 0 % (14 de 18 preguntas tienen precisión) y 100 %; F1 0 % y 100 %. Gemini 3.5 Flash-Lite: recall 0 % → 94 %, precisión 0 % → 94 %. gpt-oss-120b: recall 6 % → 17 %, precisión 8 % → 27 % (respondió 36 de 40 y 55 % de sus respuestas traen cifras sin base). Primera definición, por transparencia (IA del servidor): recall 1 % → 10 %; precisión 17 % → 100 %. Indiquen con sus palabras por qué cambió la medida (ver punto 7).
 
 **Tabla 11. *Resultados con tres modelos de lenguaje*** (columnas: Modelo · Exactitud sin → con · Estricta sin → con · Inventada sin → con · Respondidas con MCP):
 
@@ -513,6 +513,14 @@ Nota: «"Sin reintentos" se midió desde la pregunta B08.» Fuente: elaboración
 1. Abrir `eval/resultados/resultados.csv` en Excel → filtrar `condicion = sin_mcp` y la columna `revisar` no vacía → 20 filas.
 2. Cada uno, **por separado**, lee la respuesta en `/evaluacion` («Ver respuesta») y anota: ¿exacta? ¿información inventada según la definición única? (sí/no).
 3. Contar en cuántas de las 20 coinciden los dos y en cuántas cambia el veredicto automático. Eso va en 4.4.
+
+### 4.8 Datos de apoyo de la última medición (20/11; sin redactar)
+
+- **Asistente completo, 24 preguntas** (6 de cada tipo, con las herramientas conectadas): 20 correctas (83,3 %); mediana 7,2 s, P90 19,4 s. Fallaron B01, D01 y R09 (la IA del servidor dijo no tener acceso a las herramientas MCP y no consultó el dato) y R02 (respuesta de Gemini que no coincidió con la referencia). Fuente: `metricas/resultados/asistente_extenso_resumen.csv` y `asistente_extenso.csv`. Antes, la misma medida dio 4 de 24: la IA respondía sin consultar el registro; se corrigió exigiendo la consulta.
+- **Diferencia entre las dos medidas:** las 40 preguntas miden la **conexión** (mismas preguntas, con y sin herramientas); las 24 preguntas miden el **asistente completo** tal como lo usa la gente. Indiquen cuál usan para cada afirmación.
+- **Rendimiento del servidor:** 120 llamadas (30 a cada herramienta), 100 % de éxito, mediana 1,0 a 1,4 s (`metricas/resultados/rendimiento_mcp.csv`).
+- **Cambios del 20/11 (solo para describir con sus palabras, con las capturas del grupo):** reconexión sin modo de emergencia salvo corte de más de unos 15 s; recuperación y reintento de respuestas cortadas; pasos del proceso plegables; memoria por navegador (ya no global); reglas contra engaños con una batería de 6 intentos, todos bloqueados. Detalle en `docs/PROYECTO.md`, sección «Cambios del 20/11».
+- Indicación: estas cifras van con su fuente y su fecha (20/11/2026 para las medidas de servidor y asistente; 10/11 y 18/11 para la evaluación). La redacción la hace el grupo sin IA.
 
 **Errores a evitar:** dar solo la media de tiempo; «100 % de precisión» sin decir que es sobre las obras nombradas; presentar los otros modelos como la corrida principal; omitir que es una sola corrida; cifras distintas entre tabla, figura y texto.
 
@@ -587,7 +595,7 @@ Nota: «"Sin reintentos" se midió desde la pregunta B08.» Fuente: elaboración
 2. Sitio: https://obraclara.adrielorihuela.net (páginas `/proyecto`, `/evaluacion`, `/conectar`, `/demo`) y servidor MCP: https://obraclara.adrielorihuela.net/mcp
 3. Tabla *Contenido del repositorio* (Carpeta · Qué contiene): `worker/` servidor MCP, sitio y pruebas · `etl/` limpieza y carga de datos · `conector/` enlace entre el servidor, la base local y la IA del grupo · `eval/` 40 preguntas, respuestas, puntuador, resultados y 80 capturas · `metricas/` calidad de datos, rendimiento, exactitud y pruebas · `fuentes/` referencias y documentos oficiales · `docs/` documentación completa · `.github/workflows/` despliegue automático.
 4. Prompts: `README.md` § Prompts utilizados (instrucciones del servidor MCP, descripciones de las 4 herramientas, prompt del asistente, prompts de las dos condiciones de la evaluación).
-5. Evidencias de pruebas: 149 pruebas automáticas que pasan; `metricas/resultados/`; historial de despliegues en la pestaña «Actions» del repositorio.
+5. Evidencias de pruebas: 170 pruebas automáticas que pasan; `metricas/resultados/`; historial de despliegues en la pestaña «Actions» del repositorio.
 6. Instrucciones de ejecución: `README.md` § Cómo reproducir y § Cómo conectar el servidor a un cliente MCP; prueba rápida: `npx @modelcontextprotocol/inspector`, transporte Streamable HTTP, URL https://obraclara.adrielorihuela.net/mcp, pestaña Tools → List Tools (aparecen las 4 herramientas).
 7. Tablas que no cupieron en el cuerpo (11, 12) y 1–2 capturas propias.
 

@@ -1,5 +1,5 @@
 {
-  "generado": "2026-11-18T15:04:12+00:00",
+  "generado": "2026-11-20T19:38:26+00:00",
   "estado_servicio": {
     "conectado": true,
     "sql": true,
@@ -12,17 +12,17 @@
       "modo": "chat",
       "preguntas": 5,
       "exitosas": 5,
-      "media_s": 7.21,
-      "p50_s": 7.25,
-      "max_s": 10.01
+      "media_s": 4.93,
+      "p50_s": 5.32,
+      "max_s": 6.08
     },
     {
       "modo": "agente",
       "preguntas": 2,
       "exitosas": 2,
-      "media_s": 9.2,
-      "p50_s": 9.2,
-      "max_s": 9.48
+      "media_s": 6.17,
+      "p50_s": 6.17,
+      "max_s": 6.63
     }
   ],
   "detalle": [
@@ -31,9 +31,9 @@
       "pregunta": "¿Qué es una inversión pública?",
       "estado_http": 200,
       "exito": true,
-      "segundos": 10.01,
-      "segundos_intento": 10.01,
-      "bytes": 2305,
+      "segundos": 6.08,
+      "segundos_intento": 6.08,
+      "bytes": 2056,
       "modelo": "IA del servidor",
       "error": ""
     },
@@ -42,9 +42,9 @@
       "pregunta": "¿Qué significa «posible paralización»?",
       "estado_http": 200,
       "exito": true,
-      "segundos": 7.25,
-      "segundos_intento": 7.25,
-      "bytes": 825,
+      "segundos": 4.06,
+      "segundos_intento": 4.06,
+      "bytes": 818,
       "modelo": "IA del servidor",
       "error": ""
     },
@@ -53,9 +53,9 @@
       "pregunta": "¿De dónde vienen los datos de ObraClara?",
       "estado_http": 200,
       "exito": true,
-      "segundos": 6.35,
-      "segundos_intento": 6.35,
-      "bytes": 843,
+      "segundos": 5.32,
+      "segundos_intento": 5.32,
+      "bytes": 1198,
       "modelo": "IA del servidor",
       "error": ""
     },
@@ -64,8 +64,8 @@
       "pregunta": "Explica en una frase qué es el sobrecosto.",
       "estado_http": 200,
       "exito": true,
-      "segundos": 4.96,
-      "segundos_intento": 4.96,
+      "segundos": 3.34,
+      "segundos_intento": 3.34,
       "bytes": 180,
       "modelo": "IA del servidor",
       "error": ""
@@ -75,9 +75,9 @@
       "pregunta": "¿Qué es el devengado?",
       "estado_http": 200,
       "exito": true,
-      "segundos": 7.48,
-      "segundos_intento": 7.48,
-      "bytes": 1506,
+      "segundos": 5.87,
+      "segundos_intento": 5.87,
+      "bytes": 1850,
       "modelo": "IA del servidor",
       "error": ""
     },
@@ -86,10 +86,10 @@
       "pregunta": "¿Cuántas inversiones con alerta de sobrecosto hay en Tacna?",
       "estado_http": 200,
       "exito": true,
-      "segundos": 9.48,
-      "segundos_intento": 9.48,
-      "bytes": 242,
-      "modelo": "",
+      "segundos": 5.7,
+      "segundos_intento": 5.7,
+      "bytes": 502,
+      "modelo": "ChatGPT",
       "error": ""
     },
     {
@@ -97,10 +97,10 @@
       "pregunta": "¿Cuántas inversiones hay en Moquegua?",
       "estado_http": 200,
       "exito": true,
-      "segundos": 8.92,
-      "segundos_intento": 8.92,
-      "bytes": 587,
-      "modelo": "",
+      "segundos": 6.63,
+      "segundos_intento": 6.63,
+      "bytes": 736,
+      "modelo": "ChatGPT",
       "error": ""
     }
   ],

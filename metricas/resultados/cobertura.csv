@@ -1,11 +1,11 @@
 ﻿archivo,lineas_pct,sentencias_pct,funciones_pct,ramas_pct,lineas_cubiertas,lineas_totales
-src/cola.ts,7.54,4.93,0,0,8,106
+src/cola.ts,8.33,5.42,0,0,9,108
 src/compartido.ts,100,100,100,75,17,17
 src/demo.ts,100,100,100,100,21,21
 src/grafico-js.ts,100,100,100,100,2,2
-src/index.ts,40.56,33.77,50,29.37,43,106
-src/lib/agente.ts,83.6,74.97,66.91,64.19,612,732
-src/lib/agenteapi.ts,41.93,42.62,60,40.49,13,31
+src/index.ts,40.18,33.55,50,29.12,43,107
+src/lib/agente.ts,98.03,91.77,96.45,78.39,749,764
+src/lib/agenteapi.ts,100,83.13,86.66,81.48,42,42
 src/lib/cadena.ts,83.05,76.47,76.47,74.19,49,59
 src/lib/compartir.ts,95.95,88.66,100,79.48,95,99
 src/lib/gptjobs.ts,100,100,100,100,1,1
@@ -25,12 +25,12 @@ src/sitio/estilos.ts,100,100,100,100,1,1
 src/sitio/evaluacion-datos.ts,100,100,100,100,1,1
 src/sitio/evaluacion-md.ts,77.33,75.23,86.36,77.38,58,75
 src/sitio/evaluacion-tabla.ts,100,100,100,100,2,2
-src/sitio/evaluacion.ts,100,100,100,86.84,34,34
+src/sitio/evaluacion.ts,100,100,100,86.95,43,43
 src/sitio/inicio.ts,100,100,100,50,8,8
 src/sitio/layout.ts,100,100,100,81.25,39,39
 src/sitio/metricas-datos.ts,100,100,100,100,1,1
 src/sitio/proyecto-diagramas.ts,100,100,100,95.45,85,85
-src/sitio/proyecto-metricas.ts,100,100,100,85.71,48,48
+src/sitio/proyecto-metricas.ts,100,98.98,98.24,83.33,57,57
 src/sitio/proyecto.ts,100,100,100,100,56,56
-TOTAL,80.31,75.01,82.53,61.24,1432,1783
-TOTAL solo logica (sin sitio/ ni pagina.ts: HTML y CSS en cadenas),75.54,68.74,69.6,58.19,,
+TOTAL,87.54,83.09,91.32,70.29,1617,1847
+TOTAL solo logica (sin sitio/ ni pagina.ts: HTML y CSS en cadenas),85.13,79.35,86.36,68.71,,

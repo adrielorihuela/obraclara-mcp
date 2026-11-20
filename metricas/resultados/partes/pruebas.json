@@ -1,63 +1,70 @@
 {
-  "generado": "2026-11-20T14:47:26+00:00",
+  "generado": "2026-11-20T22:57:49+00:00",
   "comando": "cd worker && npx vitest run --coverage",
   "exito": true,
-  "pruebas_total": 149,
-  "pasan": 149,
+  "pruebas_total": 170,
+  "pasan": 170,
   "fallan": 0,
-  "archivos": 15,
-  "suites_describe": 63,
-  "duracion_suite_ms": 763.7,
-  "duracion_pared_con_cobertura_s": 1.7,
+  "archivos": 17,
+  "suites_describe": 72,
+  "duracion_suite_ms": 697.0,
+  "duracion_pared_con_cobertura_s": 1.6,
   "por_archivo": [
+    {
+      "archivo": "acciones.test.ts",
+      "pruebas": 12,
+      "pasan": 12,
+      "fallan": 0,
+      "duracion_ms": 28.9
+    },
     {
       "archivo": "adjuntos.test.ts",
       "pruebas": 18,
       "pasan": 18,
       "fallan": 0,
-      "duracion_ms": 86.1
+      "duracion_ms": 85.7
     },
     {
       "archivo": "agente.test.ts",
       "pruebas": 42,
       "pasan": 42,
       "fallan": 0,
-      "duracion_ms": 93.0
+      "duracion_ms": 95.0
     },
     {
       "archivo": "agenteapi.test.ts",
-      "pruebas": 4,
-      "pasan": 4,
+      "pruebas": 6,
+      "pasan": 6,
       "fallan": 0,
-      "duracion_ms": 19.3
+      "duracion_ms": 21.8
     },
     {
       "archivo": "cadena.test.ts",
       "pruebas": 13,
       "pasan": 13,
       "fallan": 0,
-      "duracion_ms": 53.8
+      "duracion_ms": 69.5
     },
     {
       "archivo": "cifras.test.ts",
       "pruebas": 3,
       "pasan": 3,
       "fallan": 0,
-      "duracion_ms": 3.7
+      "duracion_ms": 6.0
     },
     {
       "archivo": "compartir.test.ts",
       "pruebas": 14,
       "pasan": 14,
       "fallan": 0,
-      "duracion_ms": 63.5
+      "duracion_ms": 101.7
     },
     {
       "archivo": "demo.test.ts",
-      "pruebas": 8,
-      "pasan": 8,
+      "pruebas": 9,
+      "pasan": 9,
       "fallan": 0,
-      "duracion_ms": 19.4
+      "duracion_ms": 21.0
     },
     {
       "archivo": "evaluacion-md.test.ts",
@@ -71,75 +78,82 @@
       "pruebas": 2,
       "pasan": 2,
       "fallan": 0,
-      "duracion_ms": 2.4
+      "duracion_ms": 3.6
     },
     {
       "archivo": "grafico.test.ts",
       "pruebas": 7,
       "pasan": 7,
       "fallan": 0,
-      "duracion_ms": 12.5
+      "duracion_ms": 13.4
     },
     {
       "archivo": "mcp.test.ts",
       "pruebas": 3,
       "pasan": 3,
       "fallan": 0,
-      "duracion_ms": 116.1
+      "duracion_ms": 96.2
     },
     {
       "archivo": "queries.test.ts",
       "pruebas": 14,
       "pasan": 14,
       "fallan": 0,
-      "duracion_ms": 17.4
+      "duracion_ms": 36.7
+    },
+    {
+      "archivo": "reconexion.test.ts",
+      "pruebas": 5,
+      "pasan": 5,
+      "fallan": 0,
+      "duracion_ms": 11.4
     },
     {
       "archivo": "remotedb.test.ts",
       "pruebas": 4,
       "pasan": 4,
       "fallan": 0,
-      "duracion_ms": 46.2
+      "duracion_ms": 39.3
     },
     {
       "archivo": "sitio.test.ts",
-      "pruebas": 8,
-      "pasan": 8,
+      "pruebas": 9,
+      "pasan": 9,
       "fallan": 0,
-      "duracion_ms": 13.4
+      "duracion_ms": 17.6
     },
     {
       "archivo": "sugerencias.test.ts",
       "pruebas": 5,
       "pasan": 5,
       "fallan": 0,
-      "duracion_ms": 87.8
+      "duracion_ms": 61.3
     }
   ],
   "cobertura_total": {
     "lines": {
-      "total": 1783,
-      "covered": 1432,
+      "total": 1847,
+      "covered": 1617,
       "skipped": 0,
-      "pct": 80.31
+      "pct": 87.54
     },
     "statements": {
-      "total": 2578,
-      "covered": 1934,
+      "total": 2697,
+      "covered": 2241,
       "skipped": 0,
-      "pct": 75.01
+      "pct": 83.09
     },
     "functions": {
-      "total": 481,
-      "covered": 397,
+      "total": 519,
+      "covered": 474,
       "skipped": 0,
-      "pct": 82.53
+      "pct": 91.32
     },
     "branches": {
-      "total": 2219,
-      "covered": 1359,
+      "total": 2360,
+      "covered": 1659,
       "skipped": 0,
-      "pct": 61.24
+      "pct": 70.29
     },
     "branchesTrue": {
       "total": 0,
@@ -149,20 +163,20 @@
     }
   },
   "cobertura_solo_logica_pct": {
-    "lines": 75.54,
-    "statements": 68.74,
-    "functions": 69.6,
-    "branches": 58.19
+    "lines": 85.13,
+    "statements": 79.35,
+    "functions": 86.36,
+    "branches": 68.71
   },
   "cobertura_por_archivo": [
     {
       "archivo": "src/cola.ts",
-      "lineas_pct": 7.54,
-      "sentencias_pct": 4.93,
+      "lineas_pct": 8.33,
+      "sentencias_pct": 5.42,
       "funciones_pct": 0,
       "ramas_pct": 0,
-      "lineas_cubiertas": 8,
-      "lineas_totales": 106
+      "lineas_cubiertas": 9,
+      "lineas_totales": 108
     },
     {
       "archivo": "src/compartido.ts",
@@ -193,30 +207,30 @@
     },
     {
       "archivo": "src/index.ts",
-      "lineas_pct": 40.56,
-      "sentencias_pct": 33.77,
+      "lineas_pct": 40.18,
+      "sentencias_pct": 33.55,
       "funciones_pct": 50,
-      "ramas_pct": 29.37,
+      "ramas_pct": 29.12,
       "lineas_cubiertas": 43,
-      "lineas_totales": 106
+      "lineas_totales": 107
     },
     {
       "archivo": "src/lib/agente.ts",
-      "lineas_pct": 83.6,
-      "sentencias_pct": 74.97,
-      "funciones_pct": 66.91,
-      "ramas_pct": 64.19,
-      "lineas_cubiertas": 612,
-      "lineas_totales": 732
+      "lineas_pct": 98.03,
+      "sentencias_pct": 91.77,
+      "funciones_pct": 96.45,
+      "ramas_pct": 78.39,
+      "lineas_cubiertas": 749,
+      "lineas_totales": 764
     },
     {
       "archivo": "src/lib/agenteapi.ts",
-      "lineas_pct": 41.93,
-      "sentencias_pct": 42.62,
-      "funciones_pct": 60,
-      "ramas_pct": 40.49,
-      "lineas_cubiertas": 13,
-      "lineas_totales": 31
+      "lineas_pct": 100,
+      "sentencias_pct": 83.13,
+      "funciones_pct": 86.66,
+      "ramas_pct": 81.48,
+      "lineas_cubiertas": 42,
+      "lineas_totales": 42
     },
     {
       "archivo": "src/lib/cadena.ts",
@@ -394,9 +408,9 @@
       "lineas_pct": 100,
       "sentencias_pct": 100,
       "funciones_pct": 100,
-      "ramas_pct": 86.84,
-      "lineas_cubiertas": 34,
-      "lineas_totales": 34
+      "ramas_pct": 86.95,
+      "lineas_cubiertas": 43,
+      "lineas_totales": 43
     },
     {
       "archivo": "src/sitio/inicio.ts",
@@ -437,11 +451,11 @@
     {
       "archivo": "src/sitio/proyecto-metricas.ts",
       "lineas_pct": 100,
-      "sentencias_pct": 100,
-      "funciones_pct": 100,
-      "ramas_pct": 85.71,
-      "lineas_cubiertas": 48,
-      "lineas_totales": 48
+      "sentencias_pct": 98.98,
+      "funciones_pct": 98.24,
+      "ramas_pct": 83.33,
+      "lineas_cubiertas": 57,
+      "lineas_totales": 57
     },
     {
       "archivo": "src/sitio/proyecto.ts",
@@ -454,19 +468,19 @@
     },
     {
       "archivo": "TOTAL",
-      "lineas_pct": 80.31,
-      "sentencias_pct": 75.01,
-      "funciones_pct": 82.53,
-      "ramas_pct": 61.24,
-      "lineas_cubiertas": 1432,
-      "lineas_totales": 1783
+      "lineas_pct": 87.54,
+      "sentencias_pct": 83.09,
+      "funciones_pct": 91.32,
+      "ramas_pct": 70.29,
+      "lineas_cubiertas": 1617,
+      "lineas_totales": 1847
     },
     {
       "archivo": "TOTAL solo logica (sin sitio/ ni pagina.ts: HTML y CSS en cadenas)",
-      "lineas_pct": 75.54,
-      "sentencias_pct": 68.74,
-      "funciones_pct": 69.6,
-      "ramas_pct": 58.19,
+      "lineas_pct": 85.13,
+      "sentencias_pct": 79.35,
+      "funciones_pct": 86.36,
+      "ramas_pct": 68.71,
       "lineas_cubiertas": "",
       "lineas_totales": ""
     }

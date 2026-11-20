@@ -10,6 +10,9 @@ describe("página /proyecto", () => {
     expect(paginaSitio("/proyecto/", meta)).toBe(html);
     expect(html).toContain('<a href="/proyecto" aria-current="page">El proyecto</a>');
   });
+  it("muestra la medición de carga de las páginas (subsección 8)", () => {
+    expect(html).toContain("8. ¿Cuánto tardan en abrir las páginas?");
+  });
   it("contiene todas las secciones y sus enlaces del índice", () => {
     for (const id of ["problema", "objetivo", "ods", "metodologia", "datos", "alertas", "arquitectura", "herramientas", "tecnologias", "evaluacion", "pruebas", "metricas", "limitaciones", "ia", "glosario", "exposicion", "referencias", "fuentes", "enlaces"]) {
       expect(html, id).toContain(`id="${id}"`);

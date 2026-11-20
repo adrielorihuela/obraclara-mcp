@@ -46,6 +46,7 @@ const D = {
   alertasTopDepartamentos: csv('alertas_por_departamento_top10.csv').map((r) => ({ departamento: r.departamento, sobrecosto: N(r.sobrecosto), pctSobrecosto: N(r.pct_sobrecosto), paralizacion: N(r.paralizacion), pctParalizacion: N(r.pct_paralizacion) })),
   histSobrecosto: csv('alertas_hist_sobrecosto.csv').map((r) => ({ tramo: r.tramo, inversiones: N(r.inversiones), pct: N(r.pct) })),
   histMeses: csv('alertas_hist_meses_sin_devengado.csv').map((r) => ({ tramo: r.tramo, inversiones: N(r.inversiones), pct: N(r.pct) })),
+  paginas: csv('paginas_sitio.csv').map((r) => ({ pagina: r.pagina, n: N(r.n), exitosas: N(r.exitosas), mediana_ms: N(r.mediana_ms), p90_ms: N(r.p90_ms), maximo_ms: N(r.maximo_ms), bytes_medio: N(r.bytes_medio) })),
   rendimiento: csv('rendimiento_mcp.csv').map((r) => ({ prueba: r.prueba, llamadas: N(r.llamadas), exitosas: N(r.exitosas), exito: N(r.tasa_exito_pct), p50: N(r.lat_p50_ms), p90: N(r.lat_p90_ms), p95: N(r.lat_p95_ms), min: N(r.lat_min_ms), max: N(r.lat_max_ms), errores: N(r.errores) })),
   exactitud: {
     detalle: { casos: N(exh[0].casos), coinciden: N(exh[0].coinciden), campos: N(exh[0].campos_comparados), camposIguales: N(exh[0].campos_iguales) },

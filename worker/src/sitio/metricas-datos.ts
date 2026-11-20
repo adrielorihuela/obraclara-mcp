@@ -1,6 +1,6 @@
 // GENERADO por metricas/exportar_sitio.mjs a partir de metricas/resultados/. No editar a mano: vuelve a ejecutar `node metricas/exportar_sitio.mjs`.
 export const METRICAS = {
- "generado": "2026-11-20T19:21:25+00:00",
+ "generado": "2026-11-20T22:57:49+00:00",
  "corte": {
   "total_inversiones": "150574",
   "alertas_sobrecosto": "26387",
@@ -322,17 +322,82 @@ export const METRICAS = {
    "pct": 10.91
   }
  ],
+ "paginas": [
+  {
+   "pagina": "/",
+   "n": 20,
+   "exitosas": 20,
+   "mediana_ms": 696.3,
+   "p90_ms": 762.5,
+   "maximo_ms": 846.3,
+   "bytes_medio": 64018
+  },
+  {
+   "pagina": "/proyecto",
+   "n": 20,
+   "exitosas": 20,
+   "mediana_ms": 818.3,
+   "p90_ms": 967.3,
+   "maximo_ms": 1426.5,
+   "bytes_medio": 145316
+  },
+  {
+   "pagina": "/evaluacion",
+   "n": 20,
+   "exitosas": 20,
+   "mediana_ms": 879.9,
+   "p90_ms": 1137.7,
+   "maximo_ms": 1241.4,
+   "bytes_medio": 226739
+  },
+  {
+   "pagina": "/demo",
+   "n": 20,
+   "exitosas": 20,
+   "mediana_ms": 808.1,
+   "p90_ms": 1018.4,
+   "maximo_ms": 1438.1,
+   "bytes_medio": 141364
+  },
+  {
+   "pagina": "/datos",
+   "n": 20,
+   "exitosas": 20,
+   "mediana_ms": 650.8,
+   "p90_ms": 735.4,
+   "maximo_ms": 778.6,
+   "bytes_medio": 26668
+  },
+  {
+   "pagina": "/acerca",
+   "n": 20,
+   "exitosas": 20,
+   "mediana_ms": 650.2,
+   "p90_ms": 741.4,
+   "maximo_ms": 1048,
+   "bytes_medio": 20339
+  },
+  {
+   "pagina": "/conectar",
+   "n": 20,
+   "exitosas": 20,
+   "mediana_ms": 658.9,
+   "p90_ms": 756.2,
+   "maximo_ms": 1133.6,
+   "bytes_medio": 27199
+  }
+ ],
  "rendimiento": [
   {
    "prueba": "buscar_inversiones",
    "llamadas": 30,
    "exitosas": 30,
    "exito": 100,
-   "p50": 1359.1,
-   "p90": 1472.9,
-   "p95": 1527.2,
-   "min": 1303.4,
-   "max": 2067.9,
+   "p50": 1372.2,
+   "p90": 1441.3,
+   "p95": 1496.4,
+   "min": 1299.2,
+   "max": 1578.4,
    "errores": 0
   },
   {
@@ -340,11 +405,11 @@ export const METRICAS = {
    "llamadas": 30,
    "exitosas": 30,
    "exito": 100,
-   "p50": 981,
-   "p90": 1081.7,
-   "p95": 1085.5,
-   "min": 937.2,
-   "max": 1091.1,
+   "p50": 991.2,
+   "p90": 1056.1,
+   "p95": 1090.2,
+   "min": 959.1,
+   "max": 1098.9,
    "errores": 0
   },
   {
@@ -352,11 +417,11 @@ export const METRICAS = {
    "llamadas": 30,
    "exitosas": 30,
    "exito": 100,
-   "p50": 1338.6,
-   "p90": 1394.7,
-   "p95": 1413.4,
-   "min": 1282.7,
-   "max": 1466.2,
+   "p50": 1343.9,
+   "p90": 1437.8,
+   "p95": 1447.7,
+   "min": 1291.6,
+   "max": 1800.6,
    "errores": 0
   },
   {
@@ -364,11 +429,11 @@ export const METRICAS = {
    "llamadas": 30,
    "exitosas": 30,
    "exito": 100,
-   "p50": 982.4,
-   "p90": 1008.4,
-   "p95": 1119.8,
-   "min": 948.1,
-   "max": 1182.6,
+   "p50": 990.8,
+   "p90": 1032.1,
+   "p95": 1035.8,
+   "min": 948.6,
+   "max": 1066,
    "errores": 0
   },
   {
@@ -376,11 +441,11 @@ export const METRICAS = {
    "llamadas": 10,
    "exitosas": 10,
    "exito": 100,
-   "p50": 312.1,
-   "p90": 417.5,
-   "p95": 440.1,
-   "min": 277,
-   "max": 462.7,
+   "p50": 319.1,
+   "p90": 418.8,
+   "p95": 449.6,
+   "min": 282.9,
+   "max": 480.3,
    "errores": 0
   },
   {
@@ -388,11 +453,11 @@ export const METRICAS = {
    "llamadas": 10,
    "exitosas": 10,
    "exito": 100,
-   "p50": 634.2,
-   "p90": 705.8,
-   "p95": 732.2,
-   "min": 619.1,
-   "max": 758.7,
+   "p50": 644.5,
+   "p90": 753,
+   "p95": 901.3,
+   "min": 615.5,
+   "max": 1049.7,
    "errores": 0
   }
  ],
@@ -417,12 +482,12 @@ export const METRICAS = {
   "detalles": 30
  },
  "pruebas": {
-  "total": 149,
-  "pasan": 149,
+  "total": 170,
+  "pasan": 170,
   "fallan": 0,
-  "archivos": 15,
-  "coberturaLineas": 80.31,
-  "coberturaLogica": 75.54
+  "archivos": 17,
+  "coberturaLineas": 87.54,
+  "coberturaLogica": 85.13
  },
  "montos": {
   "costo_actualizado_total": 1373424266565.26,
@@ -437,14 +502,14 @@ export const METRICAS = {
    "preguntas": 24,
    "conRespuesta": 24,
    "errores": 0,
-   "correctas": 21,
-   "pctCorrectas": 87.5,
-   "pctCorrectasTotal": 87.5,
-   "media": 10,
-   "p50": 6.9,
-   "p90": 22.4,
-   "min": 4.6,
-   "max": 26.2
+   "correctas": 20,
+   "pctCorrectas": 83.3,
+   "pctCorrectasTotal": 83.3,
+   "media": 9.7,
+   "p50": 7.2,
+   "p90": 19.4,
+   "min": 4.5,
+   "max": 30.1
   },
   {
    "grupo": "busqueda",
@@ -454,75 +519,76 @@ export const METRICAS = {
    "correctas": 5,
    "pctCorrectas": 83.3,
    "pctCorrectasTotal": 83.3,
-   "media": 13,
-   "p50": 8.6,
-   "p90": 26.2,
-   "min": 5.6,
-   "max": 26.2
+   "media": 11.1,
+   "p50": 9.6,
+   "p90": 24.5,
+   "min": 4.8,
+   "max": 24.5
   },
   {
    "grupo": "detalle",
    "preguntas": 6,
    "conRespuesta": 6,
    "errores": 0,
-   "correctas": 6,
-   "pctCorrectas": 100,
-   "pctCorrectasTotal": 100,
-   "media": 7.4,
-   "p50": 5.5,
-   "p90": 16.3,
-   "min": 4.6,
-   "max": 16.3
+   "correctas": 5,
+   "pctCorrectas": 83.3,
+   "pctCorrectasTotal": 83.3,
+   "media": 8.2,
+   "p50": 5.6,
+   "p90": 19.4,
+   "min": 4.5,
+   "max": 19.4
   },
   {
    "grupo": "alertas",
    "preguntas": 6,
    "conRespuesta": 6,
    "errores": 0,
-   "correctas": 5,
-   "pctCorrectas": 83.3,
-   "pctCorrectasTotal": 83.3,
-   "media": 9.3,
-   "p50": 6,
-   "p90": 22.4,
-   "min": 5.7,
-   "max": 22.4
+   "correctas": 6,
+   "pctCorrectas": 100,
+   "pctCorrectasTotal": 100,
+   "media": 9.2,
+   "p50": 6.8,
+   "p90": 16,
+   "min": 6.1,
+   "max": 16
   },
   {
    "grupo": "resumen",
    "preguntas": 6,
    "conRespuesta": 6,
    "errores": 0,
-   "correctas": 5,
-   "pctCorrectas": 83.3,
-   "pctCorrectasTotal": 83.3,
-   "media": 10,
-   "p50": 5.8,
-   "p90": 23.6,
-   "min": 4.9,
-   "max": 23.6
+   "correctas": 4,
+   "pctCorrectas": 66.7,
+   "pctCorrectasTotal": 66.7,
+   "media": 10.4,
+   "p50": 6.4,
+   "p90": 30.1,
+   "min": 5.4,
+   "max": 30.1
   }
  ],
  "asistenteModelos": {
-  "IA del servidor": 2,
-  "Gemini 3.5 Flash-Lite": 22
+  "IA del servidor": 3,
+  "Gemini 3.5 Flash-Lite": 19,
+  "Gemini 3.1 Flash-Lite": 2
  },
  "asistente": [
   {
    "modo": "chat",
    "preguntas": 5,
    "exitosas": 5,
-   "media": 7.21,
-   "p50": 7.25,
-   "max": 10.01
+   "media": 4.93,
+   "p50": 5.32,
+   "max": 6.08
   },
   {
    "modo": "agente",
    "preguntas": 2,
    "exitosas": 2,
-   "media": 9.2,
-   "p50": 9.2,
-   "max": 9.48
+   "media": 6.17,
+   "p50": 6.17,
+   "max": 6.63
   }
  ]
 } as const;

@@ -12,5 +12,7 @@ if [ "${1:-}" != "--sin-red" ]; then
   $PY alertas_check.py
   $PY asistente.py || echo "asistente: no medido"
   node asistente_extenso.mjs || echo "asistente extenso: no medido"  # 24 preguntas en serie (~10 min); usa el Node de Cortex si `node` no está
+  $PY paginas.py --n 20 || echo "paginas del sitio: no medido"  # ~3 min, 7 páginas x 20 descargas
+
 fi
 $PY consolidar.py

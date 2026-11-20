@@ -1,5 +1,5 @@
 {
-  "generado": "2026-11-18T15:04:44+00:00",
+  "generado": "2026-11-20T19:29:12+00:00",
   "base": "{'fecha_descarga': '2026-11-10', 'total_inversiones': '150574', 'alertas_sobrecosto': '26387', 'alertas_paralizacion': '16502', 'fuente': 'Ministerio de Economía y Finanzas, Información de inversiones públicas 2001-2026', 'url': 'https://www.datosabiertos.gob.pe/dataset/informaci%C3%B3n-de-inversiones-p%C3%BAblicas-2001%E2%80%932026-mef'}",
   "filas_totales": 150574,
   "columnas_tabla": 31,

@@ -10,6 +10,24 @@ Guía para que los 4 integrantes del Grupo 1 expliquen el proyecto a un público
 
 Si el público solo recuerda una cosa: *de 40 preguntas, sin la conexión acertó 3 y con la conexión acertó las 40.*
 
+## 1b. Las cifras, en una sola tabla
+
+Usar siempre estas cifras (IA del servidor, las mismas 40 preguntas; origen: `eval/resultados/resultados.csv` y `resumen.md`). Corte del MEF: 10 de noviembre de 2026.
+
+| Medida | Sin MCP | Con MCP |
+|---|---|---|
+| Exactas (cifra u obra correcta) | 3 de 40 (8 %) | 40 de 40 (100 %) |
+| Exactas estrictas (ninguna cifra sin respaldo) | 2 de 40 (5 %) | 39 de 40 (98 %) |
+| Con fuente y fecha | 4 de 40 (10 %) | 40 de 40 (100 %) |
+| Inventadas (máximo) | 21 de 40 (53 %) | 0 de 40 (0 %) |
+| Con alguna cifra sin respaldo | 22 de 40 (55 %) | 1 de 40 (3 %) |
+| Recall (18 preguntas de conteo o ranking) | 0 % | 100 % |
+| Precisión (18 preguntas) | 0 % | 100 % |
+
+**Para no confundir el 40 de 40 con el 3 %:** «exacta» basta con que una cifra coincida; la pregunta D04 con MCP dio la cifra correcta y además un incremento mal restado (escribió S/ 40 279 184,89; lo correcto es 47 715 860,89 − 7 033 676,00 = S/ 40 682 184,89). Por eso es exacta y a la vez tiene una cifra sin respaldo. Es 1 de 40 (2,5 %, que redondeado da el «≈3 % de errores de suma o resta» que se dijo en la exposición). **Corrección:** no es una tasa general de errores de cálculo; es un solo caso, el error lo hizo el modelo al restar y los datos del servidor eran correctos. Por eso, en la estricta, da 39 de 40.
+
+**Tiempos (dos medidas con muchos datos):** servidor de datos, 120 llamadas a sus cuatro herramientas (30 cada una), 100 % de éxito, mediana de 1,0 a 1,4 s desde Lima (`metricas/resultados/rendimiento_mcp.csv`); asistente de punta a punta, 24 preguntas, mediana 7,2 s y 20 de 24 correctas (`metricas/resultados/asistente_extenso_resumen.csv`). La comparación de 40 preguntas (11,1 s sin MCP y 20,2 s con MCP, media sin reintentos) es pequeña y no conviene usarla sola para hablar de velocidad.
+
 ## 2. Guion por bloques (10 minutos)
 
 | Bloque | Tiempo | Quién (sugerido) | Qué decir |
@@ -18,7 +36,7 @@ Si el público solo recuerda una cosa: *de 40 preguntas, sin la conexión acert�
 | 2. La idea | 1:00 | Integrante 1 | Que cualquier persona pregunte en castellano y reciba una respuesta con la cifra oficial. «No queremos una IA que opine; queremos una que consulte y cite.» |
 | 3. Cómo funciona | 1:30 | Integrante 2 | Analogía de la **biblioteca**: el asistente es quien pregunta, el servidor es el bibliotecario y la base de datos es el archivo. Sin MCP, el asistente responde de memoria; con MCP, abre el registro oficial y te muestra la página. El MCP es el «enchufe» estándar que lo permite. |
 | 4. Demostración en vivo | 2:30 | Integrante 3 | Ver sección 3. |
-| 5. Resultados | 1:30 | Integrante 4 | 40 preguntas, mismas en ambas condiciones. Sin conexión: 3 correctas (8 %), 4 con fuente (10 %), 21 con cifras que no coinciden (53 %). Con conexión: 40 correctas (100 %), 40 con fuente, 0 inventadas. Además, las herramientas coinciden con la base: 30 de 30 fichas, 810 de 810 campos, 10 de 10 resúmenes y 14 de 14 listas de alertas. Costo: con la conexión tarda más (20,2 s frente a 11,1 s). |
+| 5. Resultados | 1:30 | Integrante 4 | 40 preguntas, mismas en ambas condiciones. Sin conexión: 3 correctas (8 %), 4 con fuente (10 %), 21 con cifras que no coinciden (53 %). Con conexión: 40 correctas (100 %), 40 con fuente, 0 inventadas. Además, las herramientas coinciden con la base: 30 de 30 fichas, 810 de 810 campos, 10 de 10 resúmenes y 14 de 14 listas de alertas. Tiempo: con la conexión tarda más; el servidor responde en 1,0 a 1,4 s (120 llamadas) y el asistente completo en 7,2 s de mediana (24 preguntas). |
 | 6. Límites | 1:00 | Integrante 2 | Las alertas son señales, no pruebas; los datos tienen fecha de corte; la evaluación se hizo una sola vez; el asistente gratuito puede estar apagado y entonces responde un respaldo. |
 | 7. Impacto (ODS 16) | 0:30 | Integrante 4 | Instituciones transparentes y acceso a la información (metas 16.6 y 16.10): cualquier ciudadano, periodista o regidor puede consultar sin ser experto. |
 | Cierre | 0:30 | Integrante 1 | Repetir el mensaje central e invitar a probarlo: https://obraclara.adrielorihuela.net |
@@ -37,11 +55,15 @@ Abrir https://obraclara.adrielorihuela.net/asistente. Hacer **la misma pregunta 
 - Con MCP: **1 767 inversiones**, costo S/ 20 049 064 306,37, **514** con alerta de sobrecosto y **252** con posible paralización.
 - Sin MCP: números distintos o sin fuente.
 
-**Plan B si el asistente tarda o está apagado.** Las respuestas pueden tardar hasta 20 s; llenar el silencio explicando qué hace el servidor. Si no responde, usar la página `/datos` (búsqueda directa, sin IA) o mostrar las capturas de la página de inicio, que son reales. Probar las dos preguntas **antes** de exponer: las respuestas del asistente cambian entre intentos.
+**Plan B si el asistente tarda o está apagado.** Las respuestas tardaron entre 4,5 y 30,1 s (mediana 7,2 s; medido el 20/11 con 24 preguntas, `metricas/resultados/asistente_extenso_resumen.csv`); llenar el silencio explicando qué hace el servidor. Si no responde, usar la página `/datos` (búsqueda directa, sin IA) o mostrar las capturas de la página de inicio, que son reales. Probar las dos preguntas **antes** de exponer: las respuestas del asistente cambian entre intentos.
 
 **Demostración de benchmarks (`/evaluacion`).** Abrir https://obraclara.adrielorihuela.net/evaluacion: (1) mostrar las tarjetas («sin MCP acertó 3 de 40; con MCP, 40»); (2) bajar a los gráficos y a la comparación entre modelos («el MCP mejora a todos los modelos, no solo a uno»); (3) en «Las 40 preguntas», filtrar por tipo (por ejemplo **Alertas**) o buscar «Cusco»; (4) abrir **Ver respuesta** de una pregunta y comparar lo que contestó la IA sola (cifras de otras fuentes, sin fecha de corte) con lo que contestó con MCP (cifra oficial, fuente y fecha, y la herramienta usada). Funciona también en el celular.
 
-**Varios modelos y recall (para el profesor).** Con las mismas 40 preguntas, las respuestas exactas con MCP suben en los tres modelos: IA del servidor 8 % → 100 %, Gemini 3.5 Flash-Lite 0 % → 95 %, gpt-oss-120b (Groq) 3 % → 25 % (este contesta muchas veces sin llamar a la herramienta). Sobre recall, que el profesor destacó: «de las obras que debía encontrar, la IA del servidor con MCP encontró 10 % (sin MCP, 1 %) y todo lo que nombró era correcto (100 %)»; los otros dos modelos dan el total pero casi nunca nombran obras, así que su recall es 0. Es una limitación honesta: la herramienta muestra como máximo 20 obras por consulta.
+**Varios modelos (para el profesor).** Con las mismas 40 preguntas, las respuestas exactas con MCP suben en los tres modelos: IA del servidor 8 % → 100 %, Gemini 3.5 Flash-Lite 0 % → 95 %, gpt-oss-120b (Groq) 3 % → 25 % (este contesta muchas veces sin llamar a la herramienta).
+
+**Recall y precisión (la pregunta del profesor).** Con MCP el recall salía casi 0 por cómo lo medíamos: contábamos los códigos de obra listados, pero las preguntas piden contar y una respuesta correcta da el total sin listar códigos. Ahora se mide lo que pide la pregunta: en conteos, si el total es exacto; en rankings, si aparece la obra correcta. Resultado: IA del servidor, recall 0 % sin MCP y 100 % con MCP; precisión 0 % y 100 %. Gemini con MCP 94 %; gpt-oss-120b con MCP 17 % (y 55 % de sus respuestas traen cifras sin base). La primera definición (sin MCP 1 %, con MCP 10 %) se muestra aparte por transparencia.
+
+> **Frase para responder al profesor:** «Tenía razón en que el número salía bajo. Lo medíamos con una definición que no era la que pedían las preguntas: las preguntas piden contar, y una respuesta correcta da el total sin listar códigos. Lo corregimos: ahora el recall mide si el total es exacto o si aparece la obra correcta. Con MCP, el asistente acierta las 18 preguntas que se pueden medir; sin MCP, ninguna. La definición anterior queda publicada como primera definición.»
 
 ## 3b. Guion de la demo del viernes 20/11 (3 a 4 minutos, `/demo`)
 
@@ -69,7 +91,7 @@ Plan B: si una columna falla o tarda más de 3 minutos, lo avisa y ofrece **Rein
 - **Métricas:** números que miden qué tan bien funciona: cuántas respuestas fueron correctas (exactitud), cuántas dijeron la fuente y la fecha (cita) y cuántas traían cifras que no coinciden (inventada).
 - **Devengado, monto viable, costo actualizado:** devengado es el gasto que el Estado reconoce como ya realizado; monto viable es lo que costaba la obra al aprobarse; costo actualizado es lo que cuesta hoy.
 
-## 5. Veinte preguntas probables y respuestas cortas
+## 5. Preguntas probables y respuestas cortas
 
 **1. ¿Qué problema resuelven exactamente?**
 Los datos de obras públicas son abiertos pero difíciles de usar: un archivo de 247 MB con 150 641 filas y términos técnicos. ObraClara deja preguntar en castellano y responde con la cifra oficial, la fuente y la fecha.
@@ -90,10 +112,10 @@ Es razonable: con la conexión el asistente no adivina, copia datos de la base. 
 Que la respuesta trae cifras que no coinciden con el registro del MEF. Es un máximo: sin conexión el asistente a veces cita otras fuentes reales (Contraloría, prensa) con cifras distintas; la regla las cuenta como inventadas aunque no sean falsas. Además medimos «exacta estricta» (todas las cifras relevantes se pueden comprobar): sin conexión 2 de 40, con conexión 39 de 40; la regla original era algo generosa porque bastaba que una cifra coincidiera.
 
 **7. ¿Por qué con la conexión tarda más?**
-Porque primero consulta el registro (en la evaluación, 20,2 s frente a 11,1 s por pregunta, sin reintentos). Preferimos esperar unos segundos más a recibir un dato equivocado.
+Porque primero consulta el registro. En las 40 preguntas, la media sin reintentos fue 20,2 s con MCP frente a 11,1 s sin MCP; es una muestra pequeña. Preferimos esperar unos segundos más a recibir un dato equivocado.
 
 **8. ¿Qué tan rápido es el servidor?**
-En **n = 140 llamadas** de prueba desde Lima (30 por cada herramienta), todas funcionaron (100 % de éxito); la mitad respondió en 1,0 a 1,4 segundos y el 90 % en menos de 1,5 s. El asistente completo, probado con **24 preguntas** una tras otra, tardó 7 segundos en la mitad de los casos y menos de 23 s en el 90 %, y acertó 21 de 24 (88 %). Una primera medición dio 4 de 24 porque la IA respondía sin consultar el registro; se corrigió y ahora siempre lo consulta para preguntas de datos. Ojo: la evaluación de 40 preguntas con la conexión (40 de 40) es la que mide la exactitud de la conexión. No decir «el asistente siempre acierta».
+En **120 llamadas** de prueba a sus cuatro herramientas (30 cada una) desde Lima, todas funcionaron (100 % de éxito); la mitad respondió en 1,0 a 1,4 segundos y el 90 % en menos de 1,4 s. El asistente completo, probado con **24 preguntas** una tras otra, tardó 7,2 segundos en la mitad de los casos y menos de 19,4 s en el 90 %, y acertó 20 de 24 (83,3 %). Una primera medición dio 4 de 24 porque la IA respondía sin consultar el registro; se corrigió; en la última medición, con las herramientas conectadas, acertó 20 de 24; las 3 fallas de la IA del servidor dijeron no tener acceso a las herramientas. Ojo: la evaluación de 40 preguntas con la conexión (40 de 40) es la que mide la exactitud de la conexión. No decir «el asistente siempre acierta».
 
 **9. ¿Una alerta significa que hay corrupción?**
 No. Es una señal para mirar con más atención, como la luz del tablero de un auto. Un sobrecosto puede deberse a una ampliación aprobada; que no haya gasto en seis meses puede ser un trámite o que la obra ya terminó. Siempre hay que verificar en la fuente oficial.
@@ -120,7 +142,7 @@ El sitio sigue funcionando: la búsqueda directa de `/datos` no usa IA. Si se ap
 Nada: usamos el plan gratuito de Cloudflare y un computador del grupo. Es la razón por la que hay límites de uso y por la que el asistente gratuito puede estar ocupado.
 
 **17. ¿Qué hizo la IA y qué hizo el grupo?**
-La IA ayudó a escribir el código, y está declarado. El grupo lo revisó y probó: 149 pruebas automáticas pasan y se evaluó contra los datos oficiales. La redacción del informe, el workflow, los gráficos del informe y el póster los hizo el grupo sin IA; el PPT puede llevar ayuda de IA declarada.
+La IA ayudó a escribir el código, y está declarado. El grupo lo revisó y probó: 170 pruebas automáticas pasan y se evaluó contra los datos oficiales. La redacción del informe, el workflow, los gráficos del informe y el póster los hizo el grupo sin IA; el PPT puede llevar ayuda de IA declarada.
 
 **18. ¿Cuáles son las limitaciones?**
 Los datos tienen fecha de corte; las alertas son aproximaciones; la evaluación fue de una sola corrida y puntuada por un programa; el asistente gratuito es compartido y puede tardar o estar apagado.
@@ -130,6 +152,12 @@ Repetir la evaluación varias veces y revisar a mano los casos dudosos; acercar 
 
 **20. ¿Cómo aporta al ODS 16?**
 Directamente a las metas 16.6 (instituciones transparentes que rindan cuentas) y 16.10 (acceso público a la información), porque vuelve consultables datos que ya eran públicos. A la meta 16.5 (reducir la corrupción) solo de forma indirecta: facilita la vigilancia ciudadana, pero las alertas no prueban irregularidades.
+
+**21. ¿Cómo puede ser 40 de 40 y a la vez 3 % de cifras sin respaldo?**
+Porque «exacta» acepta una respuesta si una de sus cifras coincide. La de D04 con MCP tenía la cifra correcta y además una resta mal hecha por el modelo (40 279 184,89 en vez de 40 682 184,89). Es 1 de 40 (2,5 %, redondeado 3 %): un solo error de cálculo del modelo, no del servidor, y no una tasa general de errores de suma o resta. La medida estricta da 39 de 40 (98 %).
+
+**22. ¿Qué cambió en el asistente después de la exposición del 20/11?**
+Cuatro cosas, en `/proyecto` (sección Evaluación): si se corta la conexión muestra «Reconectando…» y no pasa al modo de emergencia salvo que dure más de unos 15 s; las respuestas cortadas se pueden recuperar o reintentar; los pasos se ven mientras trabaja y luego se pliegan en «Proceso · N pasos»; y la memoria ya no es global: se guarda en cada navegador y se borra con «Borrar toda». También se reforzó contra engaños: una batería de 6 intentos quedó bloqueada en los 6 (prueba hecha en la IA del servidor el 20/11; su código no es público).
 
 **Extra. ¿Por qué aparecen cementerios entre las obras de «salud»?**
 Porque así las clasifica el propio MEF: en Cusco hay 55 inversiones de cementerios o nichos registradas con la función SALUD. ObraClara muestra los datos oficiales tal como vienen; si se quiere excluirlas, se filtra por texto en el nombre.
