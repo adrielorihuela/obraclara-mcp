@@ -158,9 +158,11 @@ const css = String.raw`
 .dv-resp{position:relative;border:1px solid var(--line);border-radius:var(--r-l);background:var(--surface);padding:16px 18px;min-height:120px}
 .dv-resp[hidden]{display:none}
 .dv-resp>b{display:block;font:600 12px/1.3 var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin-bottom:10px}
-.dv-saltar{position:sticky;float:right;top:0;margin:-6px -6px 6px 10px;border:1px solid var(--line-2);border-radius:999px;background:var(--bg);color:var(--ink-2);font:600 12px/1 var(--sans);padding:7px 10px;cursor:pointer}
+.dv-saltar{position:absolute;top:10px;right:10px;z-index:2;border:1px solid var(--line-2);border-radius:999px;background:var(--bg);color:var(--ink-2);font:600 12px/1 var(--sans);padding:7px 10px;cursor:pointer}
 .dv-saltar[hidden]{display:none}
-.dv-md{display:grid;gap:10px;line-height:1.6;font-size:15px;overflow-wrap:anywhere}
+.dv-md>*{min-width:0}
+.dv-md .cb{overflow-x:auto}
+.dv-md{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;line-height:1.6;font-size:15px;overflow-wrap:anywhere}
 .dv-md p{margin:0}.dv-md p.h{font-weight:700}.dv-md p.mod{display:none}
 .dv-md ul,.dv-md ol{margin:0;padding-left:1.3em;display:grid;gap:4px}
 .dv-md .li-p{margin:4px 0 0}
@@ -384,10 +386,12 @@ function sondear(L,tok){if(L.ocup||tok!==L.tok)return;L.ocup=true;
    else if(e.tipo==='error'){paso(L,t,'x')}
    else{estado(L,'trabaja',t.replace(/[.…]+$/,'')+'…');paso(L,t)}})})
  .catch(function(){}).then(function(){L.ocup=false})}
+// Bloques de código con la especificación de un gráfico (bloques «grafico» o «json»): se dibujan como en el asistente.
+function graficos(md){[].slice.call(md.querySelectorAll('.cb')).forEach(function(w){var g=validarGrafico(w.textContent);if(g)try{w.parentNode.replaceChild(ocGrafico(g),w)}catch(e){}})}
 function escribir(L,txt,listo){var md=q$(L,'.dv-md'),sb=q$(L,'.dv-saltar'),o={txt:txt,n:0,parar:false};L.esc=o;q$(L,'.dv-resp').hidden=false;
  if(RED){pintar(txt.length);fin();return}
  var por=Math.max(5,Math.ceil(txt.length/150));sb.hidden=false;
- function pintar(n){md.textContent='';ocMd(md,n<txt.length?txt.slice(0,n).replace(RGRAF,'\n*(dibujando el gráfico…)*\n'):txt);if(n<txt.length){var c=d.createElement('span');c.className='dv-caret';c.setAttribute('aria-hidden','true');var ult=md.lastElementChild;while(ult&&ult.lastElementChild&&/^(UL|OL|LI|DIV|TABLE|TR)$/.test(ult.tagName))ult=ult.lastElementChild;(ult||md).appendChild(c)}abajo(L)}
+ function pintar(n){md.textContent='';ocMd(md,n<txt.length?txt.slice(0,n).replace(RGRAF,'\n*(dibujando el gráfico…)*\n'):txt);if(n>=txt.length)graficos(md);if(n<txt.length){var c=d.createElement('span');c.className='dv-caret';c.setAttribute('aria-hidden','true');var ult=md.lastElementChild;while(ult&&ult.lastElementChild&&/^(UL|OL|LI|DIV|TABLE|TR)$/.test(ult.tagName))ult=ult.lastElementChild;(ult||md).appendChild(c)}abajo(L)}
  function fin(){sb.hidden=true;L.esc=null;listo()}
  function cuadro(){if(o.parar)return;o.n=Math.min(txt.length,o.n+por);pintar(o.n);if(o.n<txt.length)requestAnimationFrame(cuadro);else fin()}
  requestAnimationFrame(cuadro)}
