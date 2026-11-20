@@ -218,7 +218,7 @@ async function agente(ws, tarea) {
     } else {
       const cuerpo = await armarCuerpo(j, tarea, chat);
       msg = { type: "resultado", id: tarea.id, codigo: 200, cuerpo };
-      log("agente ok", tarea.id.slice(0, 8), `${Date.now() - t0}ms`, `archivos=${archivos.length}`);
+      log("agente ok", tarea.id.slice(0, 8), `${Date.now() - t0}ms`, `archivos=${cuerpo.archivos.length}`);
     }
   } catch (e) {
     log("agente error", tarea.id.slice(0, 8), e.message);
