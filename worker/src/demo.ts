@@ -7,6 +7,7 @@ import {
   largoContenido, acortarContenido, recortarMensajes, prepararCompartir,
   claseArchivo, mimeArchivo, tamanoLegible, resaltarLinea, htmlConRecursos, rutaRelativaZip, atributoHtml,
 } from "./lib/agente";
+import { graficoCss, graficoJs } from "./grafico-js";
 import { ETIQUETAS_SUGERENCIA, SUGERENCIAS, elegirSugerencias, mezclarSugerencias } from "./lib/sugerencias";
 
 // Panel "Prueba el asistente" (página /asistente): HTML, CSS y script del navegador.
@@ -357,7 +358,7 @@ body.es-app main{flex:1;min-height:0}
  .adj-c{max-width:none}
  .tc{margin-left:0}.msg.a{grid-template-columns:minmax(0,1fr)}.msg.a::before{display:none}.msg.w{padding-left:0}.msg.w .w-p{margin-left:0;padding-left:0}
 }
-`;
+` + graficoCss;
 
 const icoMas = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>`;
 const icoEngranaje = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>`;
@@ -484,15 +485,15 @@ function ocTex(s){var x=String(s),k=0;
   .replace(/\\leq?/g,' ≤ ').replace(/\\geq?/g,' ≥ ').replace(/\\neq/g,' ≠ ').replace(/\\approx/g,' ≈ ')
   .replace(/\\([%_$&#])/g,'$1').replace(/\\[,;:! ]/g,' ').replace(/\\\\/g,' ').replace(/\\[a-zA-Z]+/g,'')
   .replace(/[{}]/g,'').replace(/(\S)\s*[-−]\s*(?=\S)/g,'$1 − ').replace(/\s*\+\s*/g,' + ').replace(/\s*=\s*/g,' = ').replace(/\s+/g,' ').trim()}
-function ocMd(el,txt){var lst=null,p=null,tb=null,cod=null,fx=null,prev=null;
+` + "\n" + graficoJs + "\n" + String.raw`function ocMd(el,txt){var lst=null,p=null,tb=null,cod=null,fx=null,prev=null;
  function fdiv(s){var d=document.createElement('div');d.className='fm';d.textContent=ocTex(s);el.appendChild(d);prev=d}
  ocLimpia(txt).replace(/\\\(([^\n]*?)\\\)/g,function(m,a){return ocTex(a)}).split('\n').forEach(function(l){var t=l.trim(),mm=/^([-*•]|\d+[.)])\s+(.*)$/.exec(t),fm=OC_FENCE.exec(l);
- if(cod){if(fm&&fm[1].length>=cod.n&&!fm[2].trim()){cod=null;return}cod.pre.appendChild(document.createTextNode((cod.k++?'\n':'')+l));return}
+ if(cod){if(fm&&fm[1].length>=cod.n&&!fm[2].trim()){if(cod.lg==='grafico'&&typeof ocGrafico==='function'){var gv=validarGrafico(cod.pre.textContent);if(gv)cod.w.parentNode.replaceChild(ocGrafico(gv),cod.w)}cod=null;return}cod.pre.appendChild(document.createTextNode((cod.k++?'\n':'')+l));return}
  if(fx!==null){var fin=fx.c==='$$'?t.lastIndexOf('$$'):t.lastIndexOf('\\]');if(fin>=0&&fin===t.length-2){fdiv(fx.s+' '+t.slice(0,fin));fx=null}else fx.s+=' '+t;return}
  if(t.slice(0,2)==='\\['||t.slice(0,2)==='$$'){lst=null;p=null;tb=null;var cc=t.slice(0,2)==='$$'?'$$':'\\]',rest=t.slice(2);
   if(rest.length>=2&&rest.slice(-2)===cc){fdiv(rest.slice(0,-2));return}fx={c:cc,s:rest};return}
  if(fm){lst=null;p=null;tb=null;prev=null;var wc=document.createElement('div'),pr=document.createElement('pre');wc.className='cb';
-  wc.appendChild(pr);el.appendChild(wc);cod={n:fm[1].length,pre:pr,k:0};return}
+  wc.appendChild(pr);el.appendChild(wc);cod={n:fm[1].length,pre:pr,k:0,w:wc,lg:fm[2].trim().toLowerCase()};return}
  if(t.charAt(0)==='|'){lst=null;p=null;prev=null;if(/^\|?[\s:|-]+$/.test(t))return;
   var cs=t.replace(/^\||\|$/g,'').split('|');if(!tb){var w=document.createElement('div');w.className='tb';tb=document.createElement('table');w.appendChild(tb);el.appendChild(w);tb.ocHead=true}
   var tr=document.createElement('tr');cs.forEach(function(x){var c=document.createElement(tb.ocHead?'th':'td');ocInl(c,x.trim());tr.appendChild(c)});tb.ocHead=false;tb.appendChild(tr);return}
