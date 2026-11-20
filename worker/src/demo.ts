@@ -69,6 +69,7 @@ body.es-app main{flex:1;min-height:0}
 .sw[aria-checked=true] .pista::after{transform:translateX(22px)}
 .cfg-b{display:flex;align-items:center;gap:8px;margin-top:8px;min-height:38px;padding:0 12px;border-radius:10px;border:1px solid transparent;background:transparent;color:var(--ink-2);font:500 14px/1 var(--sans);cursor:pointer;width:100%}
 .cfg-b:hover{background:var(--surface);border-color:var(--line)}
+.b-menu,.lado-x,.velo{display:none}
 
 .conv{display:flex;flex-direction:column;min-height:0;min-width:0}
 .scroll{flex:1;overflow-y:auto;overscroll-behavior:contain}
@@ -343,16 +344,24 @@ body.es-app main{flex:1;min-height:0}
 @media (max-width:860px){
  .conv-top{padding:6px 12px}
  .chat{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}
- .lado{border-right:0;border-bottom:1px solid var(--line);padding:10px 16px;gap:8px;display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;overflow:visible}
- .lado .b-sw{grid-column:1/-1;display:grid;gap:8px}.lado .b-sw .sw+p.ayuda+.sw{margin-top:0}
- .lado .lbl,.lado p.ayuda,.lado .pie-l,.lado .b-chats{display:none}
- .sw{padding:8px 10px 8px 14px}.sw small{display:none}.sw .sw-n{font-size:14px}
- .sw .pista{width:44px;height:26px}.sw .pista::after{width:20px;height:20px}.sw[aria-checked=true] .pista::after{transform:translateX(18px)}
- .lado .b-mod{display:contents}
- .cfg-b{margin:0;width:42px;height:42px;padding:0;justify-content:center;border-color:var(--line-2);background:var(--surface)}
- .cfg-b span,.nueva span{display:none}
- .nueva{width:42px;height:42px;padding:0;justify-content:center}
- .lado .b-nueva{order:3}
+ .chat{grid-template-rows:minmax(0,1fr)}
+ .conv-top,.conv-top[hidden]{display:flex;align-items:center}
+ .b-menu{display:inline-flex;align-items:center;justify-content:center;position:relative;flex:none;width:40px;height:40px;padding:0;border-radius:10px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink);cursor:pointer;transition:border-color .2s,transform .15s}
+ .b-menu:hover{border-color:var(--ink)}.b-menu:active{transform:scale(.95)}
+ .b-menu svg{width:18px;height:18px}
+ #oc-nueva2{margin-right:auto}
+ .b-menu-n{position:absolute;top:-6px;right:-6px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--accent);color:#fff;font:700 11px/18px var(--mono);text-align:center;box-shadow:0 0 0 2px var(--bg)}
+ .b-menu-n.nuevo{min-width:10px;width:10px;height:10px;padding:0;top:-3px;right:-3px}
+ .b-menu-n[hidden]{display:none}
+ .b-menu:focus-visible,.lado-x:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+ .lado{position:fixed;top:0;left:0;bottom:0;z-index:60;width:min(320px,86vw);height:100dvh;border-right:1px solid var(--line);box-shadow:0 20px 60px -10px rgba(0,0,0,.4);transform:translateX(-102%);visibility:hidden;transition:transform .26s cubic-bezier(.3,.7,.3,1),visibility 0s linear .26s}
+ .chat.cajon-on .lado{transform:none;visibility:visible;transition:transform .26s cubic-bezier(.3,.7,.3,1),visibility 0s}
+ .lado .b-nueva{display:flex;gap:8px;align-items:center}
+ .lado-x{display:inline-flex;align-items:center;justify-content:center;flex:none;width:42px;height:42px;border-radius:10px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink);font:400 22px/1 var(--sans);cursor:pointer}
+ .lado-x:hover{border-color:var(--ink)}
+ .velo{display:block;position:fixed;inset:0;z-index:55;background:rgba(10,12,13,.5);opacity:0;pointer-events:none;transition:opacity .26s}
+ .chat.cajon-on .velo{opacity:1;pointer-events:auto}
+ .b-chats .ch-t{padding:11px 8px}.b-chats .ch-b{width:34px;height:34px}
  .col{padding:0 16px}.composer{padding:6px 12px 10px}
  .vacio{padding:28px 0 16px}
  .ideas{margin-top:20px}.chips{grid-template-columns:minmax(0,1fr)}.chips button{padding:12px 14px 13px;gap:7px;font-size:14px}
@@ -362,6 +371,7 @@ body.es-app main{flex:1;min-height:0}
  .adj-c{max-width:none}
  .tc{margin-left:0}.msg.a{grid-template-columns:minmax(0,1fr)}.msg.a::before{display:none}.msg.w{padding-left:0}.msg.w .w-p{margin-left:0;padding-left:0}
 }
+@media (max-width:860px) and (prefers-reduced-motion:reduce){.lado,.chat.cajon-on .lado,.velo{transition:none}}
 ` + graficoCss;
 
 const icoMas = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>`;
@@ -369,12 +379,13 @@ const icoEngranaje = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
 const icoClip = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 11.5-8.6 8.6a5.5 5.5 0 0 1-7.8-7.8l8.6-8.6a3.7 3.7 0 0 1 5.2 5.2l-8.6 8.6a1.8 1.8 0 0 1-2.6-2.6l8-8"/></svg>`;
 const icoCompartir = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 10V2.5M5 5.2 8 2.5l3 2.7M3.5 9v3.5a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V9"/></svg>`;
 const icoBarajar = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4.5h2.2c1.4 0 2.2.6 3 1.8l1.6 3.4c.8 1.2 1.6 1.8 3 1.8H14M2 11.5h2.2c1 0 1.7-.3 2.3-1M14 4.5h-2.2c-1 0-1.7.3-2.3 1M12 2.5l2 2-2 2M12 9.5l2 2-2 2"/></svg>`;
+const icoMenu = `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M3.5 5.5h13M3.5 10h13M3.5 14.5h8"/></svg>`;
 const icoEnviar = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 13V3M3.5 7.5 8 3l4.5 4.5"/></svg>`;
 
 export const demoHtml = String.raw`
-<div class="chat">
-<aside class="lado" aria-label="Opciones del asistente">
-<div class="b-nueva"><button type="button" id="oc-nueva" class="nueva" aria-label="Nueva conversación">${icoMas}<span>Nueva conversación</span></button></div>
+<div class="chat" id="oc-chat">
+<aside class="lado" id="oc-lado" aria-label="Chats y opciones del asistente">
+<div class="b-nueva"><button type="button" id="oc-nueva" class="nueva" aria-label="Nueva conversación">${icoMas}<span>Nueva conversación</span></button><button type="button" id="oc-lado-x" class="lado-x" aria-label="Cerrar el menú">&times;</button></div>
 <nav class="b-chats" aria-label="Chats guardados"><p class="ch-est" id="oc-chat-est" role="status" hidden></p><div id="oc-chats"></div></nav>
 <div class="b-sw"><span class="lbl" id="oc-swl">Herramientas</span>
 <button type="button" id="oc-sw" class="sw" role="switch" aria-checked="true" aria-describedby="oc-swd"><span class="sw-t"><span class="sw-n" id="oc-swt">MCP: ACTIVADO</span><small id="oc-sws">obraclara · 4 herramientas</small></span><span class="pista" aria-hidden="true"></span></button>
@@ -383,9 +394,10 @@ export const demoHtml = String.raw`
 <button type="button" id="oc-gear" class="cfg-b" aria-haspopup="dialog" aria-label="Configuración de IA">${icoEngranaje}<span>Configuración</span></button></div>
 <div class="pie-l"><p>Los chats se guardan solo en este navegador y dispositivo (no en nuestro servidor). Si borras los datos del sitio, se pierden.</p><p>Las alertas son indicios para revisar, no prueba de irregularidades.</p><p>Universidad de Lima · I.A. Aplicada · Grupo 1. Código hecho con ayuda de IA generativa y revisado por el grupo.</p></div>
 </aside>
+<div class="velo" id="oc-velo" aria-hidden="true"></div>
 
 <section class="conv" aria-labelledby="oc-t">
-<div class="conv-top" id="oc-top" hidden><button type="button" id="oc-arch-b" class="b-comp" aria-controls="oc-pan" aria-expanded="false" hidden><span>Archivos (0)</span></button><button type="button" id="oc-share" class="b-comp" aria-haspopup="dialog">${icoCompartir}<span>Compartir</span></button></div>
+<div class="conv-top" id="oc-top" hidden><button type="button" id="oc-menu" class="b-menu" aria-controls="oc-lado" aria-expanded="false" aria-label="Chats y opciones">${icoMenu}<span class="b-menu-n" id="oc-menu-n" aria-hidden="true" hidden></span></button><button type="button" id="oc-nueva2" class="b-menu" aria-label="Nueva conversación" title="Nueva conversación">${icoMas}</button><button type="button" id="oc-arch-b" class="b-comp" aria-controls="oc-pan" aria-expanded="false" hidden><span>Archivos (0)</span></button><button type="button" id="oc-share" class="b-comp" aria-haspopup="dialog">${icoCompartir}<span>Compartir</span></button></div>
 <div class="scroll" id="oc-scroll"><div class="col">
 <div class="vacio" id="oc-vacio">
 <h1 id="oc-t">¿Qué quieres saber de la inversión pública?</h1>
@@ -719,7 +731,10 @@ function ocIdsArch(c){var r=[];c.mensajes.forEach(function(m){(m.arch||[]).forEa
 function ocBorrarTodos(){if(ocVivas.length){ocChatEst('Espera a que terminen las respuestas en curso para borrar todos los chats.');return}
  if(!ocChats.length||!confirm('¿Borrar todos los chats guardados en este navegador? No se puede deshacer.'))return;
  var ids=[];ocChats.forEach(function(c){ids=ids.concat(ocIdsArch(c))});ocAdjDel(ids);ocChats.forEach(function(c){ocSetBorrar(c.agenteId)});ocChats=[];ocLimpiar();ocPersistChats()}
-function ocRenderChats(){var r=$('oc-chats');r.textContent='';if(!ocChats.length)return;
+function ocMenuUi(){var b=$('oc-menu'),n=$('oc-menu-n'),v=ocVivas.length,nu=0,k;if(!b)return;for(k in ocNuevos)if(ocNuevos[k])nu++;
+ n.hidden=!v&&!nu;n.textContent=v?String(v):'';n.className='b-menu-n'+(v?'':' nuevo');
+ b.setAttribute('aria-label','Chats y opciones'+(v?' ('+v+(v===1?' chat respondiendo)':' chats respondiendo)'):nu?' (hay respuestas nuevas)':''))}
+function ocRenderChats(){ocMenuUi();var r=$('oc-chats');r.textContent='';if(!ocChats.length)return;
  var ahora=Date.now(),ult='',ul=null;
  ocChats.slice().sort(function(a,b){return b.actualizado-a.actualizado}).forEach(function(c){var g=grupoFecha(c.actualizado,ahora);
   if(g!==ult){ult=g;var h=document.createElement('h4');h.textContent=g;r.appendChild(h);ul=document.createElement('ul');r.appendChild(ul)}
@@ -728,7 +743,7 @@ function ocRenderChats(){var r=$('oc-chats');r.textContent='';if(!ocChats.length
    var hecho=false;function fin(ok){if(hecho)return;hecho=true;if(ok)ocRenombrar(c.id,inp.value);else{ocRen='';ocRenderChats()}}
    inp.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();fin(true)}else if(e.key==='Escape'){fin(false)}});
    inp.addEventListener('blur',function(){fin(true)});li.appendChild(inp);ul.appendChild(li);setTimeout(function(){inp.focus();inp.select()},0);return}
-  var b=document.createElement('button');b.type='button';b.className='ch-t';b.textContent=c.titulo;b.title=c.titulo;b.addEventListener('click',function(){ocAbrir(c.id)});
+  var b=document.createElement('button');b.type='button';b.className='ch-t';b.textContent=c.titulo;b.title=c.titulo;b.addEventListener('click',function(){ocAbrir(c.id);ocCajonCerrar()});
   var rn=document.createElement('button');rn.type='button';rn.className='ch-b';rn.textContent='✎';rn.setAttribute('aria-label','Renombrar chat «'+c.titulo+'»');rn.addEventListener('click',function(){ocRen=c.id;ocRenderChats()});
   var viva=!!ocViva(c.id),est=null;
   if(viva||ocNuevos[c.id]){est=document.createElement('span');est.className=viva?'ch-v':'ch-n';est.setAttribute('role','img');est.setAttribute('aria-label',viva?'Respondiendo':'Respuesta nueva');est.title=viva?'Respondiendo…':'Respuesta nueva'}
@@ -1083,7 +1098,25 @@ $('oc-in').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKe
 $('oc-in').addEventListener('input',ocAlto);
 $('oc-chips').addEventListener('click',function(e){var t=e.target&&e.target.closest?e.target.closest('button'):null;if(t)ocSend(t.getAttribute('data-q')||t.textContent)});
 $('oc-barajar').addEventListener('click',function(){ocIdeas(true)});
-$('oc-nueva').addEventListener('click',function(){ocLimpiar();ocRenderChats();$('oc-in').focus()});
+$('oc-nueva').addEventListener('click',function(){ocCajonCerrar(false);ocLimpiar();ocRenderChats();$('oc-in').focus()});
+$('oc-nueva2').addEventListener('click',function(){ocLimpiar();ocRenderChats();$('oc-in').focus()});
+// Cajón lateral en móvil (≤860 px): la barra lateral se desliza desde la izquierda.
+var ocCajonMq=window.matchMedia?window.matchMedia('(max-width:860px)'):null,ocCajonPrev=null;
+function ocCajonAbierto(){return $('oc-chat').classList.contains('cajon-on')}
+function ocCajonFoco(){return Array.prototype.filter.call($('oc-lado').querySelectorAll('button,input,select,textarea,a[href],[tabindex]:not([tabindex="-1"])'),function(el){return !el.disabled&&!el.hidden&&el.offsetParent!==null})}
+function ocCajonAbrir(){if(!ocCajonMq||!ocCajonMq.matches||ocCajonAbierto())return;ocCajonPrev=document.activeElement;var l=$('oc-lado'),cv=document.querySelector('.conv');
+ $('oc-chat').classList.add('cajon-on');l.setAttribute('role','dialog');l.setAttribute('aria-modal','true');$('oc-menu').setAttribute('aria-expanded','true');if(cv)cv.inert=true;$('oc-lado-x').focus()}
+function ocCajonCerrar(foco){if(!ocCajonAbierto())return;var l=$('oc-lado'),cv=document.querySelector('.conv'),p=ocCajonPrev;ocCajonPrev=null;
+ $('oc-chat').classList.remove('cajon-on');l.removeAttribute('role');l.removeAttribute('aria-modal');$('oc-menu').setAttribute('aria-expanded','false');if(cv)cv.inert=false;
+ if(foco!==false)(p&&p.focus&&document.contains(p)&&p.offsetParent!==null?p:$('oc-menu')).focus()}
+$('oc-menu').addEventListener('click',function(){if(ocCajonAbierto())ocCajonCerrar();else ocCajonAbrir()});
+$('oc-lado-x').addEventListener('click',function(){ocCajonCerrar()});
+$('oc-velo').addEventListener('click',function(){ocCajonCerrar()});
+if(ocCajonMq){var ocCajonCambio=function(){if(!ocCajonMq.matches)ocCajonCerrar(false)};if(ocCajonMq.addEventListener)ocCajonMq.addEventListener('change',ocCajonCambio);else if(ocCajonMq.addListener)ocCajonMq.addListener(ocCajonCambio)}
+document.addEventListener('keydown',function(e){if(!ocCajonAbierto()||document.querySelector('dialog[open]'))return;
+ if(e.key==='Escape'){if(e.target&&e.target.classList&&e.target.classList.contains('ch-i'))return;e.preventDefault();e.stopImmediatePropagation();ocCajonCerrar();return}
+ if(e.key==='Tab'){var f=ocCajonFoco(),i;if(!f.length)return;i=f.indexOf(document.activeElement);
+  if(e.shiftKey&&i<=0){e.preventDefault();f[f.length-1].focus()}else if(!e.shiftKey&&(i<0||i===f.length-1)){e.preventDefault();f[0].focus()}}},true);
 var ocPf=ocRead(localStorage,'oc_prefs');if(ocPf&&typeof ocPf==='object'){ocMcp=ocPf.mcp!==false;if('ag' in ocPf||'agente' in ocPf)ocPrefs()}
 $('oc-share').addEventListener('click',function(){var pu='';ocMsgs.forEach(function(m){if(!pu&&m.rol==='u')pu=m.texto});ocCompartir({id:ocChatId,titulo:tituloChat(pu),mensajes:ocMsgs.slice(),imgs:ocImgsDe()})});
 $('oc-sh-x').addEventListener('click',ocShCerrar);
