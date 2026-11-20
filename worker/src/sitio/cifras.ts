@@ -179,9 +179,9 @@ function paginar(){if(!rm||!g)return;mq.style.minHeight='';
  lis.forEach(function(li){li.classList.remove('fuera','ult','largo')});
  var W=mq.clientWidth,cur=[],w=0;pags=[];
  lis.forEach(function(li){var x=li.getBoundingClientRect().width;if(cur.length&&w+x>W){pags.push(cur);cur=[];w=0}if(x>W)li.classList.add('largo');cur.push(li);w+=x});
- if(cur.length)pags.push(cur);var h=0;
+ if(cur.length)pags.push(cur);var h=0,p0=pi;
  for(var i=0;i<pags.length;i++){mostrar(i);h=Math.max(h,mq.getBoundingClientRect().height)}
- mq.style.minHeight=h+'px';mostrar(pi<pags.length?pi:0)}
+ mq.style.minHeight=h+'px';mostrar(p0<pags.length?p0:0)}
 function pasar(){if(pags.length<2)return;g.classList.add('cf-fade');
  setTimeout(function(){mostrar((pi+1)%pags.length);g.classList.remove('cf-fade')},500)}
 function ptic(){ptim=null;if(quieto())return;pasar();pprog()}
