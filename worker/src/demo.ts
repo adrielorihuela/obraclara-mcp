@@ -7,6 +7,7 @@ import {
   largoContenido, acortarContenido, recortarMensajes, prepararCompartir,
   claseArchivo, mimeArchivo, tamanoLegible, resaltarLinea, htmlConRecursos, rutaRelativaZip, atributoHtml,
 } from "./lib/agente";
+import { ETIQUETAS_SUGERENCIA, SUGERENCIAS, elegirSugerencias, mezclarSugerencias } from "./lib/sugerencias";
 
 // Panel "Prueba el asistente" (página /asistente): HTML, CSS y script del navegador.
 // SINCRONÍA con src/lib/agente.ts: el script incrusta esas funciones con Function.prototype.toString(),
@@ -70,12 +71,28 @@ body.es-app main{flex:1;min-height:0}
 .vacio{padding:clamp(40px,10vh,120px) 0 24px}
 .vacio h1{font-size:var(--s3);max-width:18ch}
 .vacio p{color:var(--ink-2);margin-top:14px;max-width:56ch}
-.chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:28px}
-.chips[hidden]{display:none}
-.chips button{text-align:left;padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);font:inherit;font-size:14.5px;line-height:1.45;cursor:pointer;transition:border-color .2s var(--ease),transform .25s var(--ease),box-shadow .25s var(--ease);animation:entra .5s var(--ease) both}
-.chips button:nth-child(2){animation-delay:.06s}.chips button:nth-child(3){animation-delay:.12s}.chips button:nth-child(n+4){animation-delay:.18s}
-.chips button:hover{border-color:var(--ink-2);transform:translateY(-2px);box-shadow:var(--shadow-h)}
+.ideas{margin-top:28px}
+.ideas[hidden]{display:none}
+.ideas-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 10px}
+.ideas-top .lbl{font:500 12px/1 var(--mono);color:var(--mut);letter-spacing:.04em;text-transform:uppercase}
+.barajar{display:inline-flex;align-items:center;gap:7px;min-height:34px;padding:0 12px;border-radius:999px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink-2);font:500 13px/1 var(--sans);cursor:pointer;transition:border-color .2s var(--ease),color .2s var(--ease),box-shadow .2s var(--ease),transform .15s var(--ease)}
+.barajar svg{width:15px;height:15px;flex:none;transition:transform .45s var(--ease)}
+.barajar:hover{border-color:var(--ink-2);color:var(--ink);box-shadow:var(--shadow)}
+.barajar:active{transform:scale(.96)}
+.barajar.gira svg{transform:rotate(180deg)}
+.barajar:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.chips{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.chips button{--tn:var(--accent);display:flex;flex-direction:column;align-items:flex-start;gap:9px;text-align:left;padding:14px 16px 15px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);font:inherit;font-size:14.5px;line-height:1.45;cursor:pointer;transition:border-color .2s var(--ease),transform .25s var(--ease),box-shadow .25s var(--ease),opacity .18s var(--ease);animation:entra .45s var(--ease) both}
+.chips button:nth-child(2){animation-delay:.05s}.chips button:nth-child(3){animation-delay:.1s}.chips button:nth-child(n+4){animation-delay:.15s}
+.chips button:hover{border-color:color-mix(in srgb,var(--tn) 55%,var(--line));transform:translateY(-2px);box-shadow:var(--shadow-h)}
 .chips button:active{transform:scale(.98)}
+.chips.sale button{opacity:0;transform:translateY(-6px) scale(.98);animation:none}
+.chips .sg-e{display:inline-flex;align-items:center;gap:6px;padding:4px 8px 4px 6px;border-radius:6px;background:color-mix(in srgb,var(--tn) 12%,transparent);color:var(--tn);font:600 11.5px/1 var(--mono);letter-spacing:.01em}
+.chips .sg-e svg{width:14px;height:14px;flex:none}
+.chips .sg-q{display:block}
+.chips [data-t=xlsx]{--tn:#1a7a46}.chips [data-t=docx]{--tn:#2457b8}.chips [data-t=pdf]{--tn:#bd3428}.chips [data-t=pptx]{--tn:#b8531a}.chips [data-t=rapida]{--tn:var(--accent)}
+:root[data-theme=dark] .chips [data-t=xlsx]{--tn:#5cc98a}:root[data-theme=dark] .chips [data-t=docx]{--tn:#7fa8f5}:root[data-theme=dark] .chips [data-t=pdf]{--tn:#f08a7e}:root[data-theme=dark] .chips [data-t=pptx]{--tn:#f2a36b}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .chips [data-t=xlsx]{--tn:#5cc98a}:root:not([data-theme=light]) .chips [data-t=docx]{--tn:#7fa8f5}:root:not([data-theme=light]) .chips [data-t=pdf]{--tn:#f08a7e}:root:not([data-theme=light]) .chips [data-t=pptx]{--tn:#f2a36b}}
 .vacio h1,.vacio p{animation:entra .5s var(--ease) both}.vacio p{animation-delay:.05s}
 #oc-log{display:flex;flex-direction:column;gap:18px;padding:24px 0 32px}
 #oc-log:empty{padding:0}
@@ -333,7 +350,7 @@ body.es-app main{flex:1;min-height:0}
  .lado .b-nueva{order:3}
  .col{padding:0 16px}.composer{padding:6px 12px 10px}
  .vacio{padding:28px 0 16px}
- .chips{grid-template-columns:minmax(0,1fr);margin-top:20px}
+ .ideas{margin-top:20px}.chips{grid-template-columns:minmax(0,1fr)}.chips button{padding:12px 14px 13px;gap:7px;font-size:14px}
  .chat.con-pan{grid-template-columns:minmax(0,1fr)}
  .pan{position:fixed;inset:0;z-index:50;border-left:0;animation-name:pan-sube}
  @keyframes pan-sube{from{opacity:0;transform:translateY(24px)}}
@@ -346,6 +363,7 @@ const icoMas = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strok
 const icoEngranaje = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>`;
 const icoClip = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 11.5-8.6 8.6a5.5 5.5 0 0 1-7.8-7.8l8.6-8.6a3.7 3.7 0 0 1 5.2 5.2l-8.6 8.6a1.8 1.8 0 0 1-2.6-2.6l8-8"/></svg>`;
 const icoCompartir = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 10V2.5M5 5.2 8 2.5l3 2.7M3.5 9v3.5a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V9"/></svg>`;
+const icoBarajar = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4.5h2.2c1.4 0 2.2.6 3 1.8l1.6 3.4c.8 1.2 1.6 1.8 3 1.8H14M2 11.5h2.2c1 0 1.7-.3 2.3-1M14 4.5h-2.2c-1 0-1.7.3-2.3 1M12 2.5l2 2-2 2M12 9.5l2 2-2 2"/></svg>`;
 const icoEnviar = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 13V3M3.5 7.5 8 3l4.5 4.5"/></svg>`;
 
 export const demoHtml = String.raw`
@@ -367,11 +385,11 @@ export const demoHtml = String.raw`
 <div class="vacio" id="oc-vacio">
 <h1 id="oc-t">¿Qué quieres saber de la inversión pública?</h1>
 <p id="oc-vp">Pregunta por una obra, una entidad o una región. Con el MCP activado, el asistente consulta los datos del MEF; también puede leer tus archivos y entregarte otros (Excel, Word, PDF).</p>
-<div class="chips" id="oc-chips">
-<button type="button">¿Qué obras de salud en Cusco llevan 6 meses sin gasto?</button>
-<button type="button">Resume las inversiones de la Municipalidad Provincial de Piura</button>
-<button type="button">¿Cuál es el avance de la inversión 2716769?</button>
-</div></div>
+<div class="ideas" id="oc-ideas"><div class="ideas-top"><span class="lbl" id="oc-ideas-t">Ideas para empezar</span><button type="button" class="barajar" id="oc-barajar" aria-controls="oc-chips">${icoBarajar}<span>Otras ideas</span></button></div>
+<div class="chips" id="oc-chips" role="group" aria-labelledby="oc-ideas-t" aria-live="polite">
+<button type="button" data-t="rapida" data-q="¿Qué obras de salud en Cusco llevan 6 meses o más sin gasto?"><span class="sg-q">¿Qué obras de salud en Cusco llevan 6 meses o más sin gasto?</span></button>
+<button type="button" data-t="docx" data-q="Prepara un informe en Word con tablas y gráficos de las alertas de sobrecosto en Piura"><span class="sg-q">Prepara un informe en Word con tablas y gráficos de las alertas de sobrecosto en Piura</span></button>
+</div></div></div>
 <div id="oc-log" aria-live="polite"></div>
 </div></div>
 <form id="oc-form" class="composer">
@@ -559,7 +577,7 @@ function ocSwitchText(){var sw=$('oc-sw'),ag=ocAgActivo(),DESC='El asistente pue
  $('oc-swt').textContent=ocMcp?'MCP: ACTIVADO':'MCP: DESACTIVADO';$('oc-sws').textContent='obraclara · 4 herramientas';
  $('oc-swd').textContent=ag?(ocMcp?DESC:'Sin MCP el asistente no consulta los datos oficiales: trabaja con tus archivos y te entrega otros, como un Excel, un Word o un PDF.'):(ocMcp?'Con MCP: el modelo puede consultar los datos oficiales del MEF mediante las herramientas de este servidor.':'Sin MCP: chat normal con el mismo modelo, sin acceso a los datos; puede equivocarse o inventar.');
  var ind=$('oc-ind');ind.className='ind'+(ocMcp?' on':'');ind.lastChild.textContent=ocMcp?'MCP activado':'Sin MCP';
- $('oc-in').placeholder=ag?(ocMcp?'Pídele datos y archivos al asistente':'Dile al asistente qué hacer (puedes adjuntar archivos)'):'Escribe tu pregunta';$('oc-chips').hidden=ag&&!ocMcp;
+ $('oc-in').placeholder=ag?(ocMcp?'Pídele datos y archivos al asistente':'Dile al asistente qué hacer (puedes adjuntar archivos)'):'Escribe tu pregunta';$('oc-ideas').hidden=ag&&!ocMcp;
  $('oc-vp').textContent=ag?DESC:'Pregunta por una obra, una entidad o una región. Con el MCP activado, el modelo consulta los datos del MEF y te muestra qué herramienta usó.';
  $('oc-em').hidden=!(ocAgSabe&&!ocAgOk&&ocActiva===ocHL)}
 function ocPrefs(){ocWrite(localStorage,'oc_prefs',{mcp:ocMcp})}
@@ -667,7 +685,7 @@ function ocGuardar(){var hay=false;ocMsgs.forEach(function(m){if(m.rol==='a')hay
   ocChatId='c'+ahora.toString(36)+Math.random().toString(36).slice(2,6);c={id:ocChatId,titulo:tituloChat(pu),creado:ahora,actualizado:ahora,mensajes:[]};ocChats.push(c)}
  c.mensajes=ocMsgs.slice();c.actualizado=ahora;if(ocAgId)c.agenteId=ocAgId;ocPersistChats()}
 async function ocCargarChats(){var t=await ocAlmLeer();ocChats=deserializarChats(t);ocRenderChats()}
-function ocLimpiar(){ocPanCerrar();ocArch=[];$('oc-arch-b').hidden=true;ocAgId='';ocEvN=0;ocHist=[];ocMsgs=[];ocChatId='';ocImgs=[];ocDocs=[];ocThumbs();$('oc-log').textContent='';$('oc-vacio').hidden=false;ocShareUi()}
+function ocLimpiar(){ocPanCerrar();ocArch=[];$('oc-arch-b').hidden=true;ocAgId='';ocEvN=0;ocHist=[];ocMsgs=[];ocChatId='';ocImgs=[];ocDocs=[];ocThumbs();$('oc-log').textContent='';$('oc-vacio').hidden=false;ocShareUi();ocIdeas(false)}
 function ocAbrir(id){if(ocBusy)return;var c=null;ocChats.forEach(function(x){if(x.id===id)c=x});if(!c)return;
  ocLimpiar();ocChatId=c.id;ocAgId=c.agenteId||'';ocRest=true;
  c.mensajes.forEach(function(m){
@@ -1037,17 +1055,39 @@ presetsIA().forEach(function(p){var b=document.createElement('button');b.type='b
 $('oc-form').addEventListener('submit',function(e){e.preventDefault();ocSend($('oc-in').value)});
 $('oc-in').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();ocSend($('oc-in').value)}});
 $('oc-in').addEventListener('input',ocAlto);
-$('oc-chips').addEventListener('click',function(e){var t=e.target&&e.target.closest?e.target.closest('button'):null;if(t)ocSend(t.textContent)});
+$('oc-chips').addEventListener('click',function(e){var t=e.target&&e.target.closest?e.target.closest('button'):null;if(t)ocSend(t.getAttribute('data-q')||t.textContent)});
+$('oc-barajar').addEventListener('click',function(){ocIdeas(true)});
 $('oc-nueva').addEventListener('click',function(){if(ocBusy)return;ocLimpiar();ocRenderChats();$('oc-in').focus()});
 var ocPf=ocRead(localStorage,'oc_prefs');if(ocPf&&typeof ocPf==='object'){ocMcp=ocPf.mcp!==false;if('ag' in ocPf||'agente' in ocPf)ocPrefs()}
 $('oc-share').addEventListener('click',function(){var pu='';ocMsgs.forEach(function(m){if(!pu&&m.rol==='u')pu=m.texto});ocCompartir({id:ocChatId,titulo:tituloChat(pu),mensajes:ocMsgs.slice(),imgs:ocImgsDe()})});
 $('oc-sh-x').addEventListener('click',ocShCerrar);
 $('oc-sh').addEventListener('click',function(e){if(e.target===$('oc-sh'))ocShCerrar()});
 $('oc-sh-crear').addEventListener('click',ocShCrear);
-ocLoad();ocUi();ocSwitchText();ocAgEstado();
+ocLoad();ocUi();ocSwitchText();ocAgEstado();ocIdeas(false);
 ocCargarChats().then(function(){var m=/[?&]abrir=([A-Za-z0-9_-]+)/.exec(location.search);if(m){ocAbrir(m[1]);try{history.replaceState(null,'','/asistente')}catch(e){}}}).catch(function(){});
 `;
 
 /** Funciones puras + renderizador seguro compartidos por /asistente y /c/:id. */
 export const demoComun = nombres + "\n" + appComun;
-export const demoScript = demoComun + "\n" + app;
+// Banco de sugerencias de la pantalla inicial y su selección al azar (src/lib/sugerencias.ts).
+const icoSug: Record<string, string> = {
+  xlsx: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" rx="1.5"/><path d="M5 11V8.5M8 11V6M11 11V4.5"/></svg>`,
+  docx: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 1.8h5.2L12.5 5v9.2H4z"/><path d="M9 1.8V5h3.5M6 8h4.5M6 10.5h4.5"/></svg>`,
+  pdf: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 1.8h5.2L12.5 5v9.2H4z"/><path d="M9 1.8V5h3.5M6 11.5l1.6-2 1.3 1.2 1.6-2.2"/></svg>`,
+  pptx: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.8" y="2.5" width="12.4" height="8.5" rx="1.2"/><path d="M8 11v2.5M5.5 13.5h5M6.5 5.2v3.6L9.6 7z"/></svg>`,
+  rapida: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 1.8 3.5 9h4L7 14.2 12.5 7h-4z"/></svg>`,
+};
+const sugerenciasJs = [mezclarSugerencias, elegirSugerencias].map((f) => f.toString()).join("\n") +
+  "\nvar OC_SUG=" + JSON.stringify(SUGERENCIAS) + ";\nvar OC_SUG_ET=" + JSON.stringify(ETIQUETAS_SUGERENCIA) + ";\nvar OC_SUG_IC=" + JSON.stringify(icoSug) + ";\n" + String.raw`
+var ocSugVistas=[];
+function ocIdeas(animar){var c=$('oc-chips');if(!c)return;
+ var n=window.matchMedia&&window.matchMedia('(max-width:860px)').matches?3:4;
+ var el=elegirSugerencias(OC_SUG,n,Math.random,ocSugVistas);ocSugVistas=el.map(function(s){return s.texto});
+ var pinta=function(){c.textContent='';el.forEach(function(s){var b=document.createElement('button');b.type='button';b.setAttribute('data-t',s.t);b.setAttribute('data-q',s.texto);
+  var e=document.createElement('span');e.className='sg-e';e.innerHTML=OC_SUG_IC[s.t]||'';e.appendChild(document.createTextNode(OC_SUG_ET[s.t]||''));
+  var q=document.createElement('span');q.className='sg-q';q.textContent=s.texto;b.appendChild(e);b.appendChild(q);c.appendChild(b)});c.classList.remove('sale')};
+ var bb=$('oc-barajar');if(animar&&bb){bb.classList.toggle('gira')}
+ if(animar&&c.children.length&&!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches)){c.classList.add('sale');setTimeout(pinta,170)}else pinta()}
+`;
+
+export const demoScript = demoComun + "\n" + sugerenciasJs + "\n" + app;
