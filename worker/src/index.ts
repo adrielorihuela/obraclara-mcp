@@ -3,7 +3,7 @@ import { noEncontrada, paginaSitio } from "./pagina";
 import { crearServidor, ok } from "./server";
 import { alertas, buscar, meta, type Db, type Filtros } from "./lib/queries";
 import { CF_TEXTO, CF_VISION, ETIQUETA_RESPALDO, ErrorProveedor, GROQ_TEXTO, GROQ_VISION, Pausas, cadena, groq, tieneImagenes, validarMensajes, workersAI, type Msg, type Proveedor } from "./lib/cadena";
-import { AGENTE_MAX_CUERPO, chatIdSeguro, validarAgente, validarRama, validarRehacer } from "./lib/agenteapi";
+import { AGENTE_MAX_CUERPO, chatIdSeguro, validarAgente, validarRama, validarRecuperar, validarRehacer } from "./lib/agenteapi";
 import { RespaldoDb } from "./lib/remotedb";
 import { COMP_MAX_CUERPO, borrarCompartido, guardarCompartido, leerCompartido, validarCompartir, type DbComp } from "./lib/compartir";
 import { CABECERAS_COMPARTIDO, compartidoNoEncontrado, paginaCompartida } from "./compartido";
@@ -65,15 +65,17 @@ export default {
       try { return json(await cadena(proveedores, mensajes, pausas)); }
       catch (e) { return json({ error: (e as Error).message }, 502); }
     }
-    if ((url.pathname === "/api/agente" || url.pathname === "/api/agente/rehacer" || url.pathname === "/api/agente/rama") && req.method === "POST") {
+    if ((url.pathname === "/api/agente" || url.pathname === "/api/agente/rehacer" || url.pathname === "/api/agente/rama" || url.pathname === "/api/agente/recuperar") && req.method === "POST") {
       const origen = req.headers.get("origin");
       if (origen && origen !== SITIO) return json({ error: "Origen no permitido" }, 403);
-      if (!(await env.CHAT_LIMITER.limit({ key: clave })).success) return json({ error: "Demasiadas preguntas seguidas. Espera un minuto." }, 429);
+      // «recuperar» no hace una pregunta nueva (espera la respuesta de una ya enviada): cuenta aparte para no gastar el cupo del visitante.
+      const rec = url.pathname === "/api/agente/recuperar";
+      if (!(await env.CHAT_LIMITER.limit({ key: (rec ? "rec:" : "") + clave })).success) return json({ error: "Demasiadas preguntas seguidas. Espera un minuto." }, 429);
       if (Number(req.headers.get("content-length") ?? 0) > AGENTE_MAX_CUERPO) return json({ error: "Los archivos superan los 25 MB en total." }, 413);
       let cuerpo: unknown;
       try { const t = await req.text(); if (t.length > AGENTE_MAX_CUERPO) return json({ error: "Los archivos superan los 25 MB en total." }, 413); cuerpo = JSON.parse(t); } catch { return json({ error: "JSON inválido" }, 400); }
       // Editar o reintentar: se reenvía tal cual a la API del agente (que recorta su historial); 404 si la API aún no lo admite.
-      const v = url.pathname === "/api/agente/rehacer" ? validarRehacer(cuerpo) : url.pathname === "/api/agente/rama" ? validarRama(cuerpo) : validarAgente(cuerpo);
+      const v = url.pathname === "/api/agente/rehacer" ? validarRehacer(cuerpo) : url.pathname === "/api/agente/rama" ? validarRama(cuerpo) : rec ? validarRecuperar(cuerpo) : validarAgente(cuerpo);
       if (!v.ok) return json({ error: v.error }, 400);
       const r = await cola.fetch("https://cola/agente", { method: "POST", body: JSON.stringify(v.valor) });
       return new Response(r.body, { status: r.status, headers: { "content-type": "application/json; charset=utf-8", "access-control-allow-origin": "*" } });

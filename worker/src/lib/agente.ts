@@ -284,6 +284,8 @@ export type MensajeGuardado = {
   modelo?: string;
   mcp?: boolean;
   herramienta?: { nombre: string; args: unknown; resultado: string };
+  /** Proceso del agente en esa respuesta (pasos con su tipo, texto y duración en ms; duración total; modelo). */
+  proc?: ProcesoGuardado;
   /** Adjuntos del mensaje de usuario (solo datos para mostrar chips). */
   adj?: { n: string; t: string; c: number; b?: number }[];
   arch?: { id: string; n: string; ti?: string; b: number; g?: boolean; v?: number }[];
@@ -312,6 +314,58 @@ export function sinImagenes(texto: unknown): string {
 }
 
 /** Mensaje válido y acotado, o null. */
+export type ProcesoGuardado = { p: { t: string; x: string; ms: number }[]; ms: number; mo?: string };
+
+// Tipo de un paso del agente (para su icono en la línea de tiempo), a partir del tipo de evento y su texto.
+export function tipoPaso(tipo: string, texto: string): string {
+  const t = String(texto || "");
+  if (tipo === "error") return "error";
+  if (tipo === "mensaje_incorporado") return "mensaje";
+  if (tipo === "archivo" || /adjuntando|creando (el )?archivo|guardando|\.(xlsx|docx|pdf|csv|pptx|zip|png|md|json|html)\b/i.test(t)) return "archivo";
+  if (/cambiando (a otro|de) modelo|otro modelo/i.test(t)) return "modelo";
+  if (/buscar_inversiones|detalle_inversion|alertas_inversion|resumen_inversiones|obraclara__|\bMCP\b/i.test(t)) return "mcp";
+  if (tipo === "herramienta" && /web|internet|search/i.test(t)) return "web";
+  if (tipo === "herramienta") return "herramienta";
+  if (/pensando|razonando|empezando/i.test(t)) return "pensar";
+  if (/analiz|revisando|leyendo|resultados/i.test(t)) return "analizar";
+  return "paso";
+}
+
+// «Gemini · gemini-3.1-flash-lite» → «Gemini 3.1 Flash-Lite» (nombre legible del modelo que respondió).
+export function nombreModelo(s: unknown): string {
+  if (typeof s !== "string" || !s.trim()) return "";
+  const k = s.lastIndexOf("·"), base = (k >= 0 ? s.slice(k + 1) : s).trim();
+  return base.split(/[-_\s]+/).filter(Boolean).map((w) => (/^\d/.test(w) ? w : w.charAt(0).toUpperCase() + w.slice(1))).join(" ").replace(/Flash Lite/g, "Flash-Lite").slice(0, 60);
+}
+
+// Duración legible: «850 ms», «42 s», «2 min 05 s».
+export function duracionCorta(ms: number): string {
+  const v = Math.max(0, Math.round(Number(ms) || 0));
+  if (v < 1000) return v + " ms";
+  const s = Math.round(v / 1000);
+  if (s < 60) return s + " s";
+  const r = s % 60;
+  return Math.floor(s / 60) + " min " + (r < 10 ? "0" : "") + r + " s";
+}
+
+// Línea compacta sobre la respuesta: «Proceso · 7 pasos · 42 s · Gemini 3.1 Flash-Lite».
+export function resumenProceso(pr: any): string {
+  const n = pr && Array.isArray(pr.p) ? pr.p.length : 0;
+  const partes = ["Proceso", n + (n === 1 ? " paso" : " pasos"), duracionCorta(pr && pr.ms)];
+  const mo = nombreModelo(pr && pr.mo);
+  if (mo) partes.push(mo);
+  return partes.join(" · ");
+}
+
+export function normalizarProceso(pr: any): ProcesoGuardado | null {
+  if (!pr || typeof pr !== "object" || !Array.isArray(pr.p) || !pr.p.length) return null;
+  const p = pr.p.slice(0, 40).filter((x: any) => x && typeof x.x === "string").map((x: any) => ({ t: String(x.t || "paso").slice(0, 12), x: x.x.slice(0, 200), ms: Math.max(0, Math.min(3600000, Math.round(Number(x.ms) || 0))) }));
+  if (!p.length) return null;
+  const o: ProcesoGuardado = { p, ms: Math.max(0, Math.min(3600000, Math.round(Number(pr.ms) || 0))) };
+  if (typeof pr.mo === "string" && pr.mo.trim()) o.mo = pr.mo.trim().slice(0, 80);
+  return o;
+}
+
 export function normalizarMensaje(m: any): MensajeGuardado | null {
   if (!m || typeof m !== "object" || (m.rol !== "u" && m.rol !== "a" && m.rol !== "t")) return null;
   const o: MensajeGuardado = { rol: m.rol, texto: sinImagenes(m.texto).slice(0, 20000) };
@@ -321,6 +375,7 @@ export function normalizarMensaje(m: any): MensajeGuardado | null {
   // Índices del historial del agente: n = el N de «rehacer» de este mensaje del usuario; ds = el `desde` que reintenta esta respuesta.
   if (m.rol === "u" && Number.isInteger(m.n) && m.n >= 0 && m.n < 100000) o.n = m.n;
   if (m.rol === "a" && Number.isInteger(m.ds) && m.ds >= 0 && m.ds < 100000) o.ds = m.ds;
+  if (m.rol === "a") { const pr = normalizarProceso(m.proc); if (pr) o.proc = pr; }
   if (m.rol === "u") {
     if (Array.isArray(m.adj) && m.adj.length) o.adj = m.adj.slice(0, 10).map((x: any) => ({ n: String((x && x.n) || "").slice(0, 100), t: String((x && x.t) || "").slice(0, 10), c: Number(x && x.c) || 0, b: Number(x && x.b) || 0 }));
   }

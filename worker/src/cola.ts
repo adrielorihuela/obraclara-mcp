@@ -7,14 +7,17 @@ import { MAX_PENDIENTES, type Mensaje } from "./lib/gptjobs";
 const TIEMPO_MAX_MS = 85_000;
 type Resp = { codigo?: number; cuerpo?: unknown; content?: string; modelo?: string; error?: string; rows?: unknown[]; row?: unknown; zip?: string };
 const TIEMPO_SQL_MS = 8_000;
-const TIEMPO_AGENTE_MS = 300_000;
+const TIEMPO_AGENTE_MS = 450_000; // la API corta cada turno a los 6 min; el conector espera 7 min y aquí un poco más
 const TIEMPO_ZIP_MS = 60_000;
 const MAX_AGENTES = 6; // turnos y mensajes al agente a la vez (la API decide qué hacer con cada uno)
 const MAX_CHATS_EVENTOS = 40;
 const MAX_EVENTOS = 300;
 const TIPOS_EVENTO = new Set(["paso", "herramienta", "archivo", "mensaje_incorporado", "fin", "error"]);
-type Evento = { n: number; tipo: string; texto: string };
+type Evento = { n: number; tipo: string; texto: string; modelo?: string; ts: number };
 type Agente = { chat_id?: string; resolver: (r: Resp) => void };
+// Respuesta del Worker cuando el conector no está o se cayó a mitad de turno: el navegador espera la reconexión (suele tardar
+// menos de 10 s) y entonces reenvía (`enviado: false`) o recupera la respuesta del turno que la API siguió haciendo (`enviado: true`).
+const RECONECTANDO = (enviado: boolean) => Response.json({ error: "Reconectando con el servidor del agente…", reconectando: true, enviado }, { status: 503 });
 
 export class ColaIA extends DurableObject {
   private conn: WebSocket | null = null;
@@ -41,7 +44,7 @@ export class ColaIA extends DurableObject {
           const m = JSON.parse(String(ev.data)) as { codigo?: number; cuerpo?: unknown; type?: string; id?: string; chat_id?: string; tipo?: string; texto?: string; content?: string; modelo?: string; error?: string; rows?: unknown[]; row?: unknown; sql?: boolean; imagenes?: boolean; agente?: unknown; zip?: string };
           if (m.type === "ping") return servidor.send(JSON.stringify({ type: "pong" }));
           if (m.type === "hola") { this.sqlListo = !!m.sql; this.imagenes = !!m.imagenes; this.agente = !!m.agente; return; }
-          if (m.type === "evento") return this.guardarEvento(m.chat_id, m.tipo, m.texto);
+          if (m.type === "evento") return this.guardarEvento(m.chat_id, m.tipo, m.texto, m.modelo);
           if (m.type === "resultado" && m.id) {
             const r = this.pendientes.get(m.id) ?? this.consultas.get(m.id) ?? this.agentes.get(m.id)?.resolver;
             r?.({ codigo: typeof m.codigo === "number" ? m.codigo : undefined, cuerpo: m.cuerpo, content: m.content, modelo: typeof m.modelo === "string" ? m.modelo.slice(0, 100) : undefined, error: m.error, rows: m.rows, row: m.row, zip: typeof m.zip === "string" ? m.zip : undefined });
@@ -52,7 +55,7 @@ export class ColaIA extends DurableObject {
       const caer = () => {
         if (this.conn === servidor) { this.conn = null; this.sqlListo = false; this.imagenes = false; this.agente = false; }
         for (const m of [this.pendientes, this.consultas]) for (const [id, r] of m) { r({ error: "El conector se desconectó." }); m.delete(id); }
-        for (const [id, a] of this.agentes) { a.resolver({ error: "El conector se desconectó." }); this.agentes.delete(id); }
+        for (const [id, a] of this.agentes) { a.resolver({ error: "El conector se desconectó.", codigo: -1 }); this.agentes.delete(id); }
       };
       servidor.addEventListener("close", caer);
       servidor.addEventListener("error", caer);
@@ -88,21 +91,22 @@ export class ColaIA extends DurableObject {
       return r.content ? Response.json({ content: r.content, modelo: r.modelo || "IA del servidor" }) : Response.json({ error: r.error ?? "Error de la IA" }, { status: 502 });
     }
     if (url.pathname === "/agente" && req.method === "POST") {
-      if (!this.conn || !this.agente) return Response.json({ error: "El modo agente del servidor no está disponible en este momento." }, { status: 503 });
+      if (!this.conn || !this.agente) return RECONECTANDO(false);
       if (this.agentes.size >= MAX_AGENTES) return Response.json({ error: "El servidor está ocupado con otras preguntas. Inténtalo en unos segundos." }, { status: 503 });
-      const { chat_id, mensaje, archivos, mcp, conocidos, subidos, desde, rama } = (await req.json()) as { chat_id?: string; mensaje?: string; archivos: unknown[]; mcp?: boolean; conocidos?: unknown; subidos?: unknown; desde?: number; rama?: number };
+      const { chat_id, mensaje, archivos, mcp, conocidos, subidos, desde, rama, recuperar } = (await req.json()) as { chat_id?: string; mensaje?: string; archivos: unknown[]; mcp?: boolean; conocidos?: unknown; subidos?: unknown; desde?: number; rama?: number; recuperar?: boolean };
       // Un turno nuevo (el chat no tiene otro en curso) empieza con el progreso en blanco; la numeración sigue para que el navegador no repita.
-      if (chat_id && !Number.isInteger(rama) && ![...this.agentes.values()].some((a) => a.chat_id === chat_id)) { const e = this.eventos.get(chat_id); if (e) e.lista = []; }
+      if (chat_id && !Number.isInteger(rama) && !recuperar && ![...this.agentes.values()].some((a) => a.chat_id === chat_id)) { const e = this.eventos.get(chat_id); if (e) e.lista = []; }
       const id = crypto.randomUUID();
       const respuesta = new Promise<Resp>((resolve) => {
         this.agentes.set(id, { chat_id, resolver: resolve });
-        setTimeout(() => { if (this.agentes.delete(id)) resolve({ error: "El agente tardó demasiado en responder. Inténtalo de nuevo." }); }, TIEMPO_AGENTE_MS);
+        setTimeout(() => { if (this.agentes.delete(id)) resolve({ error: "El agente tardó demasiado en responder. Inténtalo de nuevo.", codigo: -2 }); }, TIEMPO_AGENTE_MS);
       });
-      try { this.conn.send(JSON.stringify({ type: "agente", id, chat_id, mensaje, archivos, ...(Number.isInteger(desde) ? { desde } : {}), ...(Number.isInteger(rama) ? { rama } : {}), ...(mcp === true ? { mcp: true } : {}), ...(conocidos ? { conocidos } : {}), ...(subidos ? { subidos } : {}) })); }
-      catch { this.agentes.delete(id); return Response.json({ error: "No se pudo enviar la tarea al conector." }, { status: 502 }); }
+      try { this.conn.send(JSON.stringify({ type: "agente", id, chat_id, mensaje, archivos, ...(Number.isInteger(desde) ? { desde } : {}), ...(Number.isInteger(rama) ? { rama } : {}), ...(recuperar === true ? { recuperar: true } : {}), ...(mcp === true ? { mcp: true } : {}), ...(conocidos ? { conocidos } : {}), ...(subidos ? { subidos } : {}) })); }
+      catch { this.agentes.delete(id); return RECONECTANDO(false); }
       const r = await respuesta;
+      if (r.codigo === -1) return RECONECTANDO(true);
       if (r.cuerpo && typeof r.cuerpo === "object" && (r.codigo === 200 || r.codigo === 202)) return Response.json(r.cuerpo, { status: r.codigo });
-      return Response.json({ error: r.error ?? "Error del agente" }, { status: r.codigo && r.codigo >= 400 && r.codigo < 500 ? r.codigo : 502 });
+      return Response.json({ error: r.error ?? "Error del agente", ...(r.codigo === -2 ? { tiempo: true } : {}) }, { status: r.codigo && r.codigo >= 400 && r.codigo < 500 ? r.codigo : 502 });
     }
     if (url.pathname === "/zip") {
       if (!this.conn || !this.agente) return Response.json({ error: "El servidor no está disponible en este momento." }, { status: 503 });
@@ -123,12 +127,12 @@ export class ColaIA extends DurableObject {
       const chat = url.searchParams.get("chat_id") ?? "";
       const desde = Math.max(0, Number(url.searchParams.get("desde")) || 0);
       const e = this.eventos.get(chat);
-      return Response.json({ eventos: (e?.lista ?? []).filter((x) => x.n > desde), siguiente: e?.n ?? 0, activo: [...this.agentes.values()].some((a) => a.chat_id === chat) });
+      return Response.json({ eventos: (e?.lista ?? []).filter((x) => x.n > desde), siguiente: e?.n ?? 0, ahora: Date.now(), activo: [...this.agentes.values()].some((a) => a.chat_id === chat) });
     }
     return new Response("no encontrado", { status: 404 });
   }
 
-  private guardarEvento(chat: unknown, tipo: unknown, texto: unknown) {
+  private guardarEvento(chat: unknown, tipo: unknown, texto: unknown, modelo?: unknown) {
     if (typeof chat !== "string" || !/^[A-Za-z0-9_-]{1,64}$/.test(chat) || typeof tipo !== "string" || !TIPOS_EVENTO.has(tipo)) return;
     let e = this.eventos.get(chat);
     if (!e) {
@@ -136,7 +140,7 @@ export class ColaIA extends DurableObject {
       e = { n: 0, lista: [] };
       this.eventos.set(chat, e);
     }
-    e.lista.push({ n: ++e.n, tipo, texto: typeof texto === "string" ? texto.slice(0, 200) : "" });
+    e.lista.push({ n: ++e.n, tipo, texto: typeof texto === "string" ? texto.slice(0, 200) : "", ...(typeof modelo === "string" && modelo ? { modelo: modelo.slice(0, 80) } : {}), ts: Date.now() });
     if (e.lista.length > MAX_EVENTOS) e.lista.splice(0, e.lista.length - MAX_EVENTOS);
   }
 }

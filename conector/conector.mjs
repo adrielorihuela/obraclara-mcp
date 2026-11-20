@@ -70,6 +70,11 @@ const TIPOS = { txt: "text/plain", md: "text/markdown", csv: "text/csv", json: "
 const cabIA = () => (IA_KEY ? { authorization: "Bearer " + IA_KEY } : {});
 const enviar = (ws, msg) => { try { ws.send(JSON.stringify(msg)); } catch { /* conexión caída */ } };
 
+// Nombre del modelo que respondió, para mostrarlo en el sitio («Respondió: …»). El proveedor local no se nombra nunca.
+const modeloPublico = (p) => (typeof p === "string" && p.trim() && !/-web\b|\bweb\b|local|127\.0\.0\.1|https?:/i.test(p) ? p.trim().slice(0, 80) : "");
+const MENSAJE_SOLO_ARCHIVOS = "Revisa los archivos adjuntos y resume su contenido.";
+const TIEMPO_TURNO_MS = 420000; // la API corta cada turno a los 6 min; aquí se espera un poco más para no cortar antes que ella
+
 // Una suscripción al SSE de eventos por chat mientras dura el turno; cada evento va al Worker por el WebSocket.
 const turnos = new Map();
 function suscribir(ws, chat, esperar) {
@@ -87,7 +92,7 @@ function suscribir(ws, chat, esperar) {
           const datos = bloque.split("\n").filter((l) => l.startsWith("data:")).map((l) => l.slice(5).replace(/^ /, "")).join("");
           if (!datos) continue;
           let ev; try { ev = JSON.parse(datos); } catch { continue; }
-          enviar(ws, { type: "evento", chat_id: chat, tipo: ev.tipo, texto: ev.texto });
+          enviar(ws, { type: "evento", chat_id: chat, tipo: ev.tipo, texto: ev.texto, ...(modeloPublico(ev.modelo ?? ev.proveedor) ? { modelo: modeloPublico(ev.modelo ?? ev.proveedor) } : {}) });
           if (ev.tipo === "fin" || ev.tipo === "error") { ctl.abort(); return; }
         }
       }
@@ -96,11 +101,93 @@ function suscribir(ws, chat, esperar) {
   return ctl;
 }
 
+
+// Cuerpo que recibe el navegador tras un turno: respuesta, archivos nuevos (bajados de la API) e índices del historial.
+async function armarCuerpo(j, tarea, chat) {
+  const archivos = []; const omitidos = []; const pendientes = []; let total = 0;
+  const adjuntos = (Array.isArray(j.adjuntos) ? j.adjuntos : []).slice(0, 20);
+  const vigentes = (Array.isArray(j.archivos_chat) ? j.archivos_chat : []).slice(0, 100);
+  const conocidos = tarea.conocidos && typeof tarea.conocidos === "object" ? tarea.conocidos : {};
+  const subidos = new Set(Array.isArray(tarea.subidos) ? tarea.subidos : []);
+  // Primero lo entregado en este turno; después lo vigente del chat que el navegador aún no tiene (versiones nuevas).
+  const bajar = async (a, obligatorio) => {
+    try {
+      if (typeof a?.url !== "string" || !a.url.startsWith("/") || a.url.startsWith("//")) return;
+      if (total + (Number(a.bytes) || 0) > AGENTE_MAX_BYTES) { (obligatorio ? omitidos : pendientes).push(a.ruta); return; }
+      const d = await fetch(IA_URL + a.url, { headers: cabIA(), signal: AbortSignal.timeout(60000) });
+      if (!d.ok) { (obligatorio ? omitidos : pendientes).push(a.ruta); return; }
+      const b = Buffer.from(await d.arrayBuffer());
+      if (total + b.length > AGENTE_MAX_BYTES) { (obligatorio ? omitidos : pendientes).push(a.ruta); return; }
+      total += b.length;
+      const ext = String(a.ruta).split(".").pop().toLowerCase();
+      archivos.push({ nombre: String(a.ruta), ...(typeof a.titulo === "string" && a.titulo ? { titulo: a.titulo.slice(0, 100) } : {}), ...(Number.isFinite(a.version) ? { version: a.version } : {}), tipo: TIPOS[ext] || "application/octet-stream", datos: b.toString("base64") });
+    } catch { (obligatorio ? omitidos : pendientes).push(a?.ruta); }
+  };
+  for (const a of adjuntos) await bajar(a, true);
+  for (const a of vigentes) {
+    if (archivos.some((x) => x.nombre === a?.ruta && x.version === a?.version) || (a?.origen === "usuario" && subidos.has(a?.ruta)) || conocidos[a?.ruta] === a?.version) continue;
+    await bajar(a, false);
+  }
+  // Solo se reenvían los campos que el sitio usa (sin direcciones internas ni datos del proveedor).
+  const meta = (a) => ({ ruta: a.ruta, titulo: a.titulo, bytes: a.bytes, tipo: a.tipo, ...(Number.isFinite(a.version) ? { version: a.version } : {}), ...(a.origen === "usuario" || a.origen === "agente" ? { origen: a.origen } : {}), ...(a.actualizado ? { actualizado: a.actualizado } : {}) });
+  // Índices del historial de la API (el N de «rehacer» de cada mensaje del usuario y el `desde` de cada respuesta), sin el texto.
+  let hist = Array.isArray(j.historial) ? j.historial : null;
+  if (!hist && (j.chat_id ?? chat)) {
+    try { const g = await fetch(`${IA_URL}/v1/agente/chats/${j.chat_id ?? chat}`, { headers: cabIA(), signal: AbortSignal.timeout(5000) }); if (g.ok) { const h = (await g.json())?.historial; if (Array.isArray(h)) hist = h; } } catch { /* opcional */ }
+  }
+  const historial = hist ? hist.slice(-300).map((h) => (h?.role === "user" ? { role: "user", indice: Number(h.indice) } : { role: "assistant", desde: Number(h?.desde) })) : undefined;
+  const extra = { ...(historial ? { historial } : {}), ...(j.rehecho && Number.isInteger(j.rehecho.rama) ? { rehecho: { desde: Number(j.rehecho.desde), rama: j.rehecho.rama } } : {}), ...(Number.isInteger(j.activa) ? { activa: j.activa } : {}) };
+  const modelo = modeloPublico(j.modelo ?? j.proveedor);
+  const noAtendidos = Array.isArray(j.pendientes_no_atendidos) ? j.pendientes_no_atendidos.filter((x) => typeof x === "string").slice(0, 20).map((x) => x.slice(0, 2000)) : Number.isFinite(j.pendientes_no_atendidos) ? Number(j.pendientes_no_atendidos) : undefined;
+  const cuerpo = { ...(modelo ? { modelo } : {}), ...(noAtendidos !== undefined ? { pendientes_no_atendidos: noAtendidos } : {}), ...extra, chat_id: j.chat_id ?? chat, respuesta: j.respuesta, adjuntos: adjuntos.map(meta), ...(Array.isArray(j.archivos_chat) ? { archivos_chat: vigentes.map(meta) } : {}), mensajes_incorporados: Number(j.mensajes_incorporados) || 0, archivos, ...(omitidos.length ? { omitidos } : {}), ...(pendientes.length ? { pendiente: true, pendientes } : {}) };
+  return cuerpo;
+}
+
+// Recuperar: espera a que termine el turno en curso de ese chat en la API (siguiendo sus eventos) y devuelve su última respuesta.
+// Sirve tras una reconexión del conector o un tiempo agotado: la API siguió trabajando y el mensaje no se vuelve a mandar.
+async function recuperar(ws, chat, tarea, sub) {
+  const ctl = new AbortController(); const tope = setTimeout(() => ctl.abort(), TIEMPO_TURNO_MS);
+  try {
+    const r = await fetch(`${IA_URL}/v1/agente/chats/${chat}/eventos`, { headers: { accept: "text/event-stream", ...cabIA() }, signal: ctl.signal });
+    if (r.ok && r.body) {
+      const dec = new TextDecoder(); let buf = "";
+      for await (const trozo of r.body) {
+        buf += dec.decode(trozo, { stream: true }); let i, fin = false;
+        while ((i = buf.indexOf("\n\n")) >= 0) {
+          const bloque = buf.slice(0, i); buf = buf.slice(i + 2);
+          const datos = bloque.split("\n").filter((l) => l.startsWith("data:")).map((l) => l.slice(5).replace(/^ /, "")).join("");
+          let ev; try { ev = JSON.parse(datos); } catch { continue; }
+          if (!sub) enviar(ws, { type: "evento", chat_id: chat, tipo: ev.tipo, texto: ev.texto, ...(modeloPublico(ev.modelo ?? ev.proveedor) ? { modelo: modeloPublico(ev.modelo ?? ev.proveedor) } : {}) });
+          if (ev.tipo === "fin" || ev.tipo === "error") fin = true;
+        }
+        if (fin) break;
+      }
+    }
+  } catch { /* sin eventos: se lee el chat igual */ } finally { clearTimeout(tope); ctl.abort(); }
+  const g = await fetch(`${IA_URL}/v1/agente/chats/${chat}`, { headers: cabIA(), signal: AbortSignal.timeout(10000) });
+  if (!g.ok) throw new Error(`no se encontró el chat (${g.status})`);
+  const c = await g.json();
+  const h = Array.isArray(c?.historial) ? c.historial : [];
+  const ult = h[h.length - 1];
+  // Si la API nunca recibió el mensaje (el conector cayó antes de enviarlo), no se devuelve una respuesta vieja: el navegador lo reenvía.
+  const usuario = [...h].reverse().find((x) => x?.role === "user");
+  const busca = typeof tarea.mensaje === "string" ? tarea.mensaje.trim().slice(-200) : "";
+  if (busca && !(typeof usuario?.contenido === "string" && usuario.contenido.includes(busca))) { const e = new Error("no_recibido"); e.codigo = 404; throw e; }
+  if (!ult || ult.role !== "assistant" || typeof ult.contenido !== "string") throw new Error("el turno terminó sin respuesta");
+  return armarCuerpo({ chat_id: chat, respuesta: ult.contenido, adjuntos: [], archivos_chat: Array.isArray(c.archivos) ? c.archivos : [], historial: h, modelo: c.modelo ?? c.proveedor }, tarea, chat);
+}
+
 async function agente(ws, tarea) {
   const t0 = Date.now();
   const chat = /^[A-Za-z0-9_-]{1,64}$/.test(String(tarea.chat_id)) ? tarea.chat_id : "";
   // Cambiar de versión (`rama`): POST /v1/agente/chats/:id/ramas/:k/activar; no hay turno ni eventos.
   const rama = chat && Number.isInteger(tarea.rama) && tarea.rama >= 0;
+  if (chat && tarea.recuperar === true) {
+    let msg;
+    try { const cuerpo = await recuperar(ws, chat, tarea, turnos.get(chat)); msg = { type: "resultado", id: tarea.id, codigo: 200, cuerpo }; log("recuperar ok", tarea.id.slice(0, 8)); }
+    catch (e) { log("recuperar error", tarea.id.slice(0, 8), e.message); msg = { type: "resultado", id: tarea.id, ...(e.codigo === 404 ? { codigo: 404, error: "no_recibido" } : { error: "Agente del servidor: " + String(e.message).slice(0, 200) }) }; }
+    return enviar(ws, msg);
+  }
   let sub = chat ? turnos.get(chat) : null, propia = false;
   if (chat && !sub && !rama) { sub = suscribir(ws, chat, true); turnos.set(chat, sub); propia = true; }
   let msg;
@@ -111,14 +198,15 @@ async function agente(ws, tarea) {
     const r = await fetch(rama ? `${IA_URL}/v1/agente/chats/${chat}/ramas/${tarea.rama}/activar` : rehacer ? `${IA_URL}/v1/agente/chats/${chat}/rehacer` : IA_URL + "/v1/agente", {
       method: "POST", headers: { "content-type": "application/json", ...cabIA() },
       body: rama ? "{}" : JSON.stringify(rehacer
-        ? { desde: tarea.desde, ...(typeof tarea.mensaje === "string" ? { mensaje: tarea.mensaje } : {}), archivos: tarea.archivos ?? [], ...mcp }
-        : { ...(chat ? { chat_id: chat } : {}), mensaje: tarea.mensaje, archivos: tarea.archivos ?? [], ...mcp }), signal: AbortSignal.timeout(300000),
+        ? { desde: tarea.desde, ...(typeof tarea.mensaje === "string" && tarea.mensaje.trim() ? { mensaje: tarea.mensaje } : {}), archivos: tarea.archivos ?? [], ...mcp }
+        : { ...(chat ? { chat_id: chat } : {}), mensaje: typeof tarea.mensaje === "string" && tarea.mensaje.trim() ? tarea.mensaje : MENSAJE_SOLO_ARCHIVOS, archivos: tarea.archivos ?? [], ...mcp }), signal: AbortSignal.timeout(TIEMPO_TURNO_MS),
     });
     const j = await r.json().catch(() => ({}));
     if (rama && r.ok) j.respuesta = "";
-    if ((rehacer || rama) && (r.status === 404 || r.status === 409)) {
+    // 400 en «rehacer»: una versión de la API que aún no lo entiende (p. ej. pide `mensaje`): se trata como «no disponible».
+    if ((rehacer || rama) && (r.status === 404 || r.status === 409 || (rehacer && r.status === 400))) {
       // 404: la API aún no tiene «rehacer» (o no conoce ese chat): el navegador usa su respaldo. 409: hay un turno en curso.
-      msg = { type: "resultado", id: tarea.id, codigo: r.status, error: r.status === 409 ? "turno_en_curso" : rama ? "rama_no_encontrada" : "rehacer_no_disponible" };
+      msg = { type: "resultado", id: tarea.id, codigo: r.status === 400 ? 404 : r.status, error: r.status === 409 ? "turno_en_curso" : rama ? "rama_no_encontrada" : "rehacer_no_disponible" };
       log("rehacer", r.status, tarea.id.slice(0, 8));
     } else if (r.status === 202) {
       // Había un turno en curso: la API ya guardó el mensaje. Si este conector no seguía ese turno, empieza a seguirlo.
@@ -128,46 +216,18 @@ async function agente(ws, tarea) {
     } else if (!r.ok || typeof j?.respuesta !== "string") {
       throw new Error(j?.error?.message || (typeof j?.error === "string" ? j.error : "") || `respuesta vacía (${r.status})`);
     } else {
-      const archivos = []; const omitidos = []; const pendientes = []; let total = 0;
-      const adjuntos = (Array.isArray(j.adjuntos) ? j.adjuntos : []).slice(0, 20);
-      const vigentes = (Array.isArray(j.archivos_chat) ? j.archivos_chat : []).slice(0, 100);
-      const conocidos = tarea.conocidos && typeof tarea.conocidos === "object" ? tarea.conocidos : {};
-      const subidos = new Set(Array.isArray(tarea.subidos) ? tarea.subidos : []);
-      // Primero lo entregado en este turno; después lo vigente del chat que el navegador aún no tiene (versiones nuevas).
-      const bajar = async (a, obligatorio) => {
-        try {
-          if (typeof a?.url !== "string" || !a.url.startsWith("/") || a.url.startsWith("//")) return;
-          if (total + (Number(a.bytes) || 0) > AGENTE_MAX_BYTES) { (obligatorio ? omitidos : pendientes).push(a.ruta); return; }
-          const d = await fetch(IA_URL + a.url, { headers: cabIA(), signal: AbortSignal.timeout(60000) });
-          if (!d.ok) { (obligatorio ? omitidos : pendientes).push(a.ruta); return; }
-          const b = Buffer.from(await d.arrayBuffer());
-          if (total + b.length > AGENTE_MAX_BYTES) { (obligatorio ? omitidos : pendientes).push(a.ruta); return; }
-          total += b.length;
-          const ext = String(a.ruta).split(".").pop().toLowerCase();
-          archivos.push({ nombre: String(a.ruta), ...(typeof a.titulo === "string" && a.titulo ? { titulo: a.titulo.slice(0, 100) } : {}), ...(Number.isFinite(a.version) ? { version: a.version } : {}), tipo: TIPOS[ext] || "application/octet-stream", datos: b.toString("base64") });
-        } catch { (obligatorio ? omitidos : pendientes).push(a?.ruta); }
-      };
-      for (const a of adjuntos) await bajar(a, true);
-      for (const a of vigentes) {
-        if (archivos.some((x) => x.nombre === a?.ruta && x.version === a?.version) || (a?.origen === "usuario" && subidos.has(a?.ruta)) || conocidos[a?.ruta] === a?.version) continue;
-        await bajar(a, false);
-      }
-      // Solo se reenvían los campos que el sitio usa (sin direcciones internas ni datos del proveedor).
-      const meta = (a) => ({ ruta: a.ruta, titulo: a.titulo, bytes: a.bytes, tipo: a.tipo, ...(Number.isFinite(a.version) ? { version: a.version } : {}), ...(a.origen === "usuario" || a.origen === "agente" ? { origen: a.origen } : {}), ...(a.actualizado ? { actualizado: a.actualizado } : {}) });
-      // Índices del historial de la API (el N de «rehacer» de cada mensaje del usuario y el `desde` de cada respuesta), sin el texto.
-      let hist = Array.isArray(j.historial) ? j.historial : null;
-      if (!hist && (j.chat_id ?? chat)) {
-        try { const g = await fetch(`${IA_URL}/v1/agente/chats/${j.chat_id ?? chat}`, { headers: cabIA(), signal: AbortSignal.timeout(5000) }); if (g.ok) { const h = (await g.json())?.historial; if (Array.isArray(h)) hist = h; } } catch { /* opcional */ }
-      }
-      const historial = hist ? hist.slice(-300).map((h) => (h?.role === "user" ? { role: "user", indice: Number(h.indice) } : { role: "assistant", desde: Number(h?.desde) })) : undefined;
-      const extra = { ...(historial ? { historial } : {}), ...(j.rehecho && Number.isInteger(j.rehecho.rama) ? { rehecho: { desde: Number(j.rehecho.desde), rama: j.rehecho.rama } } : {}), ...(Number.isInteger(j.activa) ? { activa: j.activa } : {}) };
-      const cuerpo = { ...extra, chat_id: j.chat_id ?? chat, respuesta: j.respuesta, adjuntos: adjuntos.map(meta), ...(Array.isArray(j.archivos_chat) ? { archivos_chat: vigentes.map(meta) } : {}), mensajes_incorporados: Number(j.mensajes_incorporados) || 0, archivos, ...(omitidos.length ? { omitidos } : {}), ...(pendientes.length ? { pendiente: true, pendientes } : {}) };
+      const cuerpo = await armarCuerpo(j, tarea, chat);
       msg = { type: "resultado", id: tarea.id, codigo: 200, cuerpo };
       log("agente ok", tarea.id.slice(0, 8), `${Date.now() - t0}ms`, `archivos=${archivos.length}`);
     }
   } catch (e) {
     log("agente error", tarea.id.slice(0, 8), e.message);
     msg = { type: "resultado", id: tarea.id, error: "Agente del servidor: " + String(e.message).slice(0, 200) };
+    // Tiempo agotado esperando la respuesta: la API puede seguir con el turno; se espera a que termine y se trae su respuesta.
+    if (chat && !rama && (e.name === "TimeoutError" || /timeout|aborted/i.test(String(e.message)))) {
+      try { const cuerpo = await recuperar(ws, chat, tarea, sub); msg = { type: "resultado", id: tarea.id, codigo: 200, cuerpo }; log("recuperar ok", tarea.id.slice(0, 8)); }
+      catch (e2) { log("recuperar error", tarea.id.slice(0, 8), e2.message); msg = { type: "resultado", id: tarea.id, error: "El agente tardó demasiado en responder. Puedes reintentarlo." }; }
+    }
   }
   // El turno terminó: se deja un momento para que llegue el último evento y se libera el chat para el siguiente turno.
   if (propia) { turnos.delete(chat); setTimeout(() => sub.abort(), 4000); }
@@ -189,15 +249,16 @@ async function zipChat(ws, m) {
   enviar(ws, msg);
 }
 
-let espera = 1000;
+// Reconexión rápida: 0,5 s, 1 s, 2 s, 4 s… hasta 15 s. Mientras el conector no está, el sitio muestra «Reconectando…».
+let espera = 500;
 function conectar() {
   const ws = new WebSocket(SITIO.replace(/^http/, "ws") + "/conector/ws", [SECRET]);
   let ping;
-  ws.addEventListener("open", () => { log("conectado", db ? "(SQL local activo)" : "(sin base local: el Worker usará D1)"); ws.send(JSON.stringify({ type: "hola", sql: !!db, imagenes: true, agente: true })); espera = 1000; ping = setInterval(() => { try { ws.send('{"type":"ping"}'); } catch {} }, 25000); });
+  ws.addEventListener("open", () => { log("conectado", db ? "(SQL local activo)" : "(sin base local: el Worker usará D1)"); ws.send(JSON.stringify({ type: "hola", sql: !!db, imagenes: true, agente: true })); espera = 500; ping = setInterval(() => { try { ws.send('{"type":"ping"}'); } catch {} }, 25000); });
   ws.addEventListener("message", (ev) => {
     try { const m = JSON.parse(String(ev.data)); if (m.type === "job") lanzar(ws, m); else if (m.type === "agente") agente(ws, m); else if (m.type === "zip") zipChat(ws, m); else if (m.type === "sql") consultar(ws, m); } catch { /* ignorar */ }
   });
-  ws.addEventListener("close", (ev) => { clearInterval(ping); log("desconectado", ev.code); setTimeout(conectar, espera); espera = Math.min(espera * 2, 30000); });
+  ws.addEventListener("close", (ev) => { clearInterval(ping); log("desconectado", ev.code); setTimeout(conectar, espera); espera = Math.min(espera * 2, 15000); });
   ws.addEventListener("error", () => { /* 'close' se dispara después y reconecta */ });
 }
 log("conector iniciado ->", SITIO);

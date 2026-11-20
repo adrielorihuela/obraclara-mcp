@@ -10,6 +10,15 @@ Programa que corre en un equipo del grupo y se conecta **hacia afuera** (WebSock
   del plan gratuito de D1. Si el conector no está conectado, el Worker usa D1 y, para el chat, su respaldo de emergencia
   (Workers AI y luego Groq).
 
+## Horario de clase: no reiniciar ni desplegar
+
+**Miércoles y viernes de 09:00 a 11:10 (hora de Lima)** no se reinicia el servicio `obraclara` ni se despliega el Worker
+(un push a `worker/**` despliega). Cada reinicio o despliegue corta el conector unos segundos: el chat muestra
+«Reconectando…» y sigue, pero en una exposición en vivo se nota. El flujo de despliegue avisa (no bloquea) si se lanza en ese horario.
+
+Si el conector se corta, vuelve a conectarse solo (0,5 s, 1 s, 2 s… hasta 15 s entre intentos). El navegador espera hasta
+unos 16 s antes de pasar al modo de emergencia, y si el turno siguió en la API trae su respuesta sin volver a enviar el mensaje.
+
 ## Configuración local (no se sube a GitHub)
 
 `~/.config/obraclara/conector.env`:

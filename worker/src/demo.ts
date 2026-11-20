@@ -7,6 +7,7 @@ import {
   largoContenido, acortarContenido, recortarMensajes, prepararCompartir,
   claseArchivo, mimeArchivo, tamanoLegible, resaltarLinea, htmlConRecursos, rutaRelativaZip, atributoHtml,
   normalizarRamas, desplazarRamas, nuevaVersion, cambiarVersion, versionesGuardadas, indiceUsuario, inicioTurno, contextoConversacion, tiempoRelativo, textoPlano, tablasMd, graficosMd, aTsv, graficoFilas,
+  tipoPaso, nombreModelo, duracionCorta, resumenProceso, normalizarProceso,
 } from "./lib/agente";
 import { graficoCss, graficoJs } from "./grafico-js";
 import { ETIQUETAS_SUGERENCIA, SUGERENCIAS, elegirSugerencias, mezclarSugerencias } from "./lib/sugerencias";
@@ -142,7 +143,7 @@ body.es-app main{flex:1;min-height:0}
 .acc .ver-n{font:500 12px/1 var(--mono);color:var(--ink-2);min-width:26px;text-align:center;font-variant-numeric:tabular-nums}
 .acc-u .ver{margin:0 4px 0 0}
 @media (hover:none),(max-width:860px){.acc{opacity:1}}
-@media (max-width:860px){.acc .acc-m{flex-basis:100%;margin:0;padding:0 0 0 7px;border-left:0}.acc-u .acc-m{padding:0}}
+@media (max-width:860px){.acc .acc-m{flex-basis:100%;margin:0;padding:0 0 0 7px;border-left:0;min-width:0;flex-wrap:wrap;row-gap:4px}.acc-u .acc-m{padding:0}.acc .acc-m .mod{white-space:normal;line-height:1.3}}
 @media (prefers-reduced-motion:reduce){.acc .ab.ok::after,.acc .ab.ok svg,.mnu,.ed{animation:none}}
 .b-menu,.lado-x,.velo{display:none}
 
@@ -361,10 +362,36 @@ body.es-app main{flex:1;min-height:0}
 #oc-stop i{width:10px;height:10px;border-radius:2px;background:currentColor}
 .msg.w{flex-wrap:wrap}
 .msg.w .w-l{min-width:0;overflow-wrap:anywhere;line-height:1.4}
-.msg.w .w-p{flex-basis:100%;margin:8px 0 0 -42px;padding-left:42px;font-size:13px;color:var(--mut)}
-.msg.w .w-p summary{cursor:pointer;width:max-content}
-.msg.w .w-p ol{margin:6px 0 0;padding-left:1.3em;display:grid;gap:2px}
-.msg.w .w-p[hidden]{display:none}
+.msg.w .tl{flex-basis:100%;margin:10px 0 0 -42px;padding-left:42px}
+.tl{list-style:none;margin:0;padding:0;display:grid;gap:0;font:400 13px/1.4 var(--sans);color:var(--mut)}
+.tl[hidden]{display:none}
+.tl-p{position:relative;display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:start;gap:10px;padding:0 0 10px;animation:entra .25s ease-out}
+.tl-p:not(:last-child)::before{content:"";position:absolute;left:11.5px;top:24px;bottom:2px;width:1px;background:var(--line-2)}
+.tl-p .pi{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--line-2);background:var(--surface);color:var(--mut)}
+.tl-p .pi svg{width:13px;height:13px}
+.tl-p .tl-x{padding-top:3px;min-width:0;overflow-wrap:anywhere;color:var(--ink)}
+.tl-p .tl-d{padding-top:4px;font:500 11.5px/1.2 var(--mono);color:var(--mut);white-space:nowrap}
+.tl-p.ok .pi{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 45%,var(--line-2))}
+.tl-p.ok .tl-x{color:var(--mut)}
+.tl-p.act .pi{color:var(--accent);border-color:var(--accent);background:var(--accent-soft);animation:paso-act 1.4s ease-in-out infinite}
+.tl-p.act .tl-x{font-weight:500}
+.tl-p.mal .pi{color:var(--risk);border-color:var(--risk);background:var(--risk-soft)}
+.tl-p .pi-mcp,.tl-p .pi-archivo{color:var(--accent)}
+@keyframes paso-act{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--accent) 35%,transparent)}50%{box-shadow:0 0 0 5px color-mix(in srgb,var(--accent) 0%,transparent)}}
+@media (prefers-reduced-motion:reduce){.tl-p,.tl-p.act .pi{animation:none}}
+.proc{margin:0 0 12px;font-size:13px;max-width:100%;min-width:0}
+.msg.a .t .proc ol.tl{padding-left:0;margin-left:0;display:grid;gap:0}
+.proc summary{display:inline-flex;align-items:center;gap:6px;max-width:100%;box-sizing:border-box;cursor:pointer;list-style:none;padding:4px 10px 4px 8px;border:1px solid var(--line);border-radius:999px;font:500 12px/1.3 var(--mono);color:var(--mut);transition:border-color .2s,color .2s}
+.proc summary::-webkit-details-marker{display:none}
+.proc summary::before{content:"";width:0;height:0;border:4px solid transparent;border-left:6px solid currentColor;border-right:0;transition:transform .2s}
+.proc[open] summary::before{transform:rotate(90deg)}
+.proc summary:hover{border-color:var(--ink);color:var(--ink)}
+.proc .tl{margin-top:10px}
+.b-aviso{margin-left:4px;padding:3px 10px;border-radius:999px;border:1px solid currentColor;background:transparent;color:inherit;font:500 12px/1.3 var(--sans);cursor:pointer}
+.b-aviso:hover{background:var(--surface)}
+.b-aviso[hidden]{display:none}
+.msg.n.n-em{max-width:640px;color:var(--risk)}
+.msg.u .iny.mal{color:var(--risk)}
 .aviso-em{max-width:780px;margin:0 auto 8px;padding:8px 14px;border:1px solid color-mix(in srgb,var(--risk) 40%,transparent);background:var(--risk-soft);color:var(--risk);border-radius:10px;font-size:13px;line-height:1.45}
 .aviso-em[hidden]{display:none}
 .composer .nota-c{max-width:780px;margin:8px auto 0;text-align:center;font-size:12px;color:var(--mut)}
@@ -444,7 +471,7 @@ body.es-app main{flex:1;min-height:0}
  .pan{position:fixed;inset:0;z-index:50;border-left:0;animation-name:pan-sube}
  @keyframes pan-sube{from{opacity:0;transform:translateY(24px)}}
  .adj-c{max-width:none}
- .tc{margin-left:0}.msg.a{grid-template-columns:minmax(0,1fr)}.msg.a::before{display:none}.msg.w{padding-left:0}.msg.w .w-p{margin-left:0;padding-left:0}
+ .tc{margin-left:0}.msg.a{grid-template-columns:minmax(0,1fr)}.msg.a::before{display:none}.msg.w{padding-left:0}.msg.w .tl{margin-left:0;padding-left:0}
 }
 @media (max-width:860px) and (prefers-reduced-motion:reduce){.lado,.chat.cajon-on .lado,.velo{transition:none}}
 ` + graficoCss;
@@ -509,7 +536,7 @@ export const demoHtml = String.raw`
 <div id="oc-log" aria-live="polite"></div>
 </div></div>
 <form id="oc-form" class="composer">
-<p class="aviso-em" id="oc-em" role="status" hidden>Modo de emergencia: sin archivos ni agente. El asistente responde solo con texto hasta que el servidor vuelva a estar disponible.</p>
+<p class="aviso-em" id="oc-em" role="status" hidden>Sin conexión con el agente (modo de emergencia): el asistente responde solo con texto y no puede leer, crear ni editar archivos. En cuanto vuelva la conexión podrás reintentar con el agente.</p>
 <div class="caja"><div class="thumbs" id="oc-thumbs" hidden></div><textarea id="oc-in" rows="1" placeholder="Escribe tu pregunta" aria-label="Tu pregunta"></textarea>
 <div class="barra"><span class="ind on" id="oc-ind"><i></i><span>MCP activado</span></span><input type="file" id="oc-file" multiple hidden><button type="button" id="oc-stop" class="stop" aria-label="Detener la respuesta" hidden><i aria-hidden="true"></i><span>Detener</span></button><button type="button" id="oc-adj" aria-label="Adjuntar archivos" title="Adjuntar archivos (el agente los lee: PDF, Word, Excel, PowerPoint, .zip, CSV, texto…)">${icoClip}</button><button id="oc-send" aria-label="Enviar">${icoEnviar}</button></div></div>
 <p class="nota-c">El modelo puede equivocarse. Verifica las cifras en la fuente oficial del MEF.</p>
@@ -587,6 +614,7 @@ const nombres = [
   largoContenido, acortarContenido, recortarMensajes, prepararCompartir,
   claseArchivo, mimeArchivo, tamanoLegible, resaltarLinea, htmlConRecursos, rutaRelativaZip, atributoHtml,
   normalizarRamas, desplazarRamas, nuevaVersion, cambiarVersion, versionesGuardadas, indiceUsuario, inicioTurno, contextoConversacion, tiempoRelativo, textoPlano, tablasMd, graficosMd, aTsv, graficoFilas,
+  tipoPaso, nombreModelo, duracionCorta, resumenProceso, normalizarProceso,
 ].map((f) => f.toString()).join("\n");
 
 // Piezas compartidas con la página pública /c/:id (renderizador de Markdown seguro, chips, Word/PDF).
@@ -681,7 +709,7 @@ var ocRamas=[],ocRestM=null,ocVersOcup=false,ocMcp=true,ocHist=[],ocTools=null,o
 // Estado por chat: cada conversación es una sesión con su propio turno (espera, sondeo de eventos, AbortController).
 // Las variables globales (ocChatId, ocAgId, ocHist, ocMsgs, ocArch) son las de la sesión en contexto (ocS); ocEn(s,fn) cambia de contexto para escribir en un chat que no está abierto.
 var OC_MAX_VIVAS=3,ocVivas=[],ocNuevos={},ocFondo=false,ocS=ocSesNueva(),ocVis=ocS;
-function ocSesNueva(){return {id:'',agId:'',hist:[],msgs:[],ramas:[],arch:[],log:null,pend:0,parar:false,avisado:false,abort:null,W:null,evN:0,evT:null,evOcup:false}}
+function ocSesNueva(){return {id:'',agId:'',hist:[],msgs:[],ramas:[],arch:[],log:null,pend:0,parar:false,avisado:false,abort:null,W:null,evN:0,evT:null,evOcup:false,iny:[],emerg:false,proc:null}}
 function ocCtxGuarda(s){s.id=ocChatId;s.agId=ocAgId;s.hist=ocHist;s.msgs=ocMsgs;s.ramas=ocRamas;s.arch=ocArch}
 function ocCtxCarga(s){ocChatId=s.id;ocAgId=s.agId;ocHist=s.hist;ocMsgs=s.msgs;ocRamas=s.ramas;ocArch=s.arch;ocS=s}
 function ocEn(s,fn){if(s===ocS)return fn();var prev=ocS,pf=ocFondo;ocCtxGuarda(prev);ocCtxCarga(s);ocFondo=s!==ocVis;try{return fn()}finally{ocCtxGuarda(s);ocCtxCarga(prev);ocFondo=pf}}
@@ -691,10 +719,10 @@ var OC_ICO_TOOL='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stro
 function ocBajar(){if(ocFondo)return;var s=$('oc-scroll');if(s)s.scrollTop=s.scrollHeight}
 function ocRec(m){if(ocRest)return null;if(!m.ts)m.ts=Date.now();ocMsgs.push(m);ocShareUi();return m}
 function ocLog(cls,txt,extra,adj,arch){var rec=null;if(cls==='u')rec=ocRec({rol:'u',texto:txt+(extra&&extra.length?'\n'+extra.map(function(){return '[imagen adjunta]'}).join(' '):''),mcp:ocMcp,adj:adj?adj.meta:undefined});
- if(cls==='a')rec=ocRec({rol:'a',texto:txt,modelo:typeof extra==='string'?extra:'',mcp:ocMcp});
+ if(cls==='a')rec=ocRec({rol:'a',texto:txt,modelo:typeof extra==='string'?extra:'',mcp:ocMcp,proc:ocProcSig||undefined});
 var d=document.createElement('div'),mm=rec||ocRestM,fu=null;d.className='msg '+cls;if(!ocFondo)$('oc-vacio').hidden=true;
  if(mm&&(cls==='u'||cls==='a'))d.ocM=mm;
- if(cls==='a'){var t=document.createElement('div');t.className='t';ocMd(t,txt);
+ if(cls==='a'){var t=document.createElement('div');t.className='t';ocMd(t,txt);if(mm&&mm.proc)t.insertBefore(ocProcEl(mm.proc),t.firstChild);
   var bx=document.createElement('div');bx.className='adjs';t.appendChild(bx);d.appendChild(t);
   if(mm)t.appendChild(ocBarra(d,'a',mm,typeof extra==='string'?extra:''));
   if(arch)ocArchMsg(rec,bx,arch)}
@@ -738,7 +766,7 @@ function ocLoad(){var a=ocRead(sessionStorage,'oc_conns')||[],b=ocRead(localStor
 function ocUi(){if(ocActiva!==ocHL&&!ocConnById(ocActiva))ocActiva=ocHL;
  $('oc-info').textContent=ocActiva===ocHL?'Trabaja el agente del servidor de ObraClara: lee tus archivos y te entrega otros. Si no está disponible, responde en modo de emergencia (solo texto). En «Configuración» puedes usar tu propia API: la clave nunca llega a nuestro servidor.':'Usando tu API «'+ocConnById(ocActiva).nombre+'»: chat simple de texto e imágenes, sin archivos ni agente. Las solicitudes van directo desde tu navegador al proveedor; la clave nunca llega a nuestro servidor.'}
 function ocAgActivo(){return ocAgOk&&ocActiva===ocHL}
-function ocAgUi(){ocSwitchText()}
+function ocAgUi(){ocSwitchText();try{Array.prototype.forEach.call(document.querySelectorAll('#oc-log .em-re'),function(b){b.hidden=!ocAgOk})}catch(e){}}
 function ocElegir(id){ocActiva=id;ocPersist();ocUi();ocAgUi();ocRenderLista()}
 function ocRenderLista(){var u=$('oc-lista');u.textContent='';
  function fila(id,txt,extras){var li=document.createElement('li'),sp=document.createElement('span'),lb=document.createElement('label'),r=document.createElement('input');
@@ -988,7 +1016,7 @@ async function ocRehacer(m,texto,ds){var s=ocS;
  if(!q&&!(m.adj&&m.adj.length))return;
  var nv=nuevaVersion(ocMsgs,ocRamas,p,ocAgId);if(!nv){ocLog('n','Este mensaje ya tiene 10 versiones. Empieza una conversación nueva para seguir probando.');return}
  ocVozParar();ocMenuCerrar(false);ocMsgs=nv.msgs;ocRamas=nv.ramas;ocPintar();
- if(ag)await ocSendAg(q,[],{desde:desde,mensaje:texto==null?undefined:texto,guardada:nv.guardada,adj:m.adj});
+ if(ag)await ocSendAg(q,[],{desde:desde,mensaje:texto==null?(q||undefined):texto,guardada:nv.guardada,adj:m.adj});
  else await ocSendLeg(q,[])}
 // Cambiar de versión: si la API guardó el historial de esa versión (rama k), se activa allí para que el agente siga desde ella.
 async function ocVersionIr(p,b,dir){var s=ocS;if(s.pend||ocVersOcup)return;var e=ocRamaEn(p);if(!e||!e.vs[b])return;
@@ -1087,16 +1115,49 @@ function ocPendIni(s){s.pend++;if(s.pend===1){s.parar=false;s.avisado=false;s.ab
 function ocPendFin(s){s.pend=Math.max(0,s.pend-1);if(s.pend)return;s.abort=null;var k=ocVivas.indexOf(s);if(k>=0)ocVivas.splice(k,1);
  ocEn(s,function(){ocEsperaFin();ocGuardar()});s.log=null;if(s!==ocVis&&s.id)ocNuevos[s.id]=1;ocBusyUi();ocBajar();ocRenderChats()}
 function ocDetener(){var s=ocVis;if(!s.pend)return;s.parar=true;if(s.abort)s.abort.abort()}
-function ocFinTurno(s,e){ocEn(s,function(){
- if(s.parar){if(!s.avisado){s.avisado=true;ocLog('n','Dejé de esperar la respuesta. Desde aquí no se puede cancelar el trabajo del agente: puede seguir en el servidor.')}}
- else ocLog('e',e&&e.message?e.message:'Error inesperado.')})}
-function ocEsperaIni(txt){var d=document.createElement('div'),l=document.createElement('span'),dt=document.createElement('details'),sm=document.createElement('summary'),ol=document.createElement('ol');
- d.className='msg w';l.className='w-l';l.textContent=txt;sm.textContent='Ver pasos';dt.className='w-p';dt.hidden=true;dt.appendChild(sm);dt.appendChild(ol);d.appendChild(l);d.appendChild(dt);
+function ocFinTurno(s,e){return ocEn(s,function(){
+ if(s.parar){if(!s.avisado){s.avisado=true;ocLog('n','Dejé de esperar la respuesta. Desde aquí no se puede cancelar el trabajo del agente: puede seguir en el servidor.')}return null}
+ return ocLog('e',e&&e.message?e.message:'Error inesperado.')})}
+// Botón dentro de un aviso (p. ej. «Reintentar» bajo un error del agente).
+function ocBotonAviso(el,txt,fn){if(!el)return null;var b=document.createElement('button');b.type='button';b.className='b-aviso';b.textContent=txt;b.addEventListener('click',function(){fn(b)});el.appendChild(document.createTextNode(' '));el.appendChild(b);return b}
+// Mensajes enviados durante un turno (202): al cerrar el turno se marcan como incluidos o, si el turno falló, «No atendido» con «Reenviar».
+function ocInyCerrar(s,ok,noAt){var l=s.iny||[],n=typeof noAt==='number'?noAt:Array.isArray(noAt)?noAt.length:0;s.iny=[];
+ l.forEach(function(x,i){if(!x.mk)return;var mal=!ok||i>=l.length-n;if(!mal){x.mk.textContent='Incluido en la respuesta';return}
+  x.mk.textContent='No atendido: el turno terminó sin leerlo.';x.mk.classList.add('mal');
+  ocBotonAviso(x.mk,'Reenviar',function(b){if(ocVis!==s){ocAnunciar('Abre ese chat para reenviar el mensaje.');return}b.remove();x.mk.textContent='Reenviado como mensaje nuevo';x.mk.classList.remove('mal');ocSend(x.q)})})}
+// Espera (hasta ms) a que el conector del agente vuelva; mientras tanto, «Reconectando…» en el indicador de trabajo.
+async function ocEsperarConector(s,ms){var fin=Date.now()+(ms||16000),ok=false;s.recon=true;
+ ocEn(s,function(){if(s.W)s.W.firstChild.textContent='Reconectando con el agente… (suele tardar unos segundos)';else ocChatEst('Reconectando con el agente…')});
+ while(Date.now()<fin&&!s.parar){try{var r=await fetch('/api/ia-estado',{cache:'no-store'}),j=await r.json();if(j&&j.agente){ok=true;break}}catch(e){}await new Promise(function(v){setTimeout(v,1500)})}
+ s.recon=false;if(ok){ocAgOk=true;ocAgCaido=0;ocAgUi()}
+ ocEn(s,function(){if(s.W)s.W.firstChild.textContent=ok?'El agente está trabajando…':'Sin conexión con el agente.';else ocChatEst('')});return ok}
+// Línea de tiempo del trabajo del agente: siempre visible mientras trabaja (paso actual animado; los anteriores con ✓ y su duración).
+// Al terminar se guarda con la respuesta y se pliega en una línea («Proceso · 7 pasos · 42 s · modelo») que se puede desplegar.
+var OC_PI={pensar:'<path d="M8 2.5a4 4 0 0 0-2.4 7.2V11h4.8V9.7A4 4 0 0 0 8 2.5zM6.2 13.5h3.6"/>',mcp:'<ellipse cx="8" cy="4" rx="5" ry="1.8"/><path d="M3 4v8c0 1 2.2 1.8 5 1.8s5-.8 5-1.8V4M3 8c0 1 2.2 1.8 5 1.8s5-.8 5-1.8"/>',modelo:'<path d="M3 5.5h9l-2.5-2.5M13 10.5H4l2.5 2.5"/>',archivo:'<path d="M9.5 2H4.5v12h7V4z"/><path d="M9.5 2v2h2M6.5 8.5h3M6.5 11h3"/>',analizar:'<path d="M2.5 13.5h11M4.5 11V8M8 11V4.5M11.5 11V6.5"/>',web:'<circle cx="8" cy="8" r="5.5"/><path d="M2.5 8h11M8 2.5c1.8 2 1.8 9 0 11M8 2.5c-1.8 2-1.8 9 0 11"/>',herramienta:'<path d="M9.8 2.7a3 3 0 0 0 3.5 3.5L7 12.5a1.5 1.5 0 0 1-2.1-2.1z"/>',mensaje:'<path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z"/>',error:'<circle cx="8" cy="8" r="5.5"/><path d="M8 5v3.5M8 10.8v.2"/>',paso:'<circle cx="8" cy="8" r="2.2"/>'};
+var ocProcSig=null;
+function ocPasoIco(t){var i=document.createElement('span');i.className='pi pi-'+t;i.setAttribute('aria-hidden','true');i.innerHTML='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">'+(OC_PI[t]||OC_PI.paso)+'</svg>';return i}
+function ocPasoLi(p,actual){var li=document.createElement('li'),tx=document.createElement('span'),du=document.createElement('span');li.className='tl-p'+(actual?' act':' ok')+(p.t==='error'?' mal':'');
+ tx.className='tl-x';tx.textContent=p.x;du.className='tl-d';du.textContent=actual?'':'✓ '+duracionCorta(p.ms);li.appendChild(ocPasoIco(p.t));li.appendChild(tx);li.appendChild(du);return li}
+function ocPasoTexto(e,t){var x=String(e.texto).replace(/obraclara__/g,'').trim(),mo=nombreModelo(e.modelo);
+ if(t==='modelo'&&mo&&x.indexOf(mo)<0)x=x.replace(/[.…]+$/,'')+': '+mo;
+ if(t==='mcp'&&!/MEF|MCP/.test(x))x=x.replace(/^(Consultando|Usando)\s+/i,'Consultando datos del MEF: ');
+ return x}
+function ocEsperaIni(txt){var d=document.createElement('div'),l=document.createElement('span'),ol=document.createElement('ol');
+ d.className='msg w';l.className='w-l';l.textContent=txt;ol.className='tl';ol.setAttribute('aria-label','Pasos del agente');ol.hidden=true;d.appendChild(l);d.appendChild(ol);
+ ocS.proc={t0:Date.now(),p:[],tp:0,mo:''};
  if(!ocFondo)$('oc-vacio').hidden=true;ocLogBox().appendChild(d);ocS.W=d;ocBajar()}
 function ocEsperaFin(){ocEvDetener(ocS);if(ocS.W){ocS.W.remove();ocS.W=null}}
+// Cierra el proceso del turno: duración del último paso y total; devuelve lo que se guarda con la respuesta (o null si no hubo pasos).
+function ocProcCerrar(s,mo){var pr=s.proc;s.proc=null;if(!pr||!pr.p.length)return null;var ahora=Date.now(),L=pr.p[pr.p.length-1];if(!L.ms)L.ms=ahora-pr.tp;
+ return normalizarProceso({p:pr.p.map(function(x){return {t:x.t,x:x.x,ms:x.ms}}),ms:ahora-pr.t0,mo:mo||pr.mo})}
+function ocProcEl(pr){var dt=document.createElement('details'),sm=document.createElement('summary'),ol=document.createElement('ol');dt.className='proc';
+ sm.textContent=resumenProceso(pr);ol.className='tl';pr.p.forEach(function(p){ol.appendChild(ocPasoLi(p,false))});dt.appendChild(sm);dt.appendChild(ol);return dt}
 function ocEvVer(s,e){if(!s.W||!e||e.tipo==='fin'||typeof e.texto!=='string'||!e.texto)return;
- s.W.firstChild.textContent='El agente está trabajando: '+e.texto;
- var dt=s.W.lastChild,li=document.createElement('li');li.textContent=e.texto;dt.lastChild.appendChild(li);dt.hidden=false;if(s===ocVis)ocBajar()}
+ var pr=s.proc,ahora=Date.now(),t=tipoPaso(e.tipo,e.texto),x=ocPasoTexto(e,t),ol=s.W.lastChild;if(!pr)return;
+ if(e.modelo)pr.mo=String(e.modelo);
+ var prev=pr.p[pr.p.length-1];if(prev){prev.ms=ahora-pr.tp;var li=ol.lastChild;if(li)ol.replaceChild(ocPasoLi(prev,false),li)}
+ var p={t:t,x:x,ms:0};pr.p.push(p);pr.tp=ahora;ol.appendChild(ocPasoLi(p,true));ol.hidden=false;
+ if(!s.recon)s.W.firstChild.textContent='El agente está trabajando: '+x;if(s===ocVis)ocBajar()}
 function ocAgDe(s){return ocEn(s,function(){return ocAgId})}
 async function ocEvBase(s){try{var r=await fetch('/api/agente/eventos?chat_id='+encodeURIComponent(ocAgDe(s))+'&desde=0'),d=await r.json();if(d&&typeof d.siguiente==='number')s.evN=d.siguiente}catch(e){}}
 function ocEvIniciar(s){ocEvDetener(s);s.evT=setInterval(function(){ocEvSondear(s)},1000)}
@@ -1109,16 +1170,21 @@ async function ocSend(q){q=(q||'').trim();
  if(ocLeyendo>0){ocLog('n','Espera a que termine de leerse el archivo adjunto.');return}
  var fs=ocDocs.filter(function(d){return d.raw}),im=ocImgs.slice(),ag=ocAgActivo();
  if(!q&&!im.length&&!fs.length)return;
- if(ocVis.pend&&!ag){ocLog('n','Espera a que termine la respuesta actual.');return}
+ // El agente acaba de caerse (reinicio del conector): se espera unos segundos antes de responder en modo de emergencia.
+ if(!ag&&!ocVis.pend&&ocActiva===ocHL&&ocAgSabe&&(!ocAgCaido||Date.now()-ocAgCaido<30000))ag=await ocEsperarConector(ocVis,16000);
+ if(ocVis.pend&&(!ag||ocVis.emerg)){ocLog('n','Espera a que termine la respuesta actual.');return}
  if(!ocVis.pend&&ocVivas.length>=OC_MAX_VIVAS){ocLog('n','Ya hay '+OC_MAX_VIVAS+' conversaciones respondiendo a la vez. Espera a que termine alguna y vuelve a enviar tu mensaje.');return}
  $('oc-in').value='';ocAlto();ocImgs=[];ocDocs=[];ocThumbs();
  if(ag)await ocSendAg(q,fs);else await ocSendLeg(q,im)}
 async function ocSendLeg(q,im){if(!q)q='Describe la imagen y dime qué ves.';var s=ocS;
- ocLog('u',q,im,null);ocGuardar();ocPendIni(s);ocEsperaIni('Pensando…');
+ var u=ocLog('u',q,im,null);if(ocActiva===ocHL){ocNotaEm(s,[],u&&u.ocM);ocEmVigilar()}ocGuardar();ocPendIni(s);ocEsperaIni('Pensando…');
  try{await ocRun(s,q,im)}catch(e){ocFinTurno(s,e)}
  ocPendFin(s)}
-async function ocEmergencia(s,q,fs){ocAgOk=false;ocAgUi();setTimeout(ocAgEstado,60000);ocEvDetener(s);
- ocEn(s,function(){ocLog('n','Modo de emergencia: sin archivos ni agente. Respondo solo con texto.'+(fs.length?' No se leyeron los archivos adjuntos ('+fs.map(function(d){return d.meta.n}).join(', ')+').':''));
+// Aviso en el chat de una respuesta de emergencia, con «Reintentar con el agente» (visible en cuanto el agente vuelve).
+function ocNotaEm(s,fs,urec){var n=ocLog('n','Sin conexión con el agente: esta respuesta es de emergencia, solo con texto (no puede leer, crear ni editar archivos).'+(fs.length?' No se leyeron los archivos adjuntos ('+fs.map(function(d){return d.meta.n}).join(', ')+').':'')+' Cuando vuelva la conexión aparecerá «Reintentar con el agente».');
+ n.classList.add('n-em');var b=ocBotonAviso(n,'Reintentar con el agente',function(){if(s.pend||ocVis!==s){ocAnunciar('Espera a que termine la respuesta actual.');return}if(urec)ocRehacer(urec,null)});if(b){b.className='b-aviso em-re';b.hidden=!ocAgOk}return n}
+async function ocEmergencia(s,q,fs,urec){ocAgOk=false;if(!ocAgCaido)ocAgCaido=Date.now();ocAgUi();ocEmVigilar();ocEvDetener(s);s.emerg=true;s.proc=null;
+ ocEn(s,function(){ocNotaEm(s,fs,urec);
   if(s.W)s.W.firstChild.textContent='Pensando…';
   ocHist=[];ocMsgs.slice(0,-1).forEach(function(m){if(m.rol==='u')ocHist.push({role:'user',content:m.texto});else if(m.rol==='a')ocHist.push({role:'assistant',content:m.texto})})});
  await ocRun(s,q,[])}
@@ -1135,29 +1201,54 @@ async function ocSendAg(q,fs,rh){if(!q)q='Revisa los archivos adjuntos y resume 
  function log(a,t,x,y,z){return ocEn(s,function(){return ocLog(a,t,x,y,z)})}
  function conCtx(c){return c?c+'\n\n---\nResponde al mensaje siguiente teniendo en cuenta ese contexto:\n\n'+q:q}
  async function pedir(url,body){try{return await fetch(url,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body),signal:s.abort?s.abort.signal:undefined})}catch(e){if(s.parar)throw e;return null}}
- try{var r=null,d=null,mcpV=ocMcp?true:undefined,cuerpo={chat_id:ag,mensaje:conCtx(ctx),archivos:adj,conocidos:con,subidos:meta.map(function(m){return m.n}),mcp:mcpV};
-  if(rhApi){r=await pedir('/api/agente/rehacer',{chat_id:ag,desde:rh.desde,mensaje:rh.mensaje,archivos:[],conocidos:con,mcp:mcpV});
+ var urec=b&&b.ocM,okT=false,noAt=0,errEl=null;
+ try{var r=null,d=null,mcpV=ocMcp?true:undefined,cuerpo={chat_id:ag,mensaje:conCtx(ctx),archivos:adj,conocidos:con,subidos:meta.map(function(m){return m.n}),mcp:mcpV},uUrl='/api/agente',uCuerpo=cuerpo;
+  if(rhApi){uUrl='/api/agente/rehacer';uCuerpo={chat_id:ag,desde:rh.desde,mensaje:rh.mensaje,archivos:[],conocidos:con,mcp:mcpV};r=await pedir(uUrl,uCuerpo);
    // La API aún no tiene «rehacer» (o no conoce ese chat): respaldo con un chat nuevo del agente y el contexto en un solo mensaje.
-   if(r&&r.status===404){rhApi=false;ag=ocNuevoId();var cx=ocEn(s,function(){ocAgId=ag;return contextoConversacion(ocMsgs.slice(0,-1))});cuerpo.chat_id=ag;cuerpo.mensaje=conCtx(cx);r=await pedir('/api/agente',cuerpo)}
+   if(r&&r.status===404){rhApi=false;ag=ocNuevoId();var cx=ocEn(s,function(){ocAgId=ag;return contextoConversacion(ocMsgs.slice(0,-1))});cuerpo.chat_id=ag;cuerpo.mensaje=conCtx(cx);uUrl='/api/agente';uCuerpo=cuerpo;r=await pedir(uUrl,uCuerpo)}
    else if(r&&r.status===409)throw new Error('El agente todavía está trabajando en este chat. Espera a que termine y vuelve a intentarlo.')}
-  else r=await pedir('/api/agente',cuerpo);
-  if((!r||r.status>=500)&&rhApi)throw new Error('No se pudo rehacer la respuesta. Inténtalo de nuevo; tu versión anterior sigue guardada (‹ ›).');
-  if(!r||r.status>=500){if(!primero)throw new Error('No se pudo entregar el mensaje al agente. Inténtalo de nuevo.');await ocEmergencia(s,q,fs);return}
+  else r=await pedir(uUrl,uCuerpo);
+  // Conector reiniciándose o tiempo agotado: se espera la reconexión (hasta ~16 s) y se reenvía, o se recupera la respuesta del turno
+  // que la API siguió haciendo (sin volver a mandar el mensaje). Solo si el conector no vuelve se pasa al modo de emergencia.
+  var caido=false;
+  for(var k=0;k<3;k++){var info=null;if(r&&r.status>=500){try{info=await r.clone().json()}catch(e){}}
+   caido=!r||(r.status===503&&!!(info&&info.reconectando));var tiempo=!!(r&&r.status===502&&info&&info.tiempo);
+   if(!caido&&!tiempo)break;
+   if(caido&&!(await ocEsperarConector(s,16000)))break;
+   caido=false;
+   if(tiempo||(info&&info.enviado)){var rr=await pedir('/api/agente/recuperar',{chat_id:ag,mensaje:uCuerpo.mensaje,conocidos:con});r=rr&&rr.status===404?await pedir(uUrl,uCuerpo):rr}
+   else r=await pedir(uUrl,uCuerpo)}
+  if(caido){if(!primero)throw new Error('No se pudo entregar el mensaje: el agente sigue sin conexión. Inténtalo en unos segundos.');await ocEmergencia(s,q,fs,urec);return}
+  if(!r)throw new Error('No se pudo conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.');
+  if(r.status>=500&&rhApi)throw new Error('No se pudo rehacer la respuesta. Inténtalo de nuevo; tu versión anterior sigue guardada (‹ ›).');
   try{d=await r.json()}catch(e){if(s.parar)throw e}
-  if(r.status===202){if(fs.length){ocEn(s,function(){ocSetSubidos(fs)});await ocEn(s,ocSetGuardar)}if(mk)mk.textContent='Entregado al agente';else log('n','Tu mensaje se entregó al agente, que ya estaba trabajando en este chat.');return}
+  if(r.status===202&&primero){
+   // La API ya tenía un turno en curso en este chat (p. ej. tras una reconexión) y sumó este mensaje: se espera su respuesta.
+   if(fs.length){ocEn(s,function(){ocSetSubidos(fs)});await ocEn(s,ocSetGuardar)}
+   log('n','El agente estaba terminando una tarea anterior en este chat y sumó tu mensaje; espero su respuesta.');
+   r=await pedir('/api/agente/recuperar',{chat_id:ag,conocidos:con});if(!r)throw new Error('No se pudo conectar con el servidor. Inténtalo de nuevo.');d=null;try{d=await r.json()}catch(e){if(s.parar)throw e}}
+  if(r.status===202){if(fs.length){ocEn(s,function(){ocSetSubidos(fs)});await ocEn(s,ocSetGuardar)}if(mk){mk.textContent='Entregado al agente';s.iny.push({q:q,mk:mk})}return}
   if(mk)mk.remove();
   if(!r.ok)throw new Error(d&&typeof d.error==='string'?d.error.slice(0,200):'El servidor respondió con error '+r.status+'.');
   if(!d||typeof d.respuesta!=='string')throw new Error('Respuesta del agente no válida.');
   if(rh){okRh=true;if(rhApi){if(d.rehecho&&typeof d.rehecho.rama==='number')rh.guardada.k=d.rehecho.rama;else rh.guardada.ag=''}}
+  okT=true;noAt=d.pendientes_no_atendidos;
   var ent=ocEn(s,function(){if(typeof d.chat_id==='string'&&/^[A-Za-z0-9_-]{1,64}$/.test(d.chat_id))ocAgId=d.chat_id;return ocSetAplicar(d,fs)});
   await ocEn(s,ocSetGuardar);
-  var el=log('a',d.respuesta.trim()||'(sin respuesta)','Agente del servidor',null,ent.length?{meta:ent.map(function(e){return {id:e.id,n:e.n,ti:e.ti,b:e.b,v:e.v,g:e.g}})}:undefined);
+  var mo=typeof d.modelo==='string'?d.modelo:'';ocEvDetener(s);await ocEvSondearFin(s);
+  ocProcSig=ocProcCerrar(s,mo);
+  var el=log('a',d.respuesta.trim()||'(sin respuesta)','Agente del servidor'+(nombreModelo(mo||(ocProcSig&&ocProcSig.mo))?' · '+nombreModelo(mo||ocProcSig.mo):''),null,ent.length?{meta:ent.map(function(e){return {id:e.id,n:e.n,ti:e.ti,b:e.b,v:e.v,g:e.g}})}:undefined);
+  ocProcSig=null;
   ocEn(s,function(){ocIndices(d,el&&el.ocM)});
   if(d.pendiente)log('n','Algunas versiones nuevas no llegaron a este navegador por su tamaño. Descárgalas con «Descargar todo (.zip)».');
   if(d.omitidos&&d.omitidos.length)log('n','Algunos archivos no se enviaron por su tamaño: '+d.omitidos.join(', ')+'.')}
- catch(e){if(mk&&mk.textContent!=='Entregado al agente')mk.textContent='No se pudo entregar';ocFinTurno(s,e)}
+ catch(e){ocProcSig=null;if(mk&&mk.textContent!=='Entregado al agente')mk.textContent='No se pudo entregar';errEl=ocFinTurno(s,e);
+  // Error o tiempo agotado del agente: el chat sigue en modo agente; «Reintentar» rehace esta respuesta.
+  if(primero&&errEl&&urec)ocBotonAviso(errEl,'Reintentar',function(x){if(s.pend||ocVis!==s){ocAnunciar('Espera a que termine la respuesta actual.');return}x.disabled=true;ocRehacer(urec,null)})}
  // Si «rehacer» no llegó a hacerse, el historial del agente sigue siendo el de la versión anterior: esta versión ya no lo comparte.
- finally{if(rh&&!okRh)ocEn(s,function(){if(agRh&&ocAgId===agRh)ocAgId=''});ocPendFin(s)}}
+ finally{if(rh&&!okRh)ocEn(s,function(){if(agRh&&ocAgId===agRh)ocAgId=''});if(primero){ocInyCerrar(s,okT,noAt);s.emerg=false;s.proc=null}ocPendFin(s)}}
+// Último sondeo de eventos antes de pintar la respuesta, para que el proceso guardado tenga todos los pasos.
+async function ocEvSondearFin(s){if(!s.W)return;var k=0;while(s.evOcup&&k++<20)await new Promise(function(v){setTimeout(v,100)});await ocEvSondear(s)}
 var OC_ADJ_MAX=20*1024*1024,OC_CSP='<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; img-src data: blob: https:; media-src data: blob: https:; style-src \'unsafe-inline\' https:; font-src data: https:; script-src \'unsafe-inline\' https:; connect-src \'none\'; form-action \'none\'">';
 var ocPan={i:-1,cur:'',zip:null,modo:'vista',hoja:0,hojaDe:'',url:'',urls:[],disp:null,tok:0},ocArch=[],ocZipOcup=false;
 function ocId(){return 'f'+Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
@@ -1338,7 +1429,11 @@ async function ocPanZip(a,d,tok){var zz=zipEntradas(d),ents=[];
  zz.entradas.forEach(function(e){if(e.dir)return;var r=rutaSegura(e.nombre);if(!r||clasificarRuta(r)==='ignorar')return;ents.push({nombre:r,metodo:e.metodo,comp:e.comp,tam:e.tam,offset:e.offset,cifrado:e.cifrado,dir:false})});
  if(tok!==ocPan.tok)return;ocPanZipLista({datos:d,ents:ents,mapa:null})}
 async function ocPanDescargar(){var a=ocArch[ocPan.i];if(!a)return;var d=await ocArchDatos(a);if(d)ocDescargar(a.n.split('/').pop(),d,a.t||mimeArchivo(a.n))}
-async function ocAgEstado(){try{var r=await fetch('/api/ia-estado');var j=await r.json();ocAgOk=!!(j&&j.agente)}catch(e){ocAgOk=false}ocAgSabe=true;ocAgUi()}
+async function ocAgEstado(){try{var r=await fetch('/api/ia-estado',{cache:'no-store'});var j=await r.json();ocAgOk=!!(j&&j.agente)}catch(e){ocAgOk=false}ocAgSabe=true;
+ if(ocAgOk)ocAgCaido=0;else{if(!ocAgCaido)ocAgCaido=Date.now();ocEmVigilar()}ocAgUi()}
+// Mientras el agente no está, se consulta cada 5 s para ofrecer «Reintentar con el agente» en cuanto vuelva.
+var ocEmT=null,ocAgCaido=0;
+function ocEmVigilar(){if(ocEmT)return;ocEmT=setInterval(function(){ocAgEstado().then(function(){if(ocAgOk&&ocEmT){clearInterval(ocEmT);ocEmT=null}})},5000)}
 $('oc-adj').addEventListener('click',function(){$('oc-file').click()});
 $('oc-file').addEventListener('change',function(){var fs=Array.prototype.slice.call($('oc-file').files||[]);$('oc-file').value='';ocAdjuntar(fs)});
 $('oc-in').addEventListener('paste',function(e){var cd=e.clipboardData,fs=[];if(cd&&cd.files)for(var i=0;i<cd.files.length;i++)if(cd.files[i].type&&cd.files[i].type.indexOf('image/')===0)fs.push(cd.files[i]);if(fs.length){e.preventDefault();ocAdjuntar(fs)}});

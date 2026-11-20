@@ -413,19 +413,35 @@ function correr(L){detener(L);var tok=(L.tok||0)+1;L.tok=tok;L.id='dm'+Date.now(
  L.t0=performance.now();estado(L,'trabaja','Pensando…');paso(L,'Pregunta enviada '+(L.mcp?'con el MCP conectado':'sin el MCP'));
  L.reloj=setInterval(function(){var t=seg(performance.now()-L.t0);q$(L,'.dv-reloj').textContent=t;L.tab.querySelector('small').textContent=t},100);
  L.sondeo=setInterval(function(){sondear(L,tok)},1000);
- var ctl=window.AbortController?new AbortController():null;L.ctl=ctl;var lim=setTimeout(function(){if(ctl)ctl.abort();fallar(L,'Tardó más de 3 minutos.',tok)},180000);
+ var ctl=window.AbortController?new AbortController():null;L.ctl=ctl;var lim=setTimeout(function(){if(ctl)ctl.abort();fallar(L,'Tardó más de 6 minutos.',tok)},400000);
  var cuerpo={chat_id:L.id,mensaje:P.q,archivos:[]};if(L.mcp)cuerpo.mcp=true;
- fetch('/api/agente',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(cuerpo),signal:ctl?ctl.signal:undefined})
- .then(function(r){return r.json().catch(function(){return {}}).then(function(j){return {r:r,j:j}})})
- .then(function(x){if(tok!==L.tok)return;
+ var esperas=0,reint=false;
+ // Conector reiniciándose, tiempo agotado o red caída: se espera la reconexión (hasta ~16 s) y se recupera la respuesta del turno
+ // (o se reenvía si la pregunta no llegó). Cualquier otro error se reintenta solo una vez con un chat nuevo.
+ function seguir(x){if(tok!==L.tok)return;
+  var caido=!x||(x.r.status===503&&x.j&&x.j.reconectando),tiempo=!!(x&&x.r.status===502&&x.j&&x.j.tiempo);
+  if((caido||tiempo)&&esperas<3){esperas++;
+   return (caido?esperarAg(L,tok,16000):Promise.resolve(true)).then(function(ok){if(tok!==L.tok)return;
+    if(!ok){if(!L.mcp)return respaldo(L,tok);throw new Error('El servidor del agente no volvió a conectarse a tiempo.')}
+    if(caido){paso(L,'Conexión recuperada: sigo con la pregunta');estado(L,'trabaja','Pensando…')}
+    return (!x||tiempo||x.j.enviado?pedirAg(L,'/api/agente/recuperar',{chat_id:L.id,mensaje:P.q}).then(function(y){return y.r.status===404?pedirAg(L,'/api/agente',cuerpo):y}):pedirAg(L,'/api/agente',cuerpo)).then(seguir,function(e){if(e&&e.name==='AbortError')throw e;return seguir(null)})})}
+  if(caido)throw new Error('El servidor del agente no está disponible.');
+  if(x.r.status===202&&esperas<3){esperas++;return pedirAg(L,'/api/agente/recuperar',{chat_id:L.id}).then(seguir)}
   if(x.r.status>=500&&!L.mcp)return respaldo(L,tok);
-  if(x.r.status===202)throw new Error('El asistente sigue ocupado con otra pregunta.');
-  if(!x.r.ok)throw new Error(x.j&&typeof x.j.error==='string'?x.j.error.slice(0,160):'El servidor respondió con error '+x.r.status+'.');
-  if(!x.j||typeof x.j.respuesta!=='string')throw new Error('La respuesta no llegó completa.');
+  var malo=x.r.status===202?'El asistente sigue ocupado con otra pregunta.':!x.r.ok?(x.j&&typeof x.j.error==='string'?x.j.error.slice(0,160):'El servidor respondió con error '+x.r.status+'.'):(!x.j||typeof x.j.respuesta!=='string')?'La respuesta no llegó completa.':'';
+  if(malo){if(reint||x.r.status===429)throw new Error(malo);reint=true;paso(L,'Falló ('+malo.replace(/[.]+$/,'')+'): lo reintento una vez','x');
+   L.id=L.id.slice(0,40)+'r';L.n=0;cuerpo.chat_id=L.id;estado(L,'trabaja','Reintentando…');return pedirAg(L,'/api/agente',cuerpo).then(seguir,function(e){if(e&&e.name==='AbortError')throw e;return seguir(null)})}
   if(typeof x.j.chat_id==='string'&&/^[A-Za-z0-9_-]{1,64}$/.test(x.j.chat_id))L.agId=x.j.chat_id;
-  terminar(L,x.j.respuesta.trim()||'(sin respuesta)',tok)})
+  if(typeof x.j.modelo==='string'&&x.j.modelo)L.modelo='Agente del servidor · '+x.j.modelo;
+  terminar(L,x.j.respuesta.trim()||'(sin respuesta)',tok)}
+ pedirAg(L,'/api/agente',cuerpo).then(seguir,function(e){if(e&&e.name==='AbortError')throw e;return seguir(null)})
  .catch(function(e){if(tok!==L.tok||L.fin)return;fallar(L,e&&e.name==='AbortError'?'Se canceló la petición.':e&&e.message&&!/fetch|network/i.test(e.message)?e.message:'No se pudo conectar con el servidor.',tok)})
  .then(function(){clearTimeout(lim)})}
+function pedirAg(L,url,cuerpo){return fetch(url,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(cuerpo),signal:L.ctl?L.ctl.signal:undefined}).then(function(r){return r.json().catch(function(){return {}}).then(function(j){return {r:r,j:j}})})}
+function estadoAg(){return fetch('/api/ia-estado',{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){return !!(j&&j.agente)},function(){return false})}
+function esperarAg(L,tok,ms){var fin=Date.now()+ms;paso(L,'Reconectando con el servidor…');estado(L,'trabaja','Reconectando con el servidor…');
+ function vuelta(){if(tok!==L.tok)return Promise.resolve(false);return estadoAg().then(function(ok){if(ok)return true;if(Date.now()>fin)return false;return new Promise(function(v){setTimeout(v,1500)}).then(vuelta)})}
+ return vuelta()}
 function respaldo(L,tok){paso(L,'El agente no está libre: respondo con el modo de respaldo');L.modelo='';
  return fetch('/api/chat',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({messages:[{role:'user',content:P.q}]}),signal:L.ctl?L.ctl.signal:undefined})
  .then(function(r){return r.json().then(function(j){if(!r.ok||!j||typeof j.content!=='string')throw new Error(j&&j.error?String(j.error).slice(0,160):'El respaldo tampoco respondió.');L.modelo=String(j.modelo||'');terminar(L,j.content.trim(),tok)})})}
