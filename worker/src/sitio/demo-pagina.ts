@@ -382,6 +382,7 @@ function sondear(L,tok){if(L.ocup||tok!==L.tok)return;L.ocup=true;
    if(e.tipo==='herramienta'){var h=t.replace(/^(Consultando|Usando)\s+/i,'').trim(),mm=/(?:obraclara__)?(buscar_inversiones|detalle_inversion|alertas_inversion|resumen_inversiones)/.exec(h);
     if(mm){L.herr++;estado(L,'trabaja','Consultando '+mm[1]+' en el MCP…');paso(L,'','h','Consultando <code>'+E(mm[1])+'</code> en el MCP')}
     else if(/web|internet|search/i.test(h)){estado(L,'trabaja','Buscando en internet…');paso(L,'','h','Buscando en internet <code>'+E(h)+'</code>')}
+    else if(/\s/.test(h)){estado(L,'trabaja',h.replace(/[.…]+$/,'')+'…');paso(L,h)}
     else{estado(L,'trabaja','Usando '+h+'…');paso(L,'','h','Usando <code>'+E(h)+'</code>')}}
    else if(e.tipo==='error'){paso(L,t,'x')}
    else{estado(L,'trabaja',t.replace(/[.…]+$/,'')+'…');paso(L,t)}})})
@@ -402,7 +403,7 @@ function terminar(L,txt,tok){if(tok!==L.tok)return;L.fin=true;L.texto=txt;var ms
   var vr=q$(L,'.dv-ver'),ok=P.clave?daCifra(txt,P.clave):null;vr.className='dv-ver'+(ok===true?' ok':ok===false?' mal':'');
   vr.innerHTML='<i aria-hidden="true">'+(ok===true?'✓':ok===false?'✗':'·')+'</i><b>'+(ok===true?'Dio la cifra oficial: '+E(P.clave):ok===false?'No dio la cifra oficial ('+E(P.clave)+')':'Pregunta libre: sin cifra oficial para comparar')+'</b><span>Tiempo total: '+E(seg(ms))+(L.mcp?(L.herr?' · consultó los datos del MEF':' · no consultó el MCP'):' · sin el MCP')+'</span>';
   q$(L,'.dv-pie').hidden=false;q$(L,'[data-acc=abrir]').hidden=false;q$(L,'[data-acc=reintentar]').hidden=true;L.ok=ok;abajo(L);cuenta()})}
-function fallar(L,msg,tok){if(tok!==L.tok)return;L.fin=true;detener(L);paso(L,msg,'x');estado(L,'error',msg);
+function fallar(L,msg,tok){if(tok!==L.tok)return;L.fin=true;detener(L);if(!L.texto)q$(L,'.dv-resp').hidden=true;paso(L,msg,'x');estado(L,'error',msg);
  var vr=q$(L,'.dv-ver');vr.className='dv-ver mal';vr.innerHTML='<i aria-hidden="true">!</i><b>No llegó la respuesta</b><span>'+E(msg)+' Puedes reintentar: la otra columna sigue igual.</span>';
  q$(L,'.dv-pie').hidden=false;q$(L,'[data-acc=reintentar]').hidden=false;q$(L,'[data-acc=abrir]').hidden=true;cuenta()}
 function cuenta(){if(!P||P.contado||!P.clave)return;if(!LADOS.every(function(L){return L.fin&&!L.esc}))return;if(LADOS.some(function(L){return L.ok==null}))return;
