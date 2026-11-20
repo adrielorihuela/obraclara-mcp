@@ -43,6 +43,10 @@ body.es-app main{flex:1;min-height:0}
 .b-chats .ch-b{flex:none;width:28px;height:28px;border:0;border-radius:6px;background:transparent;color:var(--mut);font:500 13px/1 var(--sans);cursor:pointer}
 .b-chats .ch-b:hover{background:var(--surface-2);color:var(--ink)}
 .b-chats input.ch-i{flex:1;min-width:0;margin:3px;min-height:30px;padding:0 8px;border:1px solid var(--ink-2);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit;font-size:13.5px}
+.b-chats .ch-v{flex:none;width:22px;height:10px;margin-right:4px;background:radial-gradient(circle closest-side,var(--accent) 92%,transparent) 0 50%/6px 6px no-repeat,radial-gradient(circle closest-side,var(--accent) 92%,transparent) 8px 50%/6px 6px no-repeat,radial-gradient(circle closest-side,var(--accent) 92%,transparent) 16px 50%/6px 6px no-repeat;animation:puntos-c 1.1s infinite linear}
+@keyframes puntos-c{0%,100%{background-position:0 50%,8px 50%,16px 50%}20%{background-position:0 0,8px 50%,16px 50%}40%{background-position:0 100%,8px 0,16px 50%}60%{background-position:0 50%,8px 100%,16px 0}80%{background-position:0 50%,8px 50%,16px 100%}}
+.b-chats .ch-n{flex:none;width:8px;height:8px;margin:0 8px 0 2px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+@media (prefers-reduced-motion:reduce){.b-chats .ch-v{animation:none}}
 .b-chats .ch-todos{margin-top:6px;background:transparent;border:0;color:var(--mut);font:500 12.5px/1 var(--sans);text-align:left;padding:6px 4px;cursor:pointer;text-decoration:underline}
 .b-chats .ch-est{font-size:12px;color:var(--risk);margin:0}
 .b-chats button:focus-visible,.b-chats input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
@@ -545,13 +549,22 @@ async function ocAlmEscribir(txt){var fallo=null;
 `;
 
 const app = String.raw`
-var ocMcp=true,ocHist=[],ocTools=null,ocBusy=false,ocConns=[],ocActiva='servidor',ocEdit='',ocHL='servidor',ocImgs=[],ocDocs=[],ocLeyendo=0,ocMsgs=[],ocChats=[],ocChatId='',ocRest=false,ocRen='',ocAgOk=false,ocAgSabe=false,ocAgId='',ocAbort=null,ocParar=false,ocParoAvisado=false,ocPend=0,ocW=null,ocEvN=0,ocEvT=null,ocEvOcup=false;
+var ocMcp=true,ocHist=[],ocTools=null,ocConns=[],ocActiva='servidor',ocEdit='',ocHL='servidor',ocImgs=[],ocDocs=[],ocLeyendo=0,ocMsgs=[],ocChats=[],ocChatId='',ocRest=false,ocRen='',ocAgOk=false,ocAgSabe=false,ocAgId='';
+// Estado por chat: cada conversación es una sesión con su propio turno (espera, sondeo de eventos, AbortController).
+// Las variables globales (ocChatId, ocAgId, ocHist, ocMsgs, ocArch) son las de la sesión en contexto (ocS); ocEn(s,fn) cambia de contexto para escribir en un chat que no está abierto.
+var OC_MAX_VIVAS=3,ocVivas=[],ocNuevos={},ocFondo=false,ocS=ocSesNueva(),ocVis=ocS;
+function ocSesNueva(){return {id:'',agId:'',hist:[],msgs:[],arch:[],log:null,pend:0,parar:false,avisado:false,abort:null,W:null,evN:0,evT:null,evOcup:false}}
+function ocCtxGuarda(s){s.id=ocChatId;s.agId=ocAgId;s.hist=ocHist;s.msgs=ocMsgs;s.arch=ocArch}
+function ocCtxCarga(s){ocChatId=s.id;ocAgId=s.agId;ocHist=s.hist;ocMsgs=s.msgs;ocArch=s.arch;ocS=s}
+function ocEn(s,fn){if(s===ocS)return fn();var prev=ocS,pf=ocFondo;ocCtxGuarda(prev);ocCtxCarga(s);ocFondo=s!==ocVis;try{return fn()}finally{ocCtxGuarda(s);ocCtxCarga(prev);ocFondo=pf}}
+function ocLogBox(){return ocFondo&&ocS.log?ocS.log:$('oc-log')}
+function ocViva(id){for(var i=0;i<ocVivas.length;i++){var v=ocVivas[i];if(id&&(v===ocS?ocChatId:v.id)===id)return v}return null}
 var OC_ICO_TOOL='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 4h12M2 8h8M2 12h5"/><path d="m11 10 2 2-2 2"/></svg>';
-function ocBajar(){var s=$('oc-scroll');if(s)s.scrollTop=s.scrollHeight}
+function ocBajar(){if(ocFondo)return;var s=$('oc-scroll');if(s)s.scrollTop=s.scrollHeight}
 function ocRec(m){if(ocRest)return null;ocMsgs.push(m);ocShareUi();return m}
 function ocLog(cls,txt,extra,adj,arch){var rec=null;if(cls==='u')ocRec({rol:'u',texto:txt+(extra&&extra.length?'\n'+extra.map(function(){return '[imagen adjunta]'}).join(' '):''),mcp:ocMcp,adj:adj?adj.meta:undefined});
  if(cls==='a')rec=ocRec({rol:'a',texto:txt,modelo:typeof extra==='string'?extra:'',mcp:ocMcp});
-var d=document.createElement('div');d.className='msg '+cls;$('oc-vacio').hidden=true;
+var d=document.createElement('div');d.className='msg '+cls;if(!ocFondo)$('oc-vacio').hidden=true;
  if(cls==='a'){var t=document.createElement('div');t.className='t';ocMd(t,txt);
   if(typeof extra==='string'&&extra){var m=document.createElement('p');m.className='mod';m.textContent='Respondió: '+extra;t.appendChild(m)}
   var bx=document.createElement('div');bx.className='adjs';t.appendChild(bx);d.appendChild(t);
@@ -559,7 +572,7 @@ var d=document.createElement('div');d.className='msg '+cls;$('oc-vacio').hidden=
  else{d.textContent=txt;
   if(cls==='u'&&extra&&extra.length){var g=document.createElement('div');g.className='ims';extra.forEach(function(u){var im=document.createElement('img');im.alt='Imagen adjunta';im.src=u;g.appendChild(im)});d.appendChild(g)}
   if(cls==='u'&&adj&&adj.meta&&adj.meta.length){var g2=document.createElement('div');g2.className='ims';adj.meta.forEach(function(x){g2.appendChild(ocChip(x,false,null))});d.appendChild(g2)}}
- $('oc-log').appendChild(d);if(ocW)$('oc-log').appendChild(ocW);ocBajar();return d}
+ var L=ocLogBox();L.appendChild(d);if(ocS.W)L.appendChild(ocS.W);ocBajar();return d}
 function ocTool(name,args,res){ocRec({rol:'t',texto:'',herramienta:{nombre:name,args:args||{},resultado:truncate(typeof res==='string'?res:String(res),2400)}});var d=document.createElement('details'),s=document.createElement('summary'),b=document.createElement('div');d.className='tc';
  var i=document.createElement('span');i.className='tc-i';i.innerHTML=OC_ICO_TOOL;
  var n=document.createElement('code');n.textContent=name;var a=document.createElement('span');a.className='tc-a';
@@ -571,7 +584,7 @@ function ocTool(name,args,res){ocRec({rol:'t',texto:'',herramienta:{nombre:name,
  var h1=document.createElement('p'),p1=document.createElement('pre'),h2=document.createElement('p'),p2=document.createElement('pre');
  h1.textContent='Argumentos';p1.textContent=JSON.stringify(args||{},null,2);h2.textContent='Resultado';p2.textContent=truncate(r,2400);
  b.className='tc-b';b.appendChild(h1);b.appendChild(p1);b.appendChild(h2);b.appendChild(p2);
- d.appendChild(s);d.appendChild(b);$('oc-vacio').hidden=true;$('oc-log').appendChild(d);if(ocW)$('oc-log').appendChild(ocW);ocBajar()}
+ d.appendChild(s);d.appendChild(b);if(!ocFondo)$('oc-vacio').hidden=true;var L=ocLogBox();L.appendChild(d);if(ocS.W)L.appendChild(ocS.W);ocBajar()}
 function ocRead(st,k){try{return JSON.parse(st.getItem(k)||'null')}catch(e){return null}}
 function ocWrite(st,k,v){try{if(v===null)st.removeItem(k);else st.setItem(k,JSON.stringify(v))}catch(e){}}
 function ocSwitchText(){var sw=$('oc-sw'),ag=ocAgActivo(),DESC='El asistente puede consultar los datos oficiales del MEF (si MCP está activado), leer tus archivos y entregarte archivos como Excel, Word o PDF.';sw.setAttribute('aria-checked',String(ocMcp));sw.removeAttribute('aria-disabled');
@@ -630,8 +643,8 @@ function ocHttpError(st){if(st===401||st===403)return 'El proveedor rechazó la 
  if(st===429)return 'Límite de uso del proveedor alcanzado (429). Espera un momento o revisa tu cuota.';
  if(st===404)return 'El proveedor no encontró el modelo o la dirección (404). Revisa el nombre del modelo y la URL base.';
  return 'El proveedor respondió con error '+st+'.'}
-async function ocPost(url,headers,body){var r;
- try{r=await fetch(url,{method:'POST',headers:headers,body:JSON.stringify(body),signal:ocAbort?ocAbort.signal:undefined})}catch(e){throw new Error('No se pudo conectar con el proveedor. Revisa tu conexión (o si el proveedor permite llamadas desde el navegador).')}
+async function ocPost(url,headers,body,sig){var r;
+ try{r=await fetch(url,{method:'POST',headers:headers,body:JSON.stringify(body),signal:sig})}catch(e){throw new Error('No se pudo conectar con el proveedor. Revisa tu conexión (o si el proveedor permite llamadas desde el navegador).')}
  if(!r.ok){var eb=null;try{eb=await r.json()}catch(e){}
   var fg=eb&&eb.error&&eb.error.failed_generation;
   // Algunos modelos (p. ej. gpt-oss en Groq) intentan llamar a una herramienta con su formato propio y el proveedor lo rechaza con 400, pero devuelve lo generado: se usa como respuesta del modelo.
@@ -639,10 +652,10 @@ async function ocPost(url,headers,body){var r;
   var det=eb&&eb.error&&typeof eb.error.message==='string'?' Detalle: '+eb.error.message.slice(0,200):'';
   throw new Error(ocHttpError(r.status)+det)}
  try{return await r.json()}catch(e){throw new Error('Respuesta del proveedor no válida.')}}
-async function ocLlmConn(c,msgs){var q=construirPeticion(c,msgs);var j=await ocPost(q.url,q.headers,q.body);return extraerRespuesta(c.tipo,j)}
-async function ocLlm(msgs){
+async function ocLlmConn(c,msgs,sig){var q=construirPeticion(c,msgs);var j=await ocPost(q.url,q.headers,q.body,sig);return extraerRespuesta(c.tipo,j)}
+async function ocLlm(msgs,sig){
  if(ocActiva===ocHL){var r;
-  try{r=await fetch('/api/chat',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({messages:recortarMensajes(msgs,140000)}),signal:ocAbort?ocAbort.signal:undefined})}catch(e){throw new Error('No se pudo conectar con el servidor.')}
+  try{r=await fetch('/api/chat',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({messages:recortarMensajes(msgs,140000)}),signal:sig})}catch(e){throw new Error('No se pudo conectar con el servidor.')}
   var d=null;try{d=await r.json()}catch(e){}
   if(r.status===429)throw new Error('Muchas preguntas seguidas, espera un minuto o agrega tu propia IA en Configuración.');
   if(r.status===503||r.status===504)throw new Error('El servidor de ObraClara no pudo responder ahora (ninguna IA disponible). Inténtalo de nuevo o agrega tu propia IA en Configuración.');
@@ -650,45 +663,50 @@ async function ocLlm(msgs){
   if(!d||typeof d.content!=='string')throw new Error('Respuesta del servidor no válida.');
   return {texto:d.content,modelo:typeof d.modelo==='string'?d.modelo:''}}
  var c=ocConnById(ocActiva);if(!c)throw new Error('La IA seleccionada ya no existe. Elige otra.');
- return {texto:await ocLlmConn(c,msgs),modelo:c.nombre}}
-async function ocMcpCall(method,params){
- var r;try{r=await fetch('/mcp',{method:'POST',headers:{'content-type':'application/json','accept':'application/json, text/event-stream'},body:JSON.stringify({jsonrpc:'2.0',id:Date.now(),method:method,params:params||{}}),signal:ocAbort?ocAbort.signal:undefined})}
+ return {texto:await ocLlmConn(c,msgs,sig),modelo:c.nombre}}
+async function ocMcpCall(method,params,sig){
+ var r;try{r=await fetch('/mcp',{method:'POST',headers:{'content-type':'application/json','accept':'application/json, text/event-stream'},body:JSON.stringify({jsonrpc:'2.0',id:Date.now(),method:method,params:params||{}}),signal:sig})}
  catch(e){throw new Error('No se pudo conectar con el servidor MCP.')}
  if(r.status===429)throw new Error('Demasiadas solicitudes al servidor MCP (429). Espera un minuto.');
  if(!r.ok)throw new Error('El servidor MCP respondió con error '+r.status+'.');
  var d=parseSse(await r.text());if(!d)throw new Error('Respuesta MCP no válida.');if(d.error)throw new Error(d.error.message||'Error MCP.');return d.result}
-async function ocRun(q,urls){
- ocHist.push({role:'user',content:construirContenido(q,urls||[])});
- if(ocMcp&&!ocTools){ocTools=((await ocMcpCall('tools/list')).tools)||[]}
- var sys=buildSystemPrompt(ocTools||[],ocMcp);
+async function ocRun(s,q,urls){var sig=s.abort?s.abort.signal:undefined,mcp=ocMcp,h=ocEn(s,function(){ocHist.push({role:'user',content:construirContenido(q,urls||[])});return ocHist});
+ function log(a,b,c){ocEn(s,function(){ocLog(a,b,c)})}
+ if(mcp&&!ocTools){ocTools=((await ocMcpCall('tools/list',null,sig)).tools)||[]}
+ var sys=buildSystemPrompt(ocTools||[],mcp);
  for(var step=0;step<5;step++){
-  if(ocParar)throw new Error('Detenido');
-  var rr=await ocLlm([{role:'system',content:sys}].concat(ocHist)),out=rr.texto,mo=rr.modelo;
+  if(s.parar)throw new Error('Detenido');
+  var rr=await ocLlm([{role:'system',content:sys}].concat(h),sig),out=rr.texto,mo=rr.modelo;
   if(ocActiva===ocHL&&!ocAgOk)mo=(mo?mo+' · ':'')+'modo de emergencia';
   var c=parseToolCall(out);
-  if(!c){ocHist.push({role:'assistant',content:out});ocLog('a',out.trim()||'(sin respuesta)',mo);return}
-  if(c.tipo==='respuesta'){ocHist.push({role:'assistant',content:out});ocLog('a',c.texto,mo);return}
-  if(!ocMcp){ocHist.push({role:'assistant',content:out});ocLog('a',out.trim(),mo);return}
-  var txt;try{var rs=await ocMcpCall('tools/call',{name:c.tool,arguments:c.args});txt=(rs.content||[]).map(function(x){return x.text||''}).join('')||JSON.stringify(rs)}catch(e){txt='Error: '+e.message}
-  ocTool(c.tool,c.args,txt);
-  ocHist.push({role:'assistant',content:out});
-  ocHist.push({role:'user',content:'Resultado de '+c.tool+':'+String.fromCharCode(10)+truncate(txt,6000)+String.fromCharCode(10)+'Continúa: llama otra herramienta o termina con {"respuesta":"..."}.'});
+  if(!c){h.push({role:'assistant',content:out});log('a',out.trim()||'(sin respuesta)',mo);return}
+  if(c.tipo==='respuesta'){h.push({role:'assistant',content:out});log('a',c.texto,mo);return}
+  if(!mcp){h.push({role:'assistant',content:out});log('a',out.trim(),mo);return}
+  var txt;try{var rs=await ocMcpCall('tools/call',{name:c.tool,arguments:c.args},sig);txt=(rs.content||[]).map(function(x){return x.text||''}).join('')||JSON.stringify(rs)}catch(e){txt='Error: '+e.message}
+  ocEn(s,function(){ocTool(c.tool,c.args,txt)});
+  h.push({role:'assistant',content:out});
+  h.push({role:'user',content:'Resultado de '+c.tool+':'+String.fromCharCode(10)+truncate(txt,6000)+String.fromCharCode(10)+'Continúa: llama otra herramienta o termina con {"respuesta":"..."}.'});
  }
- ocLog('n','Se alcanzó el máximo de 5 pasos sin respuesta final. Prueba con una pregunta más concreta.')}
+ log('n','Se alcanzó el máximo de 5 pasos sin respuesta final. Prueba con una pregunta más concreta.')}
 function ocChatEst(m){var e=$('oc-chat-est');e.textContent=m||'';e.hidden=!m}
 async function ocPersistChats(){ocChats=recortarChats(ocChats);
  try{await ocAlmEscribir(serializarChats(ocChats));ocChatEst('')}
  catch(e){ocChatEst(e&&e.message==='cuota'?'No se pudo guardar el chat: el almacenamiento del navegador está lleno. Borra chats antiguos.':'Este navegador no permite guardar chats (almacenamiento bloqueado). Puedes seguir chateando, pero no se guardará.')}
  ocRenderChats()}
-function ocGuardar(){var hay=false;ocMsgs.forEach(function(m){if(m.rol==='a')hay=true});if(!hay)return;
+function ocGuardar(){var hay=false;ocMsgs.forEach(function(m){if(m.rol==='u'||m.rol==='a')hay=true});if(!hay)return;
  var ahora=Date.now(),c=null;ocChats.forEach(function(x){if(x.id===ocChatId)c=x});
  if(!c){var pu='';ocMsgs.forEach(function(m){if(!pu&&m.rol==='u')pu=m.texto});
   ocChatId='c'+ahora.toString(36)+Math.random().toString(36).slice(2,6);c={id:ocChatId,titulo:tituloChat(pu),creado:ahora,actualizado:ahora,mensajes:[]};ocChats.push(c)}
  c.mensajes=ocMsgs.slice();c.actualizado=ahora;if(ocAgId)c.agenteId=ocAgId;ocPersistChats()}
 async function ocCargarChats(){var t=await ocAlmLeer();ocChats=deserializarChats(t);ocRenderChats()}
-function ocLimpiar(){ocPanCerrar();ocArch=[];$('oc-arch-b').hidden=true;ocAgId='';ocEvN=0;ocHist=[];ocMsgs=[];ocChatId='';ocImgs=[];ocDocs=[];ocThumbs();$('oc-log').textContent='';$('oc-vacio').hidden=false;ocShareUi();ocIdeas(false)}
-function ocAbrir(id){if(ocBusy)return;var c=null;ocChats.forEach(function(x){if(x.id===id)c=x});if(!c)return;
- ocLimpiar();ocChatId=c.id;ocAgId=c.agenteId||'';ocRest=true;
+// Deja el chat abierto: si sigue respondiendo, sus mensajes pasan a un contenedor aparte y el turno continúa en segundo plano.
+function ocSoltarVis(){var s=ocVis;ocCtxGuarda(s);if(!s.pend)return;var box=document.createElement('div'),L=$('oc-log');while(L.firstChild)box.appendChild(L.firstChild);s.log=box}
+function ocLimpiar(){ocPanCerrar();ocSoltarVis();ocVis=ocSesNueva();ocCtxCarga(ocVis);ocBusyUi();$('oc-arch-b').hidden=true;ocImgs=[];ocDocs=[];ocThumbs();$('oc-log').textContent='';$('oc-vacio').hidden=false;ocShareUi();ocIdeas(false)}
+function ocAbrir(id){if(ocVis.pend&&ocVis.id===id)return;var c=null;ocChats.forEach(function(x){if(x.id===id)c=x});if(!c)return;delete ocNuevos[id];
+ var v=ocViva(id);
+ if(v){ocPanCerrar();ocSoltarVis();ocVis=v;ocCtxCarga(v);var L=$('oc-log');L.textContent='';if(v.log)while(v.log.firstChild)L.appendChild(v.log.firstChild);v.log=null;
+  ocImgs=[];ocDocs=[];ocThumbs();$('oc-vacio').hidden=!!L.firstChild;ocIdeas(false);ocArchUi();ocShareUi();ocBusyUi();ocRenderChats();ocBajar();return}
+ ocLimpiar();ocChatId=c.id;ocAgId=c.agenteId||'';ocBusyUi();ocRest=true;
  c.mensajes.forEach(function(m){
   if(m.rol==='u'){var ad=m.adj&&m.adj.length?{meta:m.adj}:null;ocLog('u',m.texto,null,ad);ocHist.push({role:'user',content:m.texto})}
   else if(m.rol==='a'){ocLog('a',m.texto,m.modelo||'',null,m.arch&&m.arch.length?{meta:m.arch}:undefined);ocHist.push({role:'assistant',content:m.texto})}
@@ -698,7 +716,8 @@ function ocRenombrar(id,v){ocChats.forEach(function(x){if(x.id===id)x.titulo=tit
 function ocBorrar(id){var c=null;ocChats.forEach(function(x){if(x.id===id)c=x});if(!c||!confirm('¿Borrar el chat «'+c.titulo+'»?'))return;
  ocAdjDel(ocIdsArch(c));ocSetBorrar(c.agenteId);ocChats=ocChats.filter(function(x){return x.id!==id});if(ocChatId===id)ocLimpiar();ocPersistChats()}
 function ocIdsArch(c){var r=[];c.mensajes.forEach(function(m){(m.arch||[]).forEach(function(x){r.push(x.id)})});return r}
-function ocBorrarTodos(){if(!ocChats.length||!confirm('¿Borrar todos los chats guardados en este navegador? No se puede deshacer.'))return;
+function ocBorrarTodos(){if(ocVivas.length){ocChatEst('Espera a que terminen las respuestas en curso para borrar todos los chats.');return}
+ if(!ocChats.length||!confirm('¿Borrar todos los chats guardados en este navegador? No se puede deshacer.'))return;
  var ids=[];ocChats.forEach(function(c){ids=ids.concat(ocIdsArch(c))});ocAdjDel(ids);ocChats.forEach(function(c){ocSetBorrar(c.agenteId)});ocChats=[];ocLimpiar();ocPersistChats()}
 function ocRenderChats(){var r=$('oc-chats');r.textContent='';if(!ocChats.length)return;
  var ahora=Date.now(),ult='',ul=null;
@@ -711,12 +730,14 @@ function ocRenderChats(){var r=$('oc-chats');r.textContent='';if(!ocChats.length
    inp.addEventListener('blur',function(){fin(true)});li.appendChild(inp);ul.appendChild(li);setTimeout(function(){inp.focus();inp.select()},0);return}
   var b=document.createElement('button');b.type='button';b.className='ch-t';b.textContent=c.titulo;b.title=c.titulo;b.addEventListener('click',function(){ocAbrir(c.id)});
   var rn=document.createElement('button');rn.type='button';rn.className='ch-b';rn.textContent='✎';rn.setAttribute('aria-label','Renombrar chat «'+c.titulo+'»');rn.addEventListener('click',function(){ocRen=c.id;ocRenderChats()});
-  var dl=document.createElement('button');dl.type='button';dl.className='ch-b';dl.textContent='×';dl.setAttribute('aria-label','Borrar chat «'+c.titulo+'»');dl.addEventListener('click',function(){ocBorrar(c.id)});
+  var viva=!!ocViva(c.id),est=null;
+  if(viva||ocNuevos[c.id]){est=document.createElement('span');est.className=viva?'ch-v':'ch-n';est.setAttribute('role','img');est.setAttribute('aria-label',viva?'Respondiendo':'Respuesta nueva');est.title=viva?'Respondiendo…':'Respuesta nueva'}
+  var dl=document.createElement('button');dl.type='button';dl.className='ch-b';dl.textContent='×';dl.hidden=viva;dl.setAttribute('aria-label','Borrar chat «'+c.titulo+'»');dl.addEventListener('click',function(){ocBorrar(c.id)});
   var sh=document.createElement('button');sh.type='button';sh.className='ch-b';sh.textContent='↗';sh.title='Compartir';sh.setAttribute('aria-label','Compartir chat «'+c.titulo+'»');sh.addEventListener('click',function(){ocCompartir({id:c.id,titulo:c.titulo,mensajes:c.mensajes,imgs:c.id===ocChatId?ocImgsDe():null})});
-  li.appendChild(b);li.appendChild(sh);li.appendChild(rn);li.appendChild(dl);ul.appendChild(li)});
+  li.appendChild(b);if(est)li.appendChild(est);li.appendChild(sh);li.appendChild(rn);li.appendChild(dl);ul.appendChild(li)});
  var t=document.createElement('button');t.type='button';t.className='ch-todos';t.textContent='Borrar todos los chats';t.addEventListener('click',ocBorrarTodos);r.appendChild(t)}
 var ocShChat=null;
-function ocShareUi(){var h=false;ocMsgs.forEach(function(m){if(m.rol==='a')h=true});$('oc-top').hidden=!h&&!ocArch.length;$('oc-share').hidden=!h}
+function ocShareUi(){if(ocFondo)return;var h=false;ocMsgs.forEach(function(m){if(m.rol==='a')h=true});$('oc-top').hidden=!h&&!ocArch.length;$('oc-share').hidden=!h}
 function ocImgsDe(){var r=[];Array.prototype.forEach.call(document.querySelectorAll('#oc-log .msg.u'),function(d){var a=[];Array.prototype.forEach.call(d.querySelectorAll('.ims img'),function(i){if(/^data:image\//.test(i.src))a.push(i.src)});r.push(a)});return r}
 function ocLinks(){var l=ocRead(localStorage,'oc_compartidos');return Array.isArray(l)?l:[]}
 function ocLinksGuardar(l){ocWrite(localStorage,'oc_compartidos',l.length?l:null)}
@@ -789,87 +810,91 @@ async function ocAdjuntarAg(files){var msgs=[];
   catch(e){var k=ocDocs.indexOf(d);if(k>=0)ocDocs.splice(k,1);msgs.push('«'+d.meta.n+'»: no se pudo leer.')}
   ocLeyendo--;ocThumbs()}
  if(msgs.length)ocLog('n',msgs.join(' '))}
-function ocBusyUi(){$('oc-stop').hidden=!ocBusy}
+function ocBusyUi(){$('oc-stop').hidden=!ocVis.pend}
 function ocNuevoId(){return 'oc'+Date.now().toString(36)+Math.random().toString(36).slice(2,10)}
 function ocB64Bytes(b64){var bin=atob(b64),u=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return u}
-function ocPendIni(){ocPend++;if(ocPend===1){ocParar=false;ocParoAvisado=false;ocAbort=typeof AbortController==='function'?new AbortController():null}ocBusy=true;ocBusyUi()}
-function ocPendFin(){ocPend=Math.max(0,ocPend-1);if(ocPend)return;ocBusy=false;ocAbort=null;ocEsperaFin();ocBusyUi();ocBajar();ocGuardar()}
-function ocDetener(){if(!ocBusy)return;ocParar=true;if(ocAbort)ocAbort.abort()}
-function ocFinTurno(e){
- if(ocParar){if(!ocParoAvisado){ocParoAvisado=true;ocLog('n','Dejé de esperar la respuesta. Desde aquí no se puede cancelar el trabajo del agente: puede seguir en el servidor.')}}
- else ocLog('e',e&&e.message?e.message:'Error inesperado.')}
+function ocPendIni(s){s.pend++;if(s.pend===1){s.parar=false;s.avisado=false;s.abort=typeof AbortController==='function'?new AbortController():null;if(ocVivas.indexOf(s)<0)ocVivas.push(s)}ocBusyUi();ocRenderChats()}
+function ocPendFin(s){s.pend=Math.max(0,s.pend-1);if(s.pend)return;s.abort=null;var k=ocVivas.indexOf(s);if(k>=0)ocVivas.splice(k,1);
+ ocEn(s,function(){ocEsperaFin();ocGuardar()});s.log=null;if(s!==ocVis&&s.id)ocNuevos[s.id]=1;ocBusyUi();ocBajar();ocRenderChats()}
+function ocDetener(){var s=ocVis;if(!s.pend)return;s.parar=true;if(s.abort)s.abort.abort()}
+function ocFinTurno(s,e){ocEn(s,function(){
+ if(s.parar){if(!s.avisado){s.avisado=true;ocLog('n','Dejé de esperar la respuesta. Desde aquí no se puede cancelar el trabajo del agente: puede seguir en el servidor.')}}
+ else ocLog('e',e&&e.message?e.message:'Error inesperado.')})}
 function ocEsperaIni(txt){var d=document.createElement('div'),l=document.createElement('span'),dt=document.createElement('details'),sm=document.createElement('summary'),ol=document.createElement('ol');
  d.className='msg w';l.className='w-l';l.textContent=txt;sm.textContent='Ver pasos';dt.className='w-p';dt.hidden=true;dt.appendChild(sm);dt.appendChild(ol);d.appendChild(l);d.appendChild(dt);
- $('oc-vacio').hidden=true;$('oc-log').appendChild(d);ocW=d;ocBajar()}
-function ocEsperaFin(){ocEvDetener();if(ocW){ocW.remove();ocW=null}}
-function ocEvVer(e){if(!ocW||!e||e.tipo==='fin'||typeof e.texto!=='string'||!e.texto)return;
- ocW.firstChild.textContent='El agente está trabajando: '+e.texto;
- var dt=ocW.lastChild,li=document.createElement('li');li.textContent=e.texto;dt.lastChild.appendChild(li);dt.hidden=false;ocBajar()}
-async function ocEvBase(){try{var r=await fetch('/api/agente/eventos?chat_id='+encodeURIComponent(ocAgId)+'&desde=0'),d=await r.json();if(d&&typeof d.siguiente==='number')ocEvN=d.siguiente}catch(e){}}
-function ocEvIniciar(){ocEvDetener();ocEvT=setInterval(ocEvSondear,1000)}
-function ocEvDetener(){if(ocEvT){clearInterval(ocEvT);ocEvT=null}}
-async function ocEvSondear(){if(ocEvOcup||!ocW)return;ocEvOcup=true;
- try{var r=await fetch('/api/agente/eventos?chat_id='+encodeURIComponent(ocAgId)+'&desde='+ocEvN);
-  if(r.ok){var d=await r.json();(d.eventos||[]).forEach(function(e){if(typeof e.n==='number'&&e.n>ocEvN){ocEvN=e.n;ocEvVer(e)}})}}catch(e){}
- ocEvOcup=false}
+ if(!ocFondo)$('oc-vacio').hidden=true;ocLogBox().appendChild(d);ocS.W=d;ocBajar()}
+function ocEsperaFin(){ocEvDetener(ocS);if(ocS.W){ocS.W.remove();ocS.W=null}}
+function ocEvVer(s,e){if(!s.W||!e||e.tipo==='fin'||typeof e.texto!=='string'||!e.texto)return;
+ s.W.firstChild.textContent='El agente está trabajando: '+e.texto;
+ var dt=s.W.lastChild,li=document.createElement('li');li.textContent=e.texto;dt.lastChild.appendChild(li);dt.hidden=false;if(s===ocVis)ocBajar()}
+function ocAgDe(s){return ocEn(s,function(){return ocAgId})}
+async function ocEvBase(s){try{var r=await fetch('/api/agente/eventos?chat_id='+encodeURIComponent(ocAgDe(s))+'&desde=0'),d=await r.json();if(d&&typeof d.siguiente==='number')s.evN=d.siguiente}catch(e){}}
+function ocEvIniciar(s){ocEvDetener(s);s.evT=setInterval(function(){ocEvSondear(s)},1000)}
+function ocEvDetener(s){if(s.evT){clearInterval(s.evT);s.evT=null}}
+async function ocEvSondear(s){if(s.evOcup||!s.W)return;s.evOcup=true;
+ try{var r=await fetch('/api/agente/eventos?chat_id='+encodeURIComponent(ocAgDe(s))+'&desde='+s.evN);
+  if(r.ok){var d=await r.json();(d.eventos||[]).forEach(function(e){if(typeof e.n==='number'&&e.n>s.evN){s.evN=e.n;ocEvVer(s,e)}})}}catch(e){}
+ s.evOcup=false}
 async function ocSend(q){q=(q||'').trim();
  if(ocLeyendo>0){ocLog('n','Espera a que termine de leerse el archivo adjunto.');return}
  var fs=ocDocs.filter(function(d){return d.raw}),im=ocImgs.slice(),ag=ocAgActivo();
  if(!q&&!im.length&&!fs.length)return;
- if(ocBusy&&!ag){ocLog('n','Espera a que termine la respuesta actual.');return}
+ if(ocVis.pend&&!ag){ocLog('n','Espera a que termine la respuesta actual.');return}
+ if(!ocVis.pend&&ocVivas.length>=OC_MAX_VIVAS){ocLog('n','Ya hay '+OC_MAX_VIVAS+' conversaciones respondiendo a la vez. Espera a que termine alguna y vuelve a enviar tu mensaje.');return}
  $('oc-in').value='';ocAlto();ocImgs=[];ocDocs=[];ocThumbs();
  if(ag)await ocSendAg(q,fs);else await ocSendLeg(q,im)}
-async function ocSendLeg(q,im){if(!q)q='Describe la imagen y dime qué ves.';
- ocLog('u',q,im,null);ocPendIni();ocEsperaIni('Pensando…');
- try{await ocRun(q,im)}catch(e){ocFinTurno(e)}
- ocPendFin()}
-async function ocEmergencia(q,fs){ocAgOk=false;ocAgUi();setTimeout(ocAgEstado,60000);ocEvDetener();
- ocLog('n','Modo de emergencia: sin archivos ni agente. Respondo solo con texto.'+(fs.length?' No se leyeron los archivos adjuntos ('+fs.map(function(d){return d.meta.n}).join(', ')+').':''));
- ocW.firstChild.textContent='Pensando…';
- ocHist=[];ocMsgs.slice(0,-1).forEach(function(m){if(m.rol==='u')ocHist.push({role:'user',content:m.texto});else if(m.rol==='a')ocHist.push({role:'assistant',content:m.texto})});
- await ocRun(q,[])}
+async function ocSendLeg(q,im){if(!q)q='Describe la imagen y dime qué ves.';var s=ocS;
+ ocLog('u',q,im,null);ocGuardar();ocPendIni(s);ocEsperaIni('Pensando…');
+ try{await ocRun(s,q,im)}catch(e){ocFinTurno(s,e)}
+ ocPendFin(s)}
+async function ocEmergencia(s,q,fs){ocAgOk=false;ocAgUi();setTimeout(ocAgEstado,60000);ocEvDetener(s);
+ ocEn(s,function(){ocLog('n','Modo de emergencia: sin archivos ni agente. Respondo solo con texto.'+(fs.length?' No se leyeron los archivos adjuntos ('+fs.map(function(d){return d.meta.n}).join(', ')+').':''));
+  if(s.W)s.W.firstChild.textContent='Pensando…';
+  ocHist=[];ocMsgs.slice(0,-1).forEach(function(m){if(m.rol==='u')ocHist.push({role:'user',content:m.texto});else if(m.rol==='a')ocHist.push({role:'assistant',content:m.texto})})});
+ await ocRun(s,q,[])}
 async function ocSendAg(q,fs){if(!q)q='Revisa los archivos adjuntos y resume su contenido.';
- var primero=!ocBusy,meta=fs.map(function(d){return d.meta}),adj=fs.map(function(d){return {nombre:d.meta.n,datos:d.raw}}),con={};
+ var s=ocS,primero=!s.pend,meta=fs.map(function(d){return d.meta}),adj=fs.map(function(d){return {nombre:d.meta.n,datos:d.raw}}),con={};
  ocArch.forEach(function(a){if(a.v&&(a.datos||a.g))con[a.n]=a.v});
  if(!ocAgId)ocAgId=ocNuevoId();
- var b=ocLog('u',q,null,meta.length?{meta:meta}:null),mk=null;
+ var ag=ocAgId,b=ocLog('u',q,null,meta.length?{meta:meta}:null),mk=null;ocGuardar();
  if(!primero){mk=document.createElement('span');mk.className='iny';mk.textContent='Enviando al agente…';b.appendChild(mk)}
- ocPendIni();
- if(primero){ocEsperaIni('El agente está trabajando…');await ocEvBase();ocEvIniciar()}
+ ocPendIni(s);
+ if(primero){ocEsperaIni('El agente está trabajando…');await ocEvBase(s);ocEvIniciar(s)}
+ function log(a,t,x,y,z){ocEn(s,function(){ocLog(a,t,x,y,z)})}
  try{var r=null,d=null;
-  try{r=await fetch('/api/agente',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({chat_id:ocAgId,mensaje:q,archivos:adj,conocidos:con,subidos:meta.map(function(m){return m.n}),mcp:ocMcp?true:undefined}),signal:ocAbort?ocAbort.signal:undefined})}catch(e){if(ocParar)throw e}
-  if(!r||r.status>=500){if(!primero)throw new Error('No se pudo entregar el mensaje al agente. Inténtalo de nuevo.');await ocEmergencia(q,fs);return}
-  try{d=await r.json()}catch(e){if(ocParar)throw e}
-  if(r.status===202){if(fs.length){ocSetSubidos(fs);if(ocAgId)ocSetGuardar()}if(mk)mk.textContent='Entregado al agente';else ocLog('n','Tu mensaje se entregó al agente, que ya estaba trabajando en este chat.');return}
+  try{r=await fetch('/api/agente',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({chat_id:ag,mensaje:q,archivos:adj,conocidos:con,subidos:meta.map(function(m){return m.n}),mcp:ocMcp?true:undefined}),signal:s.abort?s.abort.signal:undefined})}catch(e){if(s.parar)throw e}
+  if(!r||r.status>=500){if(!primero)throw new Error('No se pudo entregar el mensaje al agente. Inténtalo de nuevo.');await ocEmergencia(s,q,fs);return}
+  try{d=await r.json()}catch(e){if(s.parar)throw e}
+  if(r.status===202){if(fs.length){ocEn(s,function(){ocSetSubidos(fs)});await ocEn(s,ocSetGuardar)}if(mk)mk.textContent='Entregado al agente';else log('n','Tu mensaje se entregó al agente, que ya estaba trabajando en este chat.');return}
   if(mk)mk.remove();
   if(!r.ok)throw new Error(d&&typeof d.error==='string'?d.error.slice(0,200):'El servidor respondió con error '+r.status+'.');
   if(!d||typeof d.respuesta!=='string')throw new Error('Respuesta del agente no válida.');
-  if(typeof d.chat_id==='string'&&/^[A-Za-z0-9_-]{1,64}$/.test(d.chat_id))ocAgId=d.chat_id;
-  var ent=ocSetAplicar(d,fs);if(ocAgId)await ocSetGuardar();
-  ocLog('a',d.respuesta.trim()||'(sin respuesta)','Agente del servidor',null,ent.length?{meta:ent.map(function(e){return {id:e.id,n:e.n,ti:e.ti,b:e.b,v:e.v,g:e.g}})}:undefined);
-  if(d.pendiente)ocLog('n','Algunas versiones nuevas no llegaron a este navegador por su tamaño. Descárgalas con «Descargar todo (.zip)».');
-  if(d.omitidos&&d.omitidos.length)ocLog('n','Algunos archivos no se enviaron por su tamaño: '+d.omitidos.join(', ')+'.')}
- catch(e){if(mk&&mk.textContent!=='Entregado al agente')mk.textContent='No se pudo entregar';ocFinTurno(e)}
- finally{ocPendFin()}}
+  var ent=ocEn(s,function(){if(typeof d.chat_id==='string'&&/^[A-Za-z0-9_-]{1,64}$/.test(d.chat_id))ocAgId=d.chat_id;return ocSetAplicar(d,fs)});
+  await ocEn(s,ocSetGuardar);
+  log('a',d.respuesta.trim()||'(sin respuesta)','Agente del servidor',null,ent.length?{meta:ent.map(function(e){return {id:e.id,n:e.n,ti:e.ti,b:e.b,v:e.v,g:e.g}})}:undefined);
+  if(d.pendiente)log('n','Algunas versiones nuevas no llegaron a este navegador por su tamaño. Descárgalas con «Descargar todo (.zip)».');
+  if(d.omitidos&&d.omitidos.length)log('n','Algunos archivos no se enviaron por su tamaño: '+d.omitidos.join(', ')+'.')}
+ catch(e){if(mk&&mk.textContent!=='Entregado al agente')mk.textContent='No se pudo entregar';ocFinTurno(s,e)}
+ finally{ocPendFin(s)}}
 var OC_ADJ_MAX=20*1024*1024,OC_CSP='<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; img-src data: blob: https:; media-src data: blob: https:; style-src \'unsafe-inline\' https:; font-src data: https:; script-src \'unsafe-inline\' https:; connect-src \'none\'; form-action \'none\'">';
 var ocPan={i:-1,cur:'',zip:null,modo:'vista',hoja:0,hojaDe:'',url:'',urls:[],disp:null,tok:0},ocArch=[],ocZipOcup=false;
 function ocId(){return 'f'+Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
 function ocArchBuscar(n){for(var i=0;i<ocArch.length;i++)if(ocArch[i].n===n)return ocArch[i];return null}
 function ocArchIdx(n){for(var i=0;i<ocArch.length;i++)if(ocArch[i].n===n)return i;return -1}
 function ocArchMeta(lista){return lista.map(function(a){var o={id:a.id,n:a.n,b:a.b};if(a.ti)o.ti=a.ti;if(a.v)o.v=a.v;if(a.g)o.g=true;return o})}
-function ocSetMeta(){return ocArch.map(function(a){return {id:a.id,n:a.n,ti:a.ti||'',b:a.b,v:a.v||0,o:a.o,g:!!a.g,pend:!!a.pend}})}
+function ocSetMeta(L){return L.map(function(a){return {id:a.id,n:a.n,ti:a.ti||'',b:a.b,v:a.v||0,o:a.o,g:!!a.g,pend:!!a.pend}})}
 function ocEntrada(n,ti,b,v,o,datos){return {id:ocId(),n:n,ti:ti||'',t:mimeArchivo(n),b:b,v:v||0,o:o,g:false,sucio:!!datos,nov:'',pend:!datos,datos:datos||null}}
-async function ocSetGuardar(){var ag=ocAgId;if(!ag)return;var tot=0;ocArch.forEach(function(x){if(x.g)tot+=x.b});
- for(var i=0;i<ocArch.length;i++){var a=ocArch[i];if(!a.datos||(a.g&&!a.sucio))continue;if(!a.g&&tot+a.b>OC_ADJ_MAX)continue;
+async function ocSetGuardar(){var ag=ocAgId,L=ocArch;if(!ag)return;var tot=0;L.forEach(function(x){if(x.g)tot+=x.b});
+ for(var i=0;i<L.length;i++){var a=L[i];if(!a.datos||(a.g&&!a.sucio))continue;if(!a.g&&tot+a.b>OC_ADJ_MAX)continue;
   try{await ocAdjPut(a.id,{n:a.n,d:a.datos});if(!a.g)tot+=a.b;a.g=true;a.sucio=false}catch(e){}}
- try{await ocAdjPut('set:'+ag,ocSetMeta())}catch(e){}}
+ try{await ocAdjPut('set:'+ag,ocSetMeta(L))}catch(e){}}
 async function ocSetCargar(){var ag=ocAgId,r=null,lista=[];
  if(ag){try{r=await ocAdjGet('set:'+ag)}catch(e){}}
  if(Array.isArray(r))r.forEach(function(x){if(x&&typeof x.n==='string')lista.push({id:x.id,n:x.n,ti:x.ti||'',t:mimeArchivo(x.n),b:Number(x.b)||0,v:Number(x.v)||0,o:x.o==='usuario'?'usuario':'agente',g:!!x.g,sucio:false,nov:'',pend:!!x.pend,datos:null})});
  ocMsgs.forEach(function(m){(m.arch||[]).forEach(function(x){if(!x.g||lista.some(function(y){return y.n===x.n}))return;lista.push({id:x.id,n:x.n,ti:x.ti||'',t:mimeArchivo(x.n),b:x.b,v:Number(x.v)||0,o:'agente',g:true,sucio:false,nov:'',pend:false,datos:null})})});
  if(ag!==ocAgId||ocArch.length)return;ocArch=lista;ocArchUi();ocPanRef()}
 function ocSetBorrar(ag){if(!ag)return;ocAdjGet('set:'+ag).then(function(r){var ids=['set:'+ag];if(Array.isArray(r))r.forEach(function(x){if(x&&x.id)ids.push(x.id)});return ocAdjDel(ids)}).catch(function(){})}
-function ocArchUi(){var b=$('oc-arch-b');b.hidden=!ocArch.length;b.lastChild.textContent='Archivos ('+ocArch.length+')';b.setAttribute('aria-expanded',String(!$('oc-pan').hidden));ocShareUi()}
+function ocArchUi(){if(ocFondo)return;var b=$('oc-arch-b');b.hidden=!ocArch.length;b.lastChild.textContent='Archivos ('+ocArch.length+')';b.setAttribute('aria-expanded',String(!$('oc-pan').hidden));ocShareUi()}
 function ocRawBytes(raw){var i=String(raw).indexOf(',');return ocB64Bytes(i>=0?String(raw).slice(i+1):raw)}
 function ocSetSubidos(fs){var raw={};fs.forEach(function(x){try{raw[x.meta.n]=ocRawBytes(x.raw)}catch(e){}});
  Object.keys(raw).forEach(function(n){var e=ocArchBuscar(n),d=raw[n];if(e){e.datos=d;e.b=d.length;e.sucio=true;e.pend=false;e.o='usuario';e.nov='actualizado';e.v=0}else{var x=ocEntrada(n,'',d.length,0,'usuario',d);x.nov='nuevo';ocArch.push(x)}});
@@ -942,7 +967,7 @@ function ocPanAbrir(i,disp){if(!ocArch.length)return;ocPan.disp=disp||null;var p
 function ocPanCerrar(){var p=$('oc-pan');if(p.hidden)return;p.hidden=true;ocPan.tok++;ocPan.i=-1;ocPan.cur='';document.querySelector('.chat').classList.remove('con-pan');ocPanSoltar();$('oc-pan-b').textContent='';
  ocPanAct();ocArchUi();
  var d=ocPan.disp;ocPan.disp=null;if(d&&document.body.contains(d))d.focus()}
-function ocPanRef(){if($('oc-pan').hidden)return;if(!ocArch.length){ocPanCerrar();return}
+function ocPanRef(){if(ocFondo||$('oc-pan').hidden)return;if(!ocArch.length){ocPanCerrar();return}
  var a=ocPan.i>=0?ocArch[ocPan.i]:null,k=ocPan.cur,idx=ocPan.cur?-1:0;
  if(k){var m=k.split('|')[0];idx=ocArchIdx(m);if(idx<0)idx=0}
  var na=ocArch[idx],nk=na.n+'|'+na.v+'|'+(na.datos||na.g?1:0)+'|'+na.b;
@@ -1040,7 +1065,7 @@ function ocHayArchivos(e){var d=e.dataTransfer;return !!d&&Array.prototype.index
 ocZona.addEventListener('dragover',function(e){if(!ocHayArchivos(e))return;e.preventDefault();$('oc-form').firstElementChild.classList.add('arrastre')});
 ocZona.addEventListener('dragleave',function(e){if(!e.relatedTarget||!ocZona.contains(e.relatedTarget))$('oc-form').firstElementChild.classList.remove('arrastre')});
 ocZona.addEventListener('drop',function(e){if(!ocHayArchivos(e))return;e.preventDefault();$('oc-form').firstElementChild.classList.remove('arrastre');var d=e.dataTransfer;if(d&&d.files&&d.files.length)ocAdjuntar(Array.prototype.slice.call(d.files))});
-$('oc-sw').addEventListener('click',function(){if(ocBusy)return;ocMcp=!ocMcp;ocPrefs();ocAgUi()});
+$('oc-sw').addEventListener('click',function(){if(ocVis.pend)return;ocMcp=!ocMcp;ocPrefs();ocAgUi()});
 $('oc-stop').addEventListener('click',ocDetener);
 $('oc-pan-x').addEventListener('click',ocPanCerrar);
 $('oc-arch-b').addEventListener('click',function(){if($('oc-pan').hidden)ocPanAbrir(0,$('oc-arch-b'));else ocPanCerrar()});
@@ -1058,7 +1083,7 @@ $('oc-in').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKe
 $('oc-in').addEventListener('input',ocAlto);
 $('oc-chips').addEventListener('click',function(e){var t=e.target&&e.target.closest?e.target.closest('button'):null;if(t)ocSend(t.getAttribute('data-q')||t.textContent)});
 $('oc-barajar').addEventListener('click',function(){ocIdeas(true)});
-$('oc-nueva').addEventListener('click',function(){if(ocBusy)return;ocLimpiar();ocRenderChats();$('oc-in').focus()});
+$('oc-nueva').addEventListener('click',function(){ocLimpiar();ocRenderChats();$('oc-in').focus()});
 var ocPf=ocRead(localStorage,'oc_prefs');if(ocPf&&typeof ocPf==='object'){ocMcp=ocPf.mcp!==false;if('ag' in ocPf||'agente' in ocPf)ocPrefs()}
 $('oc-share').addEventListener('click',function(){var pu='';ocMsgs.forEach(function(m){if(!pu&&m.rol==='u')pu=m.texto});ocCompartir({id:ocChatId,titulo:tituloChat(pu),mensajes:ocMsgs.slice(),imgs:ocImgsDe()})});
 $('oc-sh-x').addEventListener('click',ocShCerrar);
