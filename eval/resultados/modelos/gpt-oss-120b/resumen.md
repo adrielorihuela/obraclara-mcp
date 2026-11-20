@@ -1,6 +1,6 @@
 # Evaluación ObraClara: sin MCP vs con MCP
 
-Fecha: 2026-11-19 · 40 preguntas (`preguntas.csv`) · modelo: gpt-oss-120b (Groq) · una corrida (todas las preguntas, mismo día, con el modelo fijo).
+Fecha: 2026-11-20 · 40 preguntas (`preguntas.csv`) · modelo: IA del servidor del grupo (API privada compatible con OpenAI, con respaldo automático) · una corrida (todas las preguntas, mismo día, con el modelo fijo).
 
 ## Resultado global (porcentaje de las 40 preguntas)
 
@@ -16,14 +16,25 @@ Fecha: 2026-11-19 · 40 preguntas (`preguntas.csv`) · modelo: gpt-oss-120b (Gro
 | sin_mcp | 3 % | 3 % | 63 % |
 | con_mcp | 25 % | 25 % | 30 % |
 
-## Precisión y recall de elementos (preguntas que piden contar o listar obras)
+## Precisión y recall (preguntas de búsqueda y alertas)
 
-Se aplican a las 13 preguntas de búsqueda y alertas cuya respuesta es un conteo o una lista (las de una sola obra, como «la más cara», no entran). **Referencia**: los códigos únicos de obra que devuelve la herramienta esperada con los filtros correctos (`reconstruir_referencia.mjs` -> `resultados/referencia_items.json`; la herramienta muestra como máximo 20, aunque el total sea mayor). **Mencionados**: códigos únicos (7 dígitos, empiezan con 2) que aparecen en la respuesta (sin contar los de la pregunta).
+En palabras sencillas: **recall** responde «de lo que la pregunta pedía encontrar, ¿cuánto encontró?» y **precisión** responde «de lo que afirmó, ¿cuánto era correcto?». Se calculan en las 20 preguntas de búsqueda y alertas (las de detalle y resumen ya traen el código o piden un monto).
 
-- **Recall** = aciertos / elementos esperados, donde aciertos = mencionados que están en la referencia. Responde: «de las obras que debía encontrar, ¿qué porcentaje encontró?». Una respuesta que solo da el total y no nombra obras tiene recall 0.
-- **Precisión** = aciertos / mencionados. Responde: «de las obras que nombró, ¿qué porcentaje es correcto?». Solo se calcula si la respuesta menciona al menos un código; en las preguntas sin datos (B10, A10) cualquier código mencionado es un error.
-- **F1** = 2 · precisión · recall / (precisión + recall), con 0 si ambos son 0 (una precisión sin calcular cuenta como 0).
-- Promedio simple entre preguntas (cada pregunta pesa igual).
+### Definición vigente: lo que la pregunta pide (desde el 20/11)
+
+- **Conteo** («¿cuántos…?», 13 preguntas): lo pedido es el total. Recall = 1 si la respuesta da exactamente el total oficial (sin tolerancia; por ejemplo 74, no 73). Precisión = 1 si el número que da es el correcto y 0 si da otro; si no da ningún número (se abstiene) no tiene precisión.
+- **Primero de un ranking** («¿cuál es la más cara…?», 5 preguntas, recall@1): lo pedido es la obra correcta. Recall = 1 si su código único aparece en la respuesta; precisión = 1 si el primer código que nombra es el correcto.
+- **Sin datos** (B10, A10): no hay nada que encontrar, así que no hay recall; precisión 0 si nombra algún código (inventa obras).
+- F1 = 2 · precisión · recall / (precisión + recall) por pregunta (precisión sin calcular cuenta como 0). Promedio simple entre preguntas.
+
+| Condición | Preguntas con recall | Recall medio | Recall en conteos | Recall@1 en rankings | Preguntas con precisión | Precisión media | F1 medio |
+|---|---|---|---|---|---|---|---|
+| sin_mcp | 18 | 6 % | 8 % | 0 % | 13 | 8 % | 6 % |
+| con_mcp | 18 | 17 % | 8 % | 40 % | 11 | 27 % | 17 % |
+
+### Primera definición, «de listado» (publicada hasta el 20/11; se conserva por transparencia)
+
+Recall = códigos de obra correctos que la respuesta **lista** / códigos esperados (hasta 20, el tope que muestra la herramienta: `reconstruir_referencia.mjs` -> `resultados/referencia_items.json`), en las 13 preguntas de conteo con referencia. Precisión = códigos listados correctos / códigos listados. Salía casi 0 porque las preguntas piden **contar** («¿cuántos…?») y una respuesta correcta da el total sin listar 20 códigos: medía algo que la pregunta no pedía.
 
 | Condición | Preguntas con referencia | Recall medio | Precisión media (con códigos mencionados) | F1 medio |
 |---|---|---|---|---|

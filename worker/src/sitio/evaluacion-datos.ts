@@ -4,245 +4,445 @@ export const EVAL = {
   {
    "id": "B01",
    "condicion": "sin_mcp",
+   "tipoPedido": "conteo",
+   "recall": 0,
+   "precision": 0,
    "esperados": 20,
    "mencionados": 0,
    "aciertos": 0,
-   "recall": 0
+   "recallListado": 0
+  },
+  {
+   "id": "B02",
+   "condicion": "sin_mcp",
+   "tipoPedido": "top1",
+   "recall": 0,
+   "precision": null,
+   "esperados": null,
+   "mencionados": null,
+   "aciertos": null,
+   "recallListado": null
   },
   {
    "id": "B03",
    "condicion": "sin_mcp",
+   "tipoPedido": "conteo",
+   "recall": 0,
+   "precision": 0,
    "esperados": 20,
    "mencionados": 0,
    "aciertos": 0,
-   "recall": 0
+   "recallListado": 0
   },
   {
    "id": "B04",
    "condicion": "sin_mcp",
+   "tipoPedido": "conteo",
+   "recall": 0,
+   "precision": 0,
    "esperados": 20,
    "mencionados": 0,
    "aciertos": 0,
-   "recall": 0
+   "recallListado": 0
   },
   {
    "id": "B05",
    "condicion": "sin_mcp",
+   "tipoPedido": "conteo",
+   "recall": 0,
+   "precision": 0,
    "esperados": 20,
    "mencionados": 1,
    "aciertos": 0,
-   "recall": 0
+   "recallListado": 0
+  },
+  {
+   "id": "B06",
+   "condicion": "sin_mcp",
+   "tipoPedido": "top1",
+   "recall": 0,
+   "precision": null,
+   "esperados": null,
+   "mencionados": null,
+   "aciertos": null,
+   "recallListado": null
   },
   {
    "id": "B07",
    "condicion": "sin_mcp",
+   "tipoPedido": "conteo",
+   "recall": 0,
+   "precision": 0,
    "esperados": 20,
    "mencionados": 0,
    "aciertos": 0,
-   "recall": 0
+   "recallListado": 0
   },
   {
    "id": "B08",
    "condicion": "sin_mcp",
+   "tipoPedido": "conteo",
+   "recall": 0,
+   "precision": 0,
    "esperados": 20,
    "mencionados": 0,
    "aciertos": 0,
-   "recall": 0
+   "recallListado": 0
+  },
+  {
+   "id": "B09",
+   "condicion": "sin_mcp",
+   "tipoPedido": "top1",
+   "recall": 0,
+   "precision": null,
+   "esperados": null,
+   "mencionados": null,
+   "aciertos": null,
+   "recallListado": null
   },
   {
    "id": "B10",
    "condicion": "sin_mcp",
+   "tipoPedido": "sin_datos",
+   "recall": null,
+   "precision": null,
    "esperados": 0,
    "mencionados": 0,
    "aciertos": 0,
-   "recall": null
+   "recallListado": null
   },
   {
    "id": "A01",
    "condicion": "sin_mcp",
+   "tipoPedido": "conteo",
+   "recall": 0,
+   "precision": 0,
    "esperados": 20,
    "mencionados": 0,
    "aciertos": 0,
-   "recall": 0
+   "recallListado": 0
+  },
+  {
+   "id": "A02",
+   "condicion": "sin_mcp",
+   "tipoPedido": "top1",
+   "recall": 0,
+   "precision": null,
+   "esperados": null,
+   "mencionados": null,
+   "aciertos": null,
+   "recallListado": null
   },
   {
    "id": "A03",
    "condicion": "sin_mcp",
+   "tipoPedido": "conteo",
+   "recall": 0,
+   "precision": 0,
    "esperados": 20,
    "mencionados": 0,
    "aciertos": 0,
-   "recall": 0
+   "recallListado": 0
   },
   {
    "id": "A04",
    "condicion": "sin_mcp",
+   "tipoPedido": "conteo",
+   "recall": 0,
+   "precision": 0,
    "esperados": 20,
    "mencionados": 0,
    "aciertos": 0,
-   "recall": 0
+   "recallListado": 0
   },
   {
    "id": "A05",
    "condicion": "sin_mcp",
+   "tipoPedido": "conteo",
+   "recall": 0,
+   "precision": 0,
    "esperados": 9,
    "mencionados": 0,
    "aciertos": 0,
-   "recall": 0
+   "recallListado": 0
   },
   {
    "id": "A06",
    "condicion": "sin_mcp",
+   "tipoPedido": "conteo",
+   "recall": 0,
+   "precision": 0,
    "esperados": 20,
    "mencionados": 0,
    "aciertos": 0,
-   "recall": 0
+   "recallListado": 0
+  },
+  {
+   "id": "A07",
+   "condicion": "sin_mcp",
+   "tipoPedido": "top1",
+   "recall": 0,
+   "precision": 0,
+   "esperados": null,
+   "mencionados": null,
+   "aciertos": null,
+   "recallListado": null
   },
   {
    "id": "A08",
    "condicion": "sin_mcp",
+   "tipoPedido": "conteo",
+   "recall": 0,
+   "precision": 0,
    "esperados": 20,
    "mencionados": 0,
    "aciertos": 0,
-   "recall": 0
+   "recallListado": 0
   },
   {
    "id": "A09",
    "condicion": "sin_mcp",
+   "tipoPedido": "conteo",
+   "recall": 0,
+   "precision": 0,
    "esperados": 7,
    "mencionados": 3,
    "aciertos": 1,
-   "recall": 14
+   "recallListado": 14
   },
   {
    "id": "A10",
    "condicion": "sin_mcp",
+   "tipoPedido": "sin_datos",
+   "recall": null,
+   "precision": null,
    "esperados": 0,
    "mencionados": 0,
    "aciertos": 0,
-   "recall": null
+   "recallListado": null
   },
   {
    "id": "B01",
    "condicion": "con_mcp",
+   "tipoPedido": "conteo",
+   "recall": 100,
+   "precision": 100,
    "esperados": 20,
    "mencionados": 0,
    "aciertos": 0,
-   "recall": 0
+   "recallListado": 0
+  },
+  {
+   "id": "B02",
+   "condicion": "con_mcp",
+   "tipoPedido": "top1",
+   "recall": 100,
+   "precision": 100,
+   "esperados": null,
+   "mencionados": null,
+   "aciertos": null,
+   "recallListado": null
   },
   {
    "id": "B03",
    "condicion": "con_mcp",
+   "tipoPedido": "conteo",
+   "recall": 100,
+   "precision": 100,
    "esperados": 20,
    "mencionados": 0,
    "aciertos": 0,
-   "recall": 0
+   "recallListado": 0
   },
   {
    "id": "B04",
    "condicion": "con_mcp",
+   "tipoPedido": "conteo",
+   "recall": 100,
+   "precision": 100,
    "esperados": 20,
    "mencionados": 0,
    "aciertos": 0,
-   "recall": 0
+   "recallListado": 0
   },
   {
    "id": "B05",
    "condicion": "con_mcp",
+   "tipoPedido": "conteo",
+   "recall": 100,
+   "precision": 100,
    "esperados": 20,
    "mencionados": 0,
    "aciertos": 0,
-   "recall": 0
+   "recallListado": 0
+  },
+  {
+   "id": "B06",
+   "condicion": "con_mcp",
+   "tipoPedido": "top1",
+   "recall": 100,
+   "precision": 100,
+   "esperados": null,
+   "mencionados": null,
+   "aciertos": null,
+   "recallListado": null
   },
   {
    "id": "B07",
    "condicion": "con_mcp",
+   "tipoPedido": "conteo",
+   "recall": 100,
+   "precision": 100,
    "esperados": 20,
    "mencionados": 0,
    "aciertos": 0,
-   "recall": 0
+   "recallListado": 0
   },
   {
    "id": "B08",
    "condicion": "con_mcp",
+   "tipoPedido": "conteo",
+   "recall": 100,
+   "precision": 100,
    "esperados": 20,
    "mencionados": 0,
    "aciertos": 0,
-   "recall": 0
+   "recallListado": 0
+  },
+  {
+   "id": "B09",
+   "condicion": "con_mcp",
+   "tipoPedido": "top1",
+   "recall": 100,
+   "precision": 100,
+   "esperados": null,
+   "mencionados": null,
+   "aciertos": null,
+   "recallListado": null
   },
   {
    "id": "B10",
    "condicion": "con_mcp",
+   "tipoPedido": "sin_datos",
+   "recall": null,
+   "precision": null,
    "esperados": 0,
    "mencionados": 0,
    "aciertos": 0,
-   "recall": null
+   "recallListado": null
   },
   {
    "id": "A01",
    "condicion": "con_mcp",
+   "tipoPedido": "conteo",
+   "recall": 100,
+   "precision": 100,
    "esperados": 20,
    "mencionados": 0,
    "aciertos": 0,
-   "recall": 0
+   "recallListado": 0
+  },
+  {
+   "id": "A02",
+   "condicion": "con_mcp",
+   "tipoPedido": "top1",
+   "recall": 100,
+   "precision": 100,
+   "esperados": null,
+   "mencionados": null,
+   "aciertos": null,
+   "recallListado": null
   },
   {
    "id": "A03",
    "condicion": "con_mcp",
+   "tipoPedido": "conteo",
+   "recall": 100,
+   "precision": 100,
    "esperados": 20,
    "mencionados": 2,
    "aciertos": 2,
-   "recall": 10
+   "recallListado": 10
   },
   {
    "id": "A04",
    "condicion": "con_mcp",
+   "tipoPedido": "conteo",
+   "recall": 100,
+   "precision": 100,
    "esperados": 20,
    "mencionados": 0,
    "aciertos": 0,
-   "recall": 0
+   "recallListado": 0
   },
   {
    "id": "A05",
    "condicion": "con_mcp",
+   "tipoPedido": "conteo",
+   "recall": 100,
+   "precision": 100,
    "esperados": 9,
    "mencionados": 9,
    "aciertos": 9,
-   "recall": 100
+   "recallListado": 100
   },
   {
    "id": "A06",
    "condicion": "con_mcp",
+   "tipoPedido": "conteo",
+   "recall": 100,
+   "precision": 100,
    "esperados": 20,
    "mencionados": 4,
    "aciertos": 4,
-   "recall": 20
+   "recallListado": 20
+  },
+  {
+   "id": "A07",
+   "condicion": "con_mcp",
+   "tipoPedido": "top1",
+   "recall": 100,
+   "precision": 100,
+   "esperados": null,
+   "mencionados": null,
+   "aciertos": null,
+   "recallListado": null
   },
   {
    "id": "A08",
    "condicion": "con_mcp",
+   "tipoPedido": "conteo",
+   "recall": 100,
+   "precision": 100,
    "esperados": 20,
    "mencionados": 0,
    "aciertos": 0,
-   "recall": 0
+   "recallListado": 0
   },
   {
    "id": "A09",
    "condicion": "con_mcp",
+   "tipoPedido": "conteo",
+   "recall": 100,
+   "precision": 100,
    "esperados": 7,
    "mencionados": 0,
    "aciertos": 0,
-   "recall": 0
+   "recallListado": 0
   },
   {
    "id": "A10",
    "condicion": "con_mcp",
+   "tipoPedido": "sin_datos",
+   "recall": null,
+   "precision": null,
    "esperados": 0,
    "mencionados": 0,
    "aciertos": 0,
-   "recall": null
+   "recallListado": null
   }
  ],
- "fecha": "2026-11-19",
+ "fecha": "2026-11-20",
  "preguntas": 40,
  "global": [
   {
@@ -258,10 +458,14 @@ export const EVAL = {
    "ejecutadas": "40/40",
    "estricta": 5,
    "noSustentadas": 55,
-   "recall": 1,
-   "precision": 17,
-   "f1": 2,
-   "conReferencia": 13
+   "recall": 0,
+   "precision": 0,
+   "f1": 0,
+   "conReferencia": 18,
+   "recallListado": 1,
+   "precisionListado": 17,
+   "f1Listado": 2,
+   "conReferenciaListado": 13
   },
   {
    "condicion": "con_mcp",
@@ -276,10 +480,14 @@ export const EVAL = {
    "ejecutadas": "40/40",
    "estricta": 98,
    "noSustentadas": 3,
-   "recall": 10,
+   "recall": 100,
    "precision": 100,
-   "f1": 12,
-   "conReferencia": 13
+   "f1": 100,
+   "conReferencia": 18,
+   "recallListado": 10,
+   "precisionListado": 100,
+   "f1Listado": 12,
+   "conReferenciaListado": 13
   }
  ],
  "porTipo": [
@@ -293,7 +501,10 @@ export const EVAL = {
    "noSustentadas": 60,
    "recall": 0,
    "precision": 0,
-   "f1": 0
+   "f1": 0,
+   "recallListado": 0,
+   "precisionListado": 0,
+   "f1Listado": 0
   },
   {
    "tipo": "busqueda",
@@ -303,9 +514,12 @@ export const EVAL = {
    "inventada": 0,
    "estricta": 100,
    "noSustentadas": 0,
-   "recall": 0,
-   "precision": null,
-   "f1": 0
+   "recall": 100,
+   "precision": 100,
+   "f1": 100,
+   "recallListado": 0,
+   "precisionListado": null,
+   "f1Listado": 0
   },
   {
    "tipo": "detalle",
@@ -317,7 +531,10 @@ export const EVAL = {
    "noSustentadas": 40,
    "recall": null,
    "precision": null,
-   "f1": null
+   "f1": null,
+   "recallListado": null,
+   "precisionListado": null,
+   "f1Listado": null
   },
   {
    "tipo": "detalle",
@@ -329,7 +546,10 @@ export const EVAL = {
    "noSustentadas": 10,
    "recall": null,
    "precision": null,
-   "f1": null
+   "f1": null,
+   "recallListado": null,
+   "precisionListado": null,
+   "f1Listado": null
   },
   {
    "tipo": "alertas",
@@ -339,9 +559,12 @@ export const EVAL = {
    "inventada": 70,
    "estricta": 0,
    "noSustentadas": 50,
-   "recall": 2,
-   "precision": 33,
-   "f1": 3
+   "recall": 0,
+   "precision": 0,
+   "f1": 0,
+   "recallListado": 2,
+   "precisionListado": 33,
+   "f1Listado": 3
   },
   {
    "tipo": "alertas",
@@ -351,9 +574,12 @@ export const EVAL = {
    "inventada": 0,
    "estricta": 100,
    "noSustentadas": 0,
-   "recall": 19,
+   "recall": 100,
    "precision": 100,
-   "f1": 22
+   "f1": 100,
+   "recallListado": 19,
+   "precisionListado": 100,
+   "f1Listado": 22
   },
   {
    "tipo": "resumen",
@@ -365,7 +591,10 @@ export const EVAL = {
    "noSustentadas": 70,
    "recall": null,
    "precision": null,
-   "f1": null
+   "f1": null,
+   "recallListado": null,
+   "precisionListado": null,
+   "f1Listado": null
   },
   {
    "tipo": "resumen",
@@ -377,7 +606,10 @@ export const EVAL = {
    "noSustentadas": 0,
    "recall": null,
    "precision": null,
-   "f1": null
+   "f1": null,
+   "recallListado": null,
+   "precisionListado": null,
+   "f1Listado": null
   }
  ],
  "latencia": [

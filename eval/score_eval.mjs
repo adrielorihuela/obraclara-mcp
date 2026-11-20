@@ -118,21 +118,57 @@ function fuenteDe(q, cond) {
   }
   return v;
 }
-// Precisión y recall de elementos (códigos únicos de obra): referencia = códigos que devuelve la herramienta esperada con los filtros correctos (reconstruir_referencia.mjs).
+// Precisión y recall, dos definiciones (ver «Precisión y recall» en resumen.md).
+// 1) Primera definición («de listado», publicada hasta el 20/11): referencia = hasta 20 códigos que devuelve la herramienta esperada con los
+//    filtros correctos (reconstruir_referencia.mjs). Castiga las respuestas que dan el total sin listar códigos, que es lo que piden las preguntas.
 const refFile = path.join(DIR, 'resultados', 'referencia_items.json');
 const refItems = fs.existsSync(refFile) ? JSON.parse(fs.readFileSync(refFile, 'utf8')) : {};
-function itemsPR(q, r) {
+const CODIGO = /(?<![\d.,])2\d{6}(?![\d.,]\d|\d)/g;
+function codigosDe(q, r) {
+  const delaPregunta = new Set(q.pregunta.match(/\b2\d{6}\b/g) || []);
+  return [...new Set((r.answer || '').match(CODIGO) || [])].filter((x) => !delaPregunta.has(x));
+}
+const f1De = (p, rc) => (rc == null ? null : (p ?? 0) + rc ? (2 * (p ?? 0) * rc) / ((p ?? 0) + rc) : 0);
+function itemsListado(q, r) {
   const ref = refItems[q.id]; if (!ref) return {};
   const esp = new Set(ref.codigos);
-  const delaPregunta = new Set(q.pregunta.match(/\b2\d{6}\b/g) || []);
-  const mencionados = new Set((r.answer || '').match(/(?<![\d.,])2\d{6}(?![\d.,]\d|\d)/g) || []);
-  for (const x of delaPregunta) mencionados.delete(x);
-  const aciertos = [...mencionados].filter((x) => esp.has(x)).length;
+  const mencionados = codigosDe(q, r);
+  const aciertos = mencionados.filter((x) => esp.has(x)).length;
   const recall = esp.size ? aciertos / esp.size : null;
-  const precision = mencionados.size ? aciertos / mencionados.size : null;
-  const p = precision ?? 0;
-  const f1 = esp.size ? (p + recall ? (2 * p * recall) / (p + recall) : 0) : null;
-  return { items_ref: esp.size, items_mencionados: mencionados.size, items_aciertos: aciertos, recall, precision, f1 };
+  const precision = mencionados.length ? aciertos / mencionados.length : null;
+  return { items_ref: esp.size, items_mencionados: mencionados.length, items_aciertos: aciertos, recall_listado: recall, precision_listado: precision, f1_listado: f1De(precision, recall) };
+}
+// 2) Definición vigente («lo que la pregunta pide»), en las 20 preguntas de búsqueda y alertas:
+//    - conteo («¿cuántos…?»): lo pedido es el total. Recall = 1 si la respuesta da exactamente el total oficial (sin tolerancia);
+//      precisión = 1 si el número que da es el correcto, 0 si da otro (solo cuando da algún número; si se abstiene no hay precisión).
+//    - primero de un ranking («¿cuál es la más cara…?», recall@1): lo pedido es el código de la obra correcta. Recall = 1 si ese código aparece
+//      en la respuesta; precisión = 1 si el primer código que nombra es el correcto.
+//    - sin datos («¿qué obras…?» cuando no hay ninguna): no hay nada que encontrar, así que no hay recall; precisión 0 si nombra algún código.
+function tipoPedido(q) {
+  if (!['busqueda', 'alertas'].includes(q.tipo)) return null;
+  if (/\b2\d{6}\b/.test(q.respuesta_referencia)) return 'top1';
+  if (q.valor_oficial !== '' && Number(q.valor_oficial) === 0) return 'sin_datos';
+  if (q.unidad === 'cantidad') return 'conteo';
+  return null;
+}
+function itemsPedido(q, r) {
+  const t = tipoPedido(q); if (!t) return {};
+  const cods = codigosDe(q, r);
+  let recall = null, precision = null;
+  if (t === 'top1') {
+    const esp = /\b2\d{6}\b/.exec(q.respuesta_referencia)[0];
+    recall = cods.includes(esp) ? 1 : 0;
+    precision = cods.length ? (cods[0] === esp ? 1 : 0) : null;
+  } else if (t === 'sin_datos') {
+    precision = cods.length ? 0 : null;
+  } else {
+    const val = Number(q.valor_oficial);
+    const qNums = new Set(extractNumbers(q.pregunta).map((x) => x.v));
+    const nums = extractNumbers(limpiarRespuesta(r.answer || '')).filter((x) => !x.pct && Number.isInteger(x.v) && !qNums.has(x.v) && !(x.v >= 1990 && x.v <= 2035) && !cods.includes(String(x.v)));
+    recall = nums.some((x) => x.v === val) ? 1 : 0;
+    precision = nums.length ? recall : null;
+  }
+  return { tipo_pedido: t, recall, precision, f1: f1De(precision, recall) };
 }
 for (const c of conds) {
   const raw = lastById(path.join(OUT, `raw_${c}.jsonl`));
@@ -142,7 +178,7 @@ for (const c of conds) {
     const noSust = r.answer ? cifrasNoSustentadas(r.answer, q.pregunta, fuenteDe(q, c)) : [];
     s.no_sustentada = noSust.length > 0; s.cifras_no_sustentadas = noSust.join('; ');
     s.estricta = s.exacta && !s.no_sustentada;
-    Object.assign(s, itemsPR(q, r));
+    Object.assign(s, itemsListado(q, r), itemsPedido(q, r));
     rows.push({ id: q.id, tipo: q.tipo, condicion: c, ...s, llamadas: r.tool_calls.length, pasos: r.steps, latencia_s: r.latency_s, latencia_ok_s: r.ask_ok_s ?? null, reintentos: (r.errors || []).filter((e) => e.startsWith('ask')).length,
       herramientas: r.tool_calls.map((t) => t.name).join('+'), esperada: q.herramienta_esperada,
       respuesta_resumida: (r.answer || '').replace(/\s+/g, ' ').slice(0, 300), ejecutada: r.answer != null });
@@ -150,9 +186,9 @@ for (const c of conds) {
 }
 
 const esc = (v) => { const s = String(v ?? ''); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
-const head = ['id', 'tipo', 'condicion', 'exacta', 'cita', 'inventada', 'revisar', 'estricta', 'no_sustentada', 'cifras_no_sustentadas', 'llamadas', 'pasos', 'latencia_s', 'latencia_ok_s', 'items_ref', 'items_mencionados', 'items_aciertos', 'recall', 'precision', 'f1', 'respuesta_resumida'];
+const head = ['id', 'tipo', 'condicion', 'exacta', 'cita', 'inventada', 'revisar', 'estricta', 'no_sustentada', 'cifras_no_sustentadas', 'llamadas', 'pasos', 'latencia_s', 'latencia_ok_s', 'items_ref', 'items_mencionados', 'items_aciertos', 'recall_listado', 'precision_listado', 'f1_listado', 'tipo_pedido', 'recall', 'precision', 'f1', 'respuesta_resumida'];
 fs.writeFileSync(path.join(OUT, 'resultados.csv'),
-  [head.join(','), ...rows.map((r) => head.map((k) => esc(k === 'revisar' && r.notes.length ? (r.revisar ? 'sí: ' + r.notes.join('; ') : '') : typeof r[k] === 'boolean' ? (r[k] ? 1 : 0) : typeof r[k] === 'number' && ['recall', 'precision', 'f1'].includes(k) ? r[k].toFixed(3) : r[k])).join(','))].join('\n') + '\n');
+  [head.join(','), ...rows.map((r) => head.map((k) => esc(k === 'revisar' && r.notes.length ? (r.revisar ? 'sí: ' + r.notes.join('; ') : '') : typeof r[k] === 'boolean' ? (r[k] ? 1 : 0) : typeof r[k] === 'number' && ['recall', 'precision', 'f1', 'recall_listado', 'precision_listado', 'f1_listado'].includes(k) ? r[k].toFixed(3) : r[k])).join(','))].join('\n') + '\n');
 
 const pct = (xs, k) => (xs.length ? ((100 * xs.filter((x) => x[k]).length) / xs.length).toFixed(0) + ' %' : '-');
 const mean = (xs, k) => { const v = xs.map((x) => x[k]).filter((x) => x != null); return v.length ? (v.reduce((a, b) => a + b, 0) / v.length).toFixed(1) : '-'; };
@@ -167,18 +203,27 @@ for (const c of conds) {
   const xs = rows.filter((r) => r.condicion === c);
   md += `| ${c} | ${pct(xs, 'exacta')} | ${pct(xs, 'estricta')} | ${pct(xs, 'no_sustentada')} |\n`;
 }
-const conRef = (c) => rows.filter((r) => r.condicion === c && r.recall != null);
 const prom = (xs, k) => { const v = xs.map((x) => x[k]).filter((x) => x != null); return v.length ? (100 * v.reduce((a, b) => a + b, 0) / v.length).toFixed(0) + ' %' : '-'; };
-md += `\n## Precisión y recall de elementos (preguntas que piden contar o listar obras)\n
-Se aplican a las ${Object.keys(refItems).filter((id) => refItems[id].codigos.length).length} preguntas de búsqueda y alertas cuya respuesta es un conteo o una lista (las de una sola obra, como «la más cara», no entran). **Referencia**: los códigos únicos de obra que devuelve la herramienta esperada con los filtros correctos (\`reconstruir_referencia.mjs\` -> \`resultados/referencia_items.json\`; la herramienta muestra como máximo 20, aunque el total sea mayor). **Mencionados**: códigos únicos (7 dígitos, empiezan con 2) que aparecen en la respuesta (sin contar los de la pregunta).
+const cuenta = (xs, k) => xs.filter((x) => x[k] != null).length;
+const nPed = (c, t) => rows.filter((r) => r.condicion === c && (!t || r.tipo_pedido === t));
+md += `\n## Precisión y recall (preguntas de búsqueda y alertas)\n
+En palabras sencillas: **recall** responde «de lo que la pregunta pedía encontrar, ¿cuánto encontró?» y **precisión** responde «de lo que afirmó, ¿cuánto era correcto?». Se calculan en las 20 preguntas de búsqueda y alertas (las de detalle y resumen ya traen el código o piden un monto).
 
-- **Recall** = aciertos / elementos esperados, donde aciertos = mencionados que están en la referencia. Responde: «de las obras que debía encontrar, ¿qué porcentaje encontró?». Una respuesta que solo da el total y no nombra obras tiene recall 0.
-- **Precisión** = aciertos / mencionados. Responde: «de las obras que nombró, ¿qué porcentaje es correcto?». Solo se calcula si la respuesta menciona al menos un código; en las preguntas sin datos (B10, A10) cualquier código mencionado es un error.
-- **F1** = 2 · precisión · recall / (precisión + recall), con 0 si ambos son 0 (una precisión sin calcular cuenta como 0).
-- Promedio simple entre preguntas (cada pregunta pesa igual).
+### Definición vigente: lo que la pregunta pide (desde el 20/11)
+
+- **Conteo** («¿cuántos…?», 13 preguntas): lo pedido es el total. Recall = 1 si la respuesta da exactamente el total oficial (sin tolerancia; por ejemplo 74, no 73). Precisión = 1 si el número que da es el correcto y 0 si da otro; si no da ningún número (se abstiene) no tiene precisión.
+- **Primero de un ranking** («¿cuál es la más cara…?», 5 preguntas, recall@1): lo pedido es la obra correcta. Recall = 1 si su código único aparece en la respuesta; precisión = 1 si el primer código que nombra es el correcto.
+- **Sin datos** (B10, A10): no hay nada que encontrar, así que no hay recall; precisión 0 si nombra algún código (inventa obras).
+- F1 = 2 · precisión · recall / (precisión + recall) por pregunta (precisión sin calcular cuenta como 0). Promedio simple entre preguntas.
+
+| Condición | Preguntas con recall | Recall medio | Recall en conteos | Recall@1 en rankings | Preguntas con precisión | Precisión media | F1 medio |\n|---|---|---|---|---|---|---|---|\n`;
+for (const c of conds) { const xs = nPed(c); md += `| ${c} | ${cuenta(xs, 'recall')} | ${prom(xs, 'recall')} | ${prom(nPed(c, 'conteo'), 'recall')} | ${prom(nPed(c, 'top1'), 'recall')} | ${cuenta(xs, 'precision')} | ${prom(xs, 'precision')} | ${prom(xs, 'f1')} |\n`; }
+md += `\n### Primera definición, «de listado» (publicada hasta el 20/11; se conserva por transparencia)
+
+Recall = códigos de obra correctos que la respuesta **lista** / códigos esperados (hasta 20, el tope que muestra la herramienta: \`reconstruir_referencia.mjs\` -> \`resultados/referencia_items.json\`), en las ${Object.keys(refItems).filter((id) => refItems[id].codigos.length).length} preguntas de conteo con referencia. Precisión = códigos listados correctos / códigos listados. Salía casi 0 porque las preguntas piden **contar** («¿cuántos…?») y una respuesta correcta da el total sin listar 20 códigos: medía algo que la pregunta no pedía.
 
 | Condición | Preguntas con referencia | Recall medio | Precisión media (con códigos mencionados) | F1 medio |\n|---|---|---|---|---|\n`;
-for (const c of conds) { const xs = conRef(c); md += `| ${c} | ${xs.length} | ${prom(xs, 'recall')} | ${prom(rows.filter((r) => r.condicion === c && r.precision != null), 'precision')} | ${prom(xs, 'f1')} |\n`; }
+for (const c of conds) { const xs = rows.filter((r) => r.condicion === c && r.recall_listado != null); md += `| ${c} | ${xs.length} | ${prom(xs, 'recall_listado')} | ${prom(rows.filter((r) => r.condicion === c && r.precision_listado != null), 'precision_listado')} | ${prom(xs, 'f1_listado')} |\n`; }
 const cambian = rows.filter((r) => r.exacta && !r.estricta);
 md += '\nRespuestas que pasan de exacta a **no estricta** (la cifra de la referencia aparece, pero otra cifra no se sustenta en la fuente):\n\n';
 md += cambian.length ? '| Pregunta | Condición | Cifras no sustentadas |\n|---|---|---|\n' + cambian.map((r) => `| ${r.id} | ${r.condicion} | ${r.cifras_no_sustentadas} |`).join('\n') + '\n' : '(ninguna)\n';

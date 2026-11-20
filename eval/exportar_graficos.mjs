@@ -34,11 +34,12 @@ const ejec = (xs) => xs.filter((x) => (x.respuesta_resumida || '') !== '' && !/\
 const lat = (xs) => { const v = xs.map((x) => x.latencia_s).filter((x) => x !== '' && x != null).map(Number); return v.length ? (v.reduce((a, b) => a + b, 0) / v.length).toFixed(1) : ''; };
 const p1 = (v) => (v == null ? '' : v.toFixed(1));
 const lats = (xs, k) => xs.map((x) => x[k]).filter((x) => x !== '' && x != null).map(Number);
-// Precisión y recall de elementos: promedio en % entre las preguntas que lo tienen definido (columna vacía en resultados.csv = no aplica).
+// Precisión y recall: promedio en % entre las preguntas que lo tienen definido (columna vacía en resultados.csv = no aplica).
+// recall/precision/f1 = definición vigente («lo que la pregunta pide»); *_listado = primera definición (códigos listados / hasta 20).
 const nums = (xs, k) => xs.map((x) => x[k]).filter((x) => x !== '' && x != null).map(Number);
 const prom = (xs, k) => { const v = nums(xs, k); return v.length ? (100 * v.reduce((a, b) => a + b, 0) / v.length).toFixed(0) : ''; };
-const prHead = ',recall_pct,precision_pct,f1_pct,preguntas_con_referencia';
-const pr = (xs) => [prom(xs, 'recall'), prom(xs, 'precision'), prom(xs, 'f1'), nums(xs, 'recall').length].join(',');
+const prHead = ',recall_pct,precision_pct,f1_pct,preguntas_con_referencia,recall_listado_pct,precision_listado_pct,f1_listado_pct,preguntas_listado';
+const pr = (xs) => [prom(xs, 'recall'), prom(xs, 'precision'), prom(xs, 'f1'), nums(xs, 'recall').length, prom(xs, 'recall_listado'), prom(xs, 'precision_listado'), prom(xs, 'f1_listado'), nums(xs, 'recall_listado').length].join(',');
 const w = (name, head, lines) => fs.writeFileSync(path.join(OUT, name), [head, ...lines].join('\n') + '\n');
 
 w('graficos_global.csv', 'condicion,exactitud_pct,citacion_pct,inventada_pct,ejecutadas,preguntas,exacta_estricta_pct,no_sustentadas_pct' + prHead,
@@ -51,7 +52,8 @@ w('graficos_latencia.csv', 'condicion,latencia_media_s,latencia_mediana_s,latenc
   conds.map((c) => { const xs = rows.filter((r) => r.condicion === c), t = lats(xs, 'latencia_s'), o = lats(xs, 'latencia_ok_s');
     return [c, lat(xs), p1(percentil(t, 0.5)), p1(percentil(t, 0.9)), p1(Math.max(...t)), p1(percentil(o, 0.5)), p1(percentil(o, 0.9))].join(','); }));
 
-w('graficos_recall.csv', 'id,condicion,elementos_esperados,mencionados,aciertos,recall_pct,precision_pct,f1_pct',
-  rows.filter((r) => r.items_ref !== '').map((r) => [r.id, r.condicion, r.items_ref, r.items_mencionados, r.items_aciertos, ...['recall', 'precision', 'f1'].map((k) => (r[k] === '' ? '' : (100 * Number(r[k])).toFixed(0)))].join(',')));
+const pc = (v) => (v === '' || v == null ? '' : (100 * Number(v)).toFixed(0));
+w('graficos_recall.csv', 'id,condicion,tipo_pedido,recall_pct,precision_pct,f1_pct,listado_esperados,listado_mencionados,listado_aciertos,recall_listado_pct,precision_listado_pct,f1_listado_pct',
+  rows.filter((r) => r.tipo_pedido !== '').map((r) => [r.id, r.condicion, r.tipo_pedido, pc(r.recall), pc(r.precision), pc(r.f1), r.items_ref, r.items_mencionados, r.items_aciertos, pc(r.recall_listado), pc(r.precision_listado), pc(r.f1_listado)].join(',')));
 
 console.log('Escrito en', OUT, ': graficos_global.csv, graficos_por_tipo.csv, graficos_latencia.csv, graficos_recall.csv');
