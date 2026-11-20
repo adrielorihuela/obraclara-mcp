@@ -58,11 +58,29 @@ const css = String.raw`
 @keyframes ev-chip{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:none}}
 }
 .ev-vacio{padding:24px;text-align:center;color:var(--mut);border:1px dashed var(--line-2);border-radius:var(--r)}
+.cap{display:flex;flex-direction:column;gap:4px;width:100%;max-width:200px;margin-top:6px;text-decoration:none;color:var(--ink-2);font:500 12px/1.3 var(--sans)}
+.cap img{display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;object-position:top;border:1px solid var(--line);border-radius:8px;background:var(--surface-2,var(--bg));transition:border-color .2s,transform .2s,box-shadow .2s}
+.cap:hover img,.cap:focus-visible img{border-color:var(--accent);transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,.08)}
+.cap:hover span{color:var(--accent)}
+.cap-v{padding:0;border:0;border-radius:12px;width:min(1120px,calc(100vw - 24px));max-width:none;max-height:calc(100dvh - 24px);background:var(--surface);color:var(--ink);overflow:hidden}
+.cap-v[open]{display:flex;flex-direction:column}
+.cap-v::backdrop{background:rgba(10,12,14,.72)}
+.cap-b{display:flex;gap:12px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line);font:600 14px/1.3 var(--sans)}
+.cap-b span{flex:1;min-width:0}.cap-b a{font-weight:500;font-size:13px;color:var(--accent)}
+.cap-b button{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:8px;width:34px;height:34px;cursor:pointer;font-size:15px}
+.cap-i{overflow:auto;background:#f6f5f1}.cap-i img{display:block;width:100%;height:auto}
+@media (max-width:860px){.cap{max-width:240px}}
+@media (max-width:600px){.cap-v{width:100vw;height:100dvh;max-height:100dvh;border-radius:0}.cap-i{flex:1}.cap-i img{width:780px;max-width:none}}
 @media (max-width:860px){.ev-hd{display:none}.qr{grid-template-columns:minmax(0,1fr)}.qr .m .lb{display:block}.qr .par{grid-template-columns:minmax(0,1fr)}.qr .id .tag{display:inline-flex;margin:0 0 0 8px}.qr .id{display:flex;align-items:center}}
 `;
 
 const marca = (v: boolean, nombre: string, malo = false) => `<span class="mk ${malo ? (v ? "mal" : "ok") : v ? "ok" : "no"}" title="${nombre}: ${v ? "sí" : "no"}">${nombre} ${v ? "✓" : "✗"}</span>`;
 const marcas = (l: Lado) => marca(l.e, "Exacta") + marca(l.s, "Estricta") + marca(l.c, "Cita") + marca(l.i, "Inventada", true);
+// Miniatura de la captura del chat con la respuesta registrada (eval/capturar_respuestas.mjs); la grande se abre en el visor.
+const captura = (id: string, cond: "sin" | "con") => {
+  const nom = `Captura ${cond} MCP`, alt = `${nom} de la pregunta ${id}: el chat del sitio con la respuesta registrada en la evaluación`;
+  return `<a class="cap" href="/evaluacion/capturas/${id}-${cond}.webp" data-cap="${esc(`Pregunta ${id} · ${cond} MCP`)}" aria-label="${esc(nom)} (pregunta ${id}), abrir en grande"><img src="/evaluacion/capturas/${id}-${cond}-mini.webp" alt="${esc(alt)}" width="480" height="360" loading="lazy" decoding="async"><span>${nom}</span></a>`;
+};
 
 function filas(): string {
   return PREGUNTAS.map((q) => {
@@ -81,8 +99,8 @@ function filas(): string {
     return `<article class="qr" data-id="${q.id}" data-tipo="${q.tipo}" data-q="${esc(buscar)}">
 <div class="id">${q.id}<span class="tag tag-a">${tipo}</span></div>
 <div><div class="qp">${esc(q.p)}</div><div class="qref"><b>Referencia:</b> ${esc(q.r)}</div></div>
-<div class="m"><span class="lb">Sin MCP</span>${marcas(q.sin)}</div>
-<div class="m"><span class="lb">Con MCP</span>${marcas(q.con)}</div>
+<div class="m"><span class="lb">Sin MCP</span>${marcas(q.sin)}${captura(q.id, "sin")}</div>
+<div class="m"><span class="lb">Con MCP</span>${marcas(q.con)}${captura(q.id, "con")}</div>
 <details><summary>Ver respuesta</summary><div class="par">${lado(q.sin, "sin")}${lado(q.con, "con")}</div></details>
 </article>`;
   }).join("");
@@ -116,6 +134,13 @@ function norm(s){return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')}
 function f(){var s=norm(q.value.trim()),c=0;rs.forEach(function(r){var o=(!t||r.getAttribute('data-tipo')===t)&&(!s||norm(r.getAttribute('data-q')).indexOf(s)>-1);r.hidden=!o;if(o)c++});n.textContent='Mostrando '+c+' de '+rs.length+' preguntas';v.hidden=c>0}
 bs.forEach(function(b){b.addEventListener('click',function(){t=b.getAttribute('data-t');bs.forEach(function(x){x.setAttribute('aria-pressed',x===b?'true':'false')});f()})});
 q.addEventListener('input',f);f();
+var dv=document.getElementById('cap-v'),di=document.getElementById('cap-img'),dt=document.getElementById('cap-t'),dlo=document.getElementById('cap-o');
+if(dv&&typeof dv.showModal==='function'){
+document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a.cap');if(!a||e.metaKey||e.ctrlKey||e.shiftKey)return;e.preventDefault();
+di.removeAttribute('src');di.src=a.getAttribute('href');di.alt=a.querySelector('img').alt;dt.textContent=a.getAttribute('data-cap');dlo.href=a.getAttribute('href');dv.showModal();dv.querySelector('.cap-i').scrollTop=0});
+document.getElementById('cap-x').addEventListener('click',function(){dv.close()});
+dv.addEventListener('click',function(e){if(e.target===dv)dv.close()});
+}
 })();`;
 
 export function evaluacion(m: Meta): string {
@@ -157,11 +182,13 @@ ${enSencillo("El proyecto es el MCP: el «enchufe» que deja a un asistente de I
 ${modelosHtml()}
 <section class="ev-s" id="preguntas"><h2>Las ${n} preguntas, una por una</h2>
 <p>Filtra por tipo, busca una palabra (una región, un código, «Cusco») y abre «Ver respuesta» para comparar lo que contestó la IA sola con lo que contestó con MCP. ✓ y ✗ indican si se cumplió cada criterio; en «Inventada», ✓ es lo malo.</p>
+<p class="small mut">Las capturas muestran en el chat del sitio las respuestas tal como se registraron en la evaluación; no se volvieron a preguntar. Toca una miniatura para verla en grande (Esc la cierra). Índice de las 80 en <a href="${REPO}/tree/main/eval/capturas"><code>eval/capturas/</code></a>.</p>
 <div class="ev-ctl"><input id="ev-buscar" type="search" placeholder="Buscar en preguntas y referencias" aria-label="Buscar en las preguntas">
 <div class="ev-f" role="group" aria-label="Filtrar por tipo"><button type="button" data-t="" aria-pressed="true">Todas</button>${TIPOS.map(([k, t]) => `<button type="button" data-t="${k}" aria-pressed="false">${t}</button>`).join("")}</div></div>
 <p class="ev-n" id="ev-cuenta" aria-live="polite">Mostrando ${n} de ${n} preguntas</p>
 <div class="ev-hd" aria-hidden="true"><span>Código</span><span>Pregunta y referencia</span><span>Sin MCP</span><span>Con MCP</span></div>
 ${tarjetaSprite}<div id="ev-lista">${filas()}</div>
+<dialog class="cap-v" id="cap-v" aria-label="Captura en grande"><div class="cap-b"><span id="cap-t"></span><a id="cap-o" href="#" target="_blank" rel="noopener">Abrir aparte</a><button type="button" id="cap-x" aria-label="Cerrar">✕</button></div><div class="cap-i"><img id="cap-img" alt=""></div></dialog>
 <div class="ev-vacio" id="ev-vacio" hidden>Ninguna pregunta coincide con el filtro.</div>
 <p class="small mut" style="margin-top:14px">Respuestas recortadas y sin el marcado interno del proveedor; las completas están en <a href="${REPO}/tree/main/eval/resultados"><code>eval/resultados/</code></a>. Las respuestas de un asistente cambian entre intentos.</p></section>
 </div>`;

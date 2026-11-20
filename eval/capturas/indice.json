@@ -1,0 +1,642 @@
+[
+ {
+  "id": "A01",
+  "condicion": "sin_mcp",
+  "archivo": "worker/public/evaluacion/capturas/A01-sin.webp",
+  "miniatura": "worker/public/evaluacion/capturas/A01-sin-mini.webp",
+  "veredicto": "✗ no exacta · con cifras inventadas",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "A01",
+  "condicion": "con_mcp",
+  "archivo": "worker/public/evaluacion/capturas/A01-con.webp",
+  "miniatura": "worker/public/evaluacion/capturas/A01-con-mini.webp",
+  "veredicto": "✓ exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "A02",
+  "condicion": "sin_mcp",
+  "archivo": "worker/public/evaluacion/capturas/A02-sin.webp",
+  "miniatura": "worker/public/evaluacion/capturas/A02-sin-mini.webp",
+  "veredicto": "✗ no exacta · con cifras inventadas",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "A02",
+  "condicion": "con_mcp",
+  "archivo": "worker/public/evaluacion/capturas/A02-con.webp",
+  "miniatura": "worker/public/evaluacion/capturas/A02-con-mini.webp",
+  "veredicto": "✓ exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "A03",
+  "condicion": "sin_mcp",
+  "archivo": "worker/public/evaluacion/capturas/A03-sin.webp",
+  "miniatura": "worker/public/evaluacion/capturas/A03-sin-mini.webp",
+  "veredicto": "✗ no exacta · con cifras inventadas",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "A03",
+  "condicion": "con_mcp",
+  "archivo": "worker/public/evaluacion/capturas/A03-con.webp",
+  "miniatura": "worker/public/evaluacion/capturas/A03-con-mini.webp",
+  "veredicto": "✓ exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "A04",
+  "condicion": "sin_mcp",
+  "archivo": "worker/public/evaluacion/capturas/A04-sin.webp",
+  "miniatura": "worker/public/evaluacion/capturas/A04-sin-mini.webp",
+  "veredicto": "✗ no exacta · con cifras inventadas",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "A04",
+  "condicion": "con_mcp",
+  "archivo": "worker/public/evaluacion/capturas/A04-con.webp",
+  "miniatura": "worker/public/evaluacion/capturas/A04-con-mini.webp",
+  "veredicto": "✓ exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "A05",
+  "condicion": "sin_mcp",
+  "archivo": "worker/public/evaluacion/capturas/A05-sin.webp",
+  "miniatura": "worker/public/evaluacion/capturas/A05-sin-mini.webp",
+  "veredicto": "✗ no exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "A05",
+  "condicion": "con_mcp",
+  "archivo": "worker/public/evaluacion/capturas/A05-con.webp",
+  "miniatura": "worker/public/evaluacion/capturas/A05-con-mini.webp",
+  "veredicto": "✓ exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "A06",
+  "condicion": "sin_mcp",
+  "archivo": "worker/public/evaluacion/capturas/A06-sin.webp",
+  "miniatura": "worker/public/evaluacion/capturas/A06-sin-mini.webp",
+  "veredicto": "✗ no exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "A06",
+  "condicion": "con_mcp",
+  "archivo": "worker/public/evaluacion/capturas/A06-con.webp",
+  "miniatura": "worker/public/evaluacion/capturas/A06-con-mini.webp",
+  "veredicto": "✓ exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "A07",
+  "condicion": "sin_mcp",
+  "archivo": "worker/public/evaluacion/capturas/A07-sin.webp",
+  "miniatura": "worker/public/evaluacion/capturas/A07-sin-mini.webp",
+  "veredicto": "✗ no exacta · con cifras inventadas",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "A07",
+  "condicion": "con_mcp",
+  "archivo": "worker/public/evaluacion/capturas/A07-con.webp",
+  "miniatura": "worker/public/evaluacion/capturas/A07-con-mini.webp",
+  "veredicto": "✓ exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "A08",
+  "condicion": "sin_mcp",
+  "archivo": "worker/public/evaluacion/capturas/A08-sin.webp",
+  "miniatura": "worker/public/evaluacion/capturas/A08-sin-mini.webp",
+  "veredicto": "✗ no exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "A08",
+  "condicion": "con_mcp",
+  "archivo": "worker/public/evaluacion/capturas/A08-con.webp",
+  "miniatura": "worker/public/evaluacion/capturas/A08-con-mini.webp",
+  "veredicto": "✓ exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "A09",
+  "condicion": "sin_mcp",
+  "archivo": "worker/public/evaluacion/capturas/A09-sin.webp",
+  "miniatura": "worker/public/evaluacion/capturas/A09-sin-mini.webp",
+  "veredicto": "✗ no exacta · con cifras inventadas",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "A09",
+  "condicion": "con_mcp",
+  "archivo": "worker/public/evaluacion/capturas/A09-con.webp",
+  "miniatura": "worker/public/evaluacion/capturas/A09-con-mini.webp",
+  "veredicto": "✓ exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "A10",
+  "condicion": "sin_mcp",
+  "archivo": "worker/public/evaluacion/capturas/A10-sin.webp",
+  "miniatura": "worker/public/evaluacion/capturas/A10-sin-mini.webp",
+  "veredicto": "✗ no exacta · con cifras inventadas",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "A10",
+  "condicion": "con_mcp",
+  "archivo": "worker/public/evaluacion/capturas/A10-con.webp",
+  "miniatura": "worker/public/evaluacion/capturas/A10-con-mini.webp",
+  "veredicto": "✓ exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "B01",
+  "condicion": "sin_mcp",
+  "archivo": "worker/public/evaluacion/capturas/B01-sin.webp",
+  "miniatura": "worker/public/evaluacion/capturas/B01-sin-mini.webp",
+  "veredicto": "✗ no exacta · con cifras inventadas",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "B01",
+  "condicion": "con_mcp",
+  "archivo": "worker/public/evaluacion/capturas/B01-con.webp",
+  "miniatura": "worker/public/evaluacion/capturas/B01-con-mini.webp",
+  "veredicto": "✓ exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "B02",
+  "condicion": "sin_mcp",
+  "archivo": "worker/public/evaluacion/capturas/B02-sin.webp",
+  "miniatura": "worker/public/evaluacion/capturas/B02-sin-mini.webp",
+  "veredicto": "✗ no exacta · con cifras inventadas",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "B02",
+  "condicion": "con_mcp",
+  "archivo": "worker/public/evaluacion/capturas/B02-con.webp",
+  "miniatura": "worker/public/evaluacion/capturas/B02-con-mini.webp",
+  "veredicto": "✓ exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "B03",
+  "condicion": "sin_mcp",
+  "archivo": "worker/public/evaluacion/capturas/B03-sin.webp",
+  "miniatura": "worker/public/evaluacion/capturas/B03-sin-mini.webp",
+  "veredicto": "✗ no exacta · con cifras inventadas",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "B03",
+  "condicion": "con_mcp",
+  "archivo": "worker/public/evaluacion/capturas/B03-con.webp",
+  "miniatura": "worker/public/evaluacion/capturas/B03-con-mini.webp",
+  "veredicto": "✓ exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "B04",
+  "condicion": "sin_mcp",
+  "archivo": "worker/public/evaluacion/capturas/B04-sin.webp",
+  "miniatura": "worker/public/evaluacion/capturas/B04-sin-mini.webp",
+  "veredicto": "✗ no exacta · con cifras inventadas",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "B04",
+  "condicion": "con_mcp",
+  "archivo": "worker/public/evaluacion/capturas/B04-con.webp",
+  "miniatura": "worker/public/evaluacion/capturas/B04-con-mini.webp",
+  "veredicto": "✓ exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "B05",
+  "condicion": "sin_mcp",
+  "archivo": "worker/public/evaluacion/capturas/B05-sin.webp",
+  "miniatura": "worker/public/evaluacion/capturas/B05-sin-mini.webp",
+  "veredicto": "✗ no exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "B05",
+  "condicion": "con_mcp",
+  "archivo": "worker/public/evaluacion/capturas/B05-con.webp",
+  "miniatura": "worker/public/evaluacion/capturas/B05-con-mini.webp",
+  "veredicto": "✓ exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "B06",
+  "condicion": "sin_mcp",
+  "archivo": "worker/public/evaluacion/capturas/B06-sin.webp",
+  "miniatura": "worker/public/evaluacion/capturas/B06-sin-mini.webp",
+  "veredicto": "✗ no exacta · con cifras inventadas",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "B06",
+  "condicion": "con_mcp",
+  "archivo": "worker/public/evaluacion/capturas/B06-con.webp",
+  "miniatura": "worker/public/evaluacion/capturas/B06-con-mini.webp",
+  "veredicto": "✓ exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "B07",
+  "condicion": "sin_mcp",
+  "archivo": "worker/public/evaluacion/capturas/B07-sin.webp",
+  "miniatura": "worker/public/evaluacion/capturas/B07-sin-mini.webp",
+  "veredicto": "✗ no exacta · con cifras inventadas",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "B07",
+  "condicion": "con_mcp",
+  "archivo": "worker/public/evaluacion/capturas/B07-con.webp",
+  "miniatura": "worker/public/evaluacion/capturas/B07-con-mini.webp",
+  "veredicto": "✓ exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "B08",
+  "condicion": "sin_mcp",
+  "archivo": "worker/public/evaluacion/capturas/B08-sin.webp",
+  "miniatura": "worker/public/evaluacion/capturas/B08-sin-mini.webp",
+  "veredicto": "✗ no exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "B08",
+  "condicion": "con_mcp",
+  "archivo": "worker/public/evaluacion/capturas/B08-con.webp",
+  "miniatura": "worker/public/evaluacion/capturas/B08-con-mini.webp",
+  "veredicto": "✓ exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "B09",
+  "condicion": "sin_mcp",
+  "archivo": "worker/public/evaluacion/capturas/B09-sin.webp",
+  "miniatura": "worker/public/evaluacion/capturas/B09-sin-mini.webp",
+  "veredicto": "✗ no exacta · con cifras inventadas",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "B09",
+  "condicion": "con_mcp",
+  "archivo": "worker/public/evaluacion/capturas/B09-con.webp",
+  "miniatura": "worker/public/evaluacion/capturas/B09-con-mini.webp",
+  "veredicto": "✓ exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "B10",
+  "condicion": "sin_mcp",
+  "archivo": "worker/public/evaluacion/capturas/B10-sin.webp",
+  "miniatura": "worker/public/evaluacion/capturas/B10-sin-mini.webp",
+  "veredicto": "✗ no exacta · con cifras inventadas",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "B10",
+  "condicion": "con_mcp",
+  "archivo": "worker/public/evaluacion/capturas/B10-con.webp",
+  "miniatura": "worker/public/evaluacion/capturas/B10-con-mini.webp",
+  "veredicto": "✓ exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "D01",
+  "condicion": "sin_mcp",
+  "archivo": "worker/public/evaluacion/capturas/D01-sin.webp",
+  "miniatura": "worker/public/evaluacion/capturas/D01-sin-mini.webp",
+  "veredicto": "✗ no exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "D01",
+  "condicion": "con_mcp",
+  "archivo": "worker/public/evaluacion/capturas/D01-con.webp",
+  "miniatura": "worker/public/evaluacion/capturas/D01-con-mini.webp",
+  "veredicto": "✓ exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "D02",
+  "condicion": "sin_mcp",
+  "archivo": "worker/public/evaluacion/capturas/D02-sin.webp",
+  "miniatura": "worker/public/evaluacion/capturas/D02-sin-mini.webp",
+  "veredicto": "✗ no exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "D02",
+  "condicion": "con_mcp",
+  "archivo": "worker/public/evaluacion/capturas/D02-con.webp",
+  "miniatura": "worker/public/evaluacion/capturas/D02-con-mini.webp",
+  "veredicto": "✓ exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "D03",
+  "condicion": "sin_mcp",
+  "archivo": "worker/public/evaluacion/capturas/D03-sin.webp",
+  "miniatura": "worker/public/evaluacion/capturas/D03-sin-mini.webp",
+  "veredicto": "✗ no exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "D03",
+  "condicion": "con_mcp",
+  "archivo": "worker/public/evaluacion/capturas/D03-con.webp",
+  "miniatura": "worker/public/evaluacion/capturas/D03-con-mini.webp",
+  "veredicto": "✓ exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "D04",
+  "condicion": "sin_mcp",
+  "archivo": "worker/public/evaluacion/capturas/D04-sin.webp",
+  "miniatura": "worker/public/evaluacion/capturas/D04-sin-mini.webp",
+  "veredicto": "✗ no exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "D04",
+  "condicion": "con_mcp",
+  "archivo": "worker/public/evaluacion/capturas/D04-con.webp",
+  "miniatura": "worker/public/evaluacion/capturas/D04-con-mini.webp",
+  "veredicto": "✓ exacta (no estricta: otra cifra sin fuente)",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "D05",
+  "condicion": "sin_mcp",
+  "archivo": "worker/public/evaluacion/capturas/D05-sin.webp",
+  "miniatura": "worker/public/evaluacion/capturas/D05-sin-mini.webp",
+  "veredicto": "✗ no exacta · con cifras inventadas",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "D05",
+  "condicion": "con_mcp",
+  "archivo": "worker/public/evaluacion/capturas/D05-con.webp",
+  "miniatura": "worker/public/evaluacion/capturas/D05-con-mini.webp",
+  "veredicto": "✓ exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "D06",
+  "condicion": "sin_mcp",
+  "archivo": "worker/public/evaluacion/capturas/D06-sin.webp",
+  "miniatura": "worker/public/evaluacion/capturas/D06-sin-mini.webp",
+  "veredicto": "✗ no exacta · con cifras inventadas",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "D06",
+  "condicion": "con_mcp",
+  "archivo": "worker/public/evaluacion/capturas/D06-con.webp",
+  "miniatura": "worker/public/evaluacion/capturas/D06-con-mini.webp",
+  "veredicto": "✓ exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "D07",
+  "condicion": "sin_mcp",
+  "archivo": "worker/public/evaluacion/capturas/D07-sin.webp",
+  "miniatura": "worker/public/evaluacion/capturas/D07-sin-mini.webp",
+  "veredicto": "✗ no exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "D07",
+  "condicion": "con_mcp",
+  "archivo": "worker/public/evaluacion/capturas/D07-con.webp",
+  "miniatura": "worker/public/evaluacion/capturas/D07-con-mini.webp",
+  "veredicto": "✓ exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "D08",
+  "condicion": "sin_mcp",
+  "archivo": "worker/public/evaluacion/capturas/D08-sin.webp",
+  "miniatura": "worker/public/evaluacion/capturas/D08-sin-mini.webp",
+  "veredicto": "✓ exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "D08",
+  "condicion": "con_mcp",
+  "archivo": "worker/public/evaluacion/capturas/D08-con.webp",
+  "miniatura": "worker/public/evaluacion/capturas/D08-con-mini.webp",
+  "veredicto": "✓ exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "D09",
+  "condicion": "sin_mcp",
+  "archivo": "worker/public/evaluacion/capturas/D09-sin.webp",
+  "miniatura": "worker/public/evaluacion/capturas/D09-sin-mini.webp",
+  "veredicto": "✗ no exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "D09",
+  "condicion": "con_mcp",
+  "archivo": "worker/public/evaluacion/capturas/D09-con.webp",
+  "miniatura": "worker/public/evaluacion/capturas/D09-con-mini.webp",
+  "veredicto": "✓ exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "D10",
+  "condicion": "sin_mcp",
+  "archivo": "worker/public/evaluacion/capturas/D10-sin.webp",
+  "miniatura": "worker/public/evaluacion/capturas/D10-sin-mini.webp",
+  "veredicto": "✓ exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "D10",
+  "condicion": "con_mcp",
+  "archivo": "worker/public/evaluacion/capturas/D10-con.webp",
+  "miniatura": "worker/public/evaluacion/capturas/D10-con-mini.webp",
+  "veredicto": "✓ exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "R01",
+  "condicion": "sin_mcp",
+  "archivo": "worker/public/evaluacion/capturas/R01-sin.webp",
+  "miniatura": "worker/public/evaluacion/capturas/R01-sin-mini.webp",
+  "veredicto": "✗ no exacta · con cifras inventadas",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "R01",
+  "condicion": "con_mcp",
+  "archivo": "worker/public/evaluacion/capturas/R01-con.webp",
+  "miniatura": "worker/public/evaluacion/capturas/R01-con-mini.webp",
+  "veredicto": "✓ exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "R02",
+  "condicion": "sin_mcp",
+  "archivo": "worker/public/evaluacion/capturas/R02-sin.webp",
+  "miniatura": "worker/public/evaluacion/capturas/R02-sin-mini.webp",
+  "veredicto": "✗ no exacta",
+  "fecha": "18/11/2026"
+ },
+ {
+  "id": "R02",
+  "condicion": "con_mcp",
+  "archivo": "worker/public/evaluacion/capturas/R02-con.webp",
+  "miniatura": "worker/public/evaluacion/capturas/R02-con-mini.webp",
+  "veredicto": "✓ exacta",
+  "fecha": "18/11/2026"
+ },
+ {
+  "id": "R03",
+  "condicion": "sin_mcp",
+  "archivo": "worker/public/evaluacion/capturas/R03-sin.webp",
+  "miniatura": "worker/public/evaluacion/capturas/R03-sin-mini.webp",
+  "veredicto": "✗ no exacta · con cifras inventadas",
+  "fecha": "18/11/2026"
+ },
+ {
+  "id": "R03",
+  "condicion": "con_mcp",
+  "archivo": "worker/public/evaluacion/capturas/R03-con.webp",
+  "miniatura": "worker/public/evaluacion/capturas/R03-con-mini.webp",
+  "veredicto": "✓ exacta",
+  "fecha": "18/11/2026"
+ },
+ {
+  "id": "R04",
+  "condicion": "sin_mcp",
+  "archivo": "worker/public/evaluacion/capturas/R04-sin.webp",
+  "miniatura": "worker/public/evaluacion/capturas/R04-sin-mini.webp",
+  "veredicto": "✗ no exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "R04",
+  "condicion": "con_mcp",
+  "archivo": "worker/public/evaluacion/capturas/R04-con.webp",
+  "miniatura": "worker/public/evaluacion/capturas/R04-con-mini.webp",
+  "veredicto": "✓ exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "R05",
+  "condicion": "sin_mcp",
+  "archivo": "worker/public/evaluacion/capturas/R05-sin.webp",
+  "miniatura": "worker/public/evaluacion/capturas/R05-sin-mini.webp",
+  "veredicto": "✗ no exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "R05",
+  "condicion": "con_mcp",
+  "archivo": "worker/public/evaluacion/capturas/R05-con.webp",
+  "miniatura": "worker/public/evaluacion/capturas/R05-con-mini.webp",
+  "veredicto": "✓ exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "R06",
+  "condicion": "sin_mcp",
+  "archivo": "worker/public/evaluacion/capturas/R06-sin.webp",
+  "miniatura": "worker/public/evaluacion/capturas/R06-sin-mini.webp",
+  "veredicto": "✗ no exacta · con cifras inventadas",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "R06",
+  "condicion": "con_mcp",
+  "archivo": "worker/public/evaluacion/capturas/R06-con.webp",
+  "miniatura": "worker/public/evaluacion/capturas/R06-con-mini.webp",
+  "veredicto": "✓ exacta",
+  "fecha": "10/11/2026"
+ },
+ {
+  "id": "R07",
+  "condicion": "sin_mcp",
+  "archivo": "worker/public/evaluacion/capturas/R07-sin.webp",
+  "miniatura": "worker/public/evaluacion/capturas/R07-sin-mini.webp",
+  "veredicto": "✗ no exacta",
+  "fecha": "18/11/2026"
+ },
+ {
+  "id": "R07",
+  "condicion": "con_mcp",
+  "archivo": "worker/public/evaluacion/capturas/R07-con.webp",
+  "miniatura": "worker/public/evaluacion/capturas/R07-con-mini.webp",
+  "veredicto": "✓ exacta",
+  "fecha": "18/11/2026"
+ },
+ {
+  "id": "R08",
+  "condicion": "sin_mcp",
+  "archivo": "worker/public/evaluacion/capturas/R08-sin.webp",
+  "miniatura": "worker/public/evaluacion/capturas/R08-sin-mini.webp",
+  "veredicto": "✗ no exacta",
+  "fecha": "18/11/2026"
+ },
+ {
+  "id": "R08",
+  "condicion": "con_mcp",
+  "archivo": "worker/public/evaluacion/capturas/R08-con.webp",
+  "miniatura": "worker/public/evaluacion/capturas/R08-con-mini.webp",
+  "veredicto": "✓ exacta",
+  "fecha": "18/11/2026"
+ },
+ {
+  "id": "R09",
+  "condicion": "sin_mcp",
+  "archivo": "worker/public/evaluacion/capturas/R09-sin.webp",
+  "miniatura": "worker/public/evaluacion/capturas/R09-sin-mini.webp",
+  "veredicto": "✗ no exacta · con cifras inventadas",
+  "fecha": "18/11/2026"
+ },
+ {
+  "id": "R09",
+  "condicion": "con_mcp",
+  "archivo": "worker/public/evaluacion/capturas/R09-con.webp",
+  "miniatura": "worker/public/evaluacion/capturas/R09-con-mini.webp",
+  "veredicto": "✓ exacta",
+  "fecha": "18/11/2026"
+ },
+ {
+  "id": "R10",
+  "condicion": "sin_mcp",
+  "archivo": "worker/public/evaluacion/capturas/R10-sin.webp",
+  "miniatura": "worker/public/evaluacion/capturas/R10-sin-mini.webp",
+  "veredicto": "✓ exacta (no estricta: otra cifra sin fuente)",
+  "fecha": "18/11/2026"
+ },
+ {
+  "id": "R10",
+  "condicion": "con_mcp",
+  "archivo": "worker/public/evaluacion/capturas/R10-con.webp",
+  "miniatura": "worker/public/evaluacion/capturas/R10-con-mini.webp",
+  "veredicto": "✓ exacta",
+  "fecha": "18/11/2026"
+ }
+]
