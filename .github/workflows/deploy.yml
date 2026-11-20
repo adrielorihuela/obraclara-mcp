@@ -21,14 +21,16 @@ jobs:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
       - uses: actions/checkout@v4
-      # Regla: no desplegar durante las clases (miércoles y viernes 09:00–11:10, hora de Lima). Desplegar reinicia la cola del
-      # Worker y desconecta el conector unos segundos; el chat lo aguanta, pero en una exposición se nota. Solo avisa, no bloquea.
-      - name: Aviso de horario de clase
+      # Regla: no desplegar durante una exposición anunciada por el usuario. Desplegar reinicia la cola del Worker y desconecta el
+      # conector unos segundos; el chat lo aguanta («Reconectando…»), pero en vivo se nota. Para avisar, se activa la variable del
+      # repositorio EXPOSICION_EN_CURSO (Settings → Variables). Solo avisa, no bloquea.
+      - name: Aviso de exposición anunciada
         working-directory: .
+        env:
+          EXPOSICION: ${{ vars.EXPOSICION_EN_CURSO }}
         run: |
-          dia=$(TZ=America/Lima date +%u); hm=$(TZ=America/Lima date +%H%M)
-          if { [ "$dia" = 3 ] || [ "$dia" = 5 ]; } && [ "$hm" -ge 0900 ] && [ "$hm" -le 1110 ]; then
-            echo "::warning title=Despliegue en horario de clase::Son las $(TZ=America/Lima date +%H:%M) en Lima (miércoles o viernes de clase). Evita desplegar o reiniciar el conector entre 09:00 y 11:10."
+          if [ -n "$EXPOSICION" ] && [ "$EXPOSICION" != "0" ] && [ "$EXPOSICION" != "false" ]; then
+            echo "::warning title=Despliegue durante una exposición anunciada::No desplegar durante una exposición anunciada ($EXPOSICION). El conector se desconecta unos segundos al desplegar."
           fi
       - uses: actions/setup-node@v4
         with:
