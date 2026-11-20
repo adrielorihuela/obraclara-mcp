@@ -1141,6 +1141,7 @@ async function ocSendAg(q,fs,rh){if(!q)q='Revisa los archivos adjuntos y resume 
    if(r&&r.status===404){rhApi=false;ag=ocNuevoId();var cx=ocEn(s,function(){ocAgId=ag;return contextoConversacion(ocMsgs.slice(0,-1))});cuerpo.chat_id=ag;cuerpo.mensaje=conCtx(cx);r=await pedir('/api/agente',cuerpo)}
    else if(r&&r.status===409)throw new Error('El agente todavía está trabajando en este chat. Espera a que termine y vuelve a intentarlo.')}
   else r=await pedir('/api/agente',cuerpo);
+  if((!r||r.status>=500)&&rhApi)throw new Error('No se pudo rehacer la respuesta. Inténtalo de nuevo; tu versión anterior sigue guardada (‹ ›).');
   if(!r||r.status>=500){if(!primero)throw new Error('No se pudo entregar el mensaje al agente. Inténtalo de nuevo.');await ocEmergencia(s,q,fs);return}
   try{d=await r.json()}catch(e){if(s.parar)throw e}
   if(r.status===202){if(fs.length){ocEn(s,function(){ocSetSubidos(fs)});await ocEn(s,ocSetGuardar)}if(mk)mk.textContent='Entregado al agente';else log('n','Tu mensaje se entregó al agente, que ya estaba trabajando en este chat.');return}
