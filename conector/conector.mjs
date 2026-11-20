@@ -136,7 +136,7 @@ async function armarCuerpo(j, tarea, chat) {
     try { const g = await fetch(`${IA_URL}/v1/agente/chats/${j.chat_id ?? chat}`, { headers: cabIA(), signal: AbortSignal.timeout(5000) }); if (g.ok) { const h = (await g.json())?.historial; if (Array.isArray(h)) hist = h; } } catch { /* opcional */ }
   }
   const historial = hist ? hist.slice(-300).map((h) => (h?.role === "user" ? { role: "user", indice: Number(h.indice) } : { role: "assistant", desde: Number(h?.desde) })) : undefined;
-  const extra = { ...(historial ? { historial } : {}), ...(j.rehecho && Number.isInteger(j.rehecho.rama) ? { rehecho: { desde: Number(j.rehecho.desde), rama: j.rehecho.rama } } : {}), ...(Number.isInteger(j.activa) ? { activa: j.activa } : {}) };
+  const extra = { ...(Array.isArray(j.memoria) ? { memoria: j.memoria.slice(0, 30), memoria_cambio: j.memoria_cambio === true } : {}), ...(historial ? { historial } : {}), ...(j.rehecho && Number.isInteger(j.rehecho.rama) ? { rehecho: { desde: Number(j.rehecho.desde), rama: j.rehecho.rama } } : {}), ...(Number.isInteger(j.activa) ? { activa: j.activa } : {}) };
   const modelo = modeloPublico(j.modelo ?? j.proveedor);
   const noAtendidos = Array.isArray(j.pendientes_no_atendidos) ? j.pendientes_no_atendidos.filter((x) => typeof x === "string").slice(0, 20).map((x) => x.slice(0, 2000)) : Number.isFinite(j.pendientes_no_atendidos) ? Number(j.pendientes_no_atendidos) : undefined;
   const cuerpo = { ...(modelo ? { modelo } : {}), ...(noAtendidos !== undefined ? { pendientes_no_atendidos: noAtendidos } : {}), ...extra, chat_id: j.chat_id ?? chat, respuesta: j.respuesta, adjuntos: adjuntos.map(meta), ...(Array.isArray(j.archivos_chat) ? { archivos_chat: vigentes.map(meta) } : {}), mensajes_incorporados: Number(j.mensajes_incorporados) || 0, archivos, ...(omitidos.length ? { omitidos } : {}), ...(pendientes.length ? { pendiente: true, pendientes } : {}) };
@@ -146,7 +146,7 @@ async function armarCuerpo(j, tarea, chat) {
 // Recuperar: espera a que termine el turno en curso de ese chat en la API (siguiendo sus eventos) y devuelve su última respuesta.
 // Sirve tras una reconexión del conector o un tiempo agotado: la API siguió trabajando y el mensaje no se vuelve a mandar.
 async function recuperar(ws, chat, tarea, sub) {
-  const ctl = new AbortController(); const tope = setTimeout(() => ctl.abort(), TIEMPO_TURNO_MS);
+  const ctl = new AbortController(); const tope = setTimeout(() => ctl.abort(), TIEMPO_TURNO_MS); let memFin = {};
   try {
     const r = await fetch(`${IA_URL}/v1/agente/chats/${chat}/eventos`, { headers: { accept: "text/event-stream", ...cabIA() }, signal: ctl.signal });
     if (r.ok && r.body) {
@@ -157,6 +157,7 @@ async function recuperar(ws, chat, tarea, sub) {
           const bloque = buf.slice(0, i); buf = buf.slice(i + 2);
           const datos = bloque.split("\n").filter((l) => l.startsWith("data:")).map((l) => l.slice(5).replace(/^ /, "")).join("");
           let ev; try { ev = JSON.parse(datos); } catch { continue; }
+          if (ev.tipo === "fin" && Array.isArray(ev.memoria)) memFin = { memoria: ev.memoria, memoria_cambio: ev.memoria_cambio === true };
           if (!sub) enviar(ws, { type: "evento", chat_id: chat, tipo: ev.tipo, texto: ev.texto, ...(modeloPublico(ev.modelo ?? ev.proveedor) ? { modelo: modeloPublico(ev.modelo ?? ev.proveedor) } : {}) });
           if (ev.tipo === "fin" || ev.tipo === "error") fin = true;
         }
@@ -174,7 +175,7 @@ async function recuperar(ws, chat, tarea, sub) {
   const busca = typeof tarea.mensaje === "string" ? tarea.mensaje.trim().slice(-200) : "";
   if (busca && !(typeof usuario?.contenido === "string" && usuario.contenido.includes(busca))) { const e = new Error("no_recibido"); e.codigo = 404; throw e; }
   if (!ult || ult.role !== "assistant" || typeof ult.contenido !== "string") throw new Error("el turno terminó sin respuesta");
-  return armarCuerpo({ chat_id: chat, respuesta: ult.contenido, adjuntos: [], archivos_chat: Array.isArray(c.archivos) ? c.archivos : [], historial: h, modelo: c.modelo ?? c.proveedor }, tarea, chat);
+  return armarCuerpo({ chat_id: chat, respuesta: ult.contenido, adjuntos: [], archivos_chat: Array.isArray(c.archivos) ? c.archivos : [], historial: h, modelo: c.modelo ?? c.proveedor, ...memFin }, tarea, chat);
 }
 
 async function agente(ws, tarea) {
@@ -194,7 +195,7 @@ async function agente(ws, tarea) {
   try {
     // Editar o reintentar (`desde`): POST /v1/agente/chats/:id/rehacer, que responde igual que POST /v1/agente.
     const rehacer = chat && Number.isInteger(tarea.desde);
-    const mcp = tarea.mcp === true ? { mcp: [{ url: SITIO + "/mcp", nombre: "obraclara" }] } : {};
+    const mcp = { ...(tarea.mcp === true ? { mcp: [{ url: SITIO + "/mcp", nombre: "obraclara" }] } : {}), ...(Array.isArray(tarea.memoria) ? { memoria: tarea.memoria } : {}) }; // memoria: viene del navegador y vuelve actualizada en la respuesta
     const r = await fetch(rama ? `${IA_URL}/v1/agente/chats/${chat}/ramas/${tarea.rama}/activar` : rehacer ? `${IA_URL}/v1/agente/chats/${chat}/rehacer` : IA_URL + "/v1/agente", {
       method: "POST", headers: { "content-type": "application/json", ...cabIA() },
       body: rama ? "{}" : JSON.stringify(rehacer

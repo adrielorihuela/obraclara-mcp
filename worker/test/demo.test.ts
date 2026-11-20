@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { paginaSitio } from "../src/pagina";
 import { CASOS_DEMO, RESUMEN_DEMO } from "../src/sitio/demo-datos";
 import { scriptDemo } from "../src/sitio/demo-pagina";
+import { demoScript } from "../src/demo";
 
 const meta = { fecha_descarga: "2026-11-10", total_inversiones: "150574", alertas_sobrecosto: "26387", alertas_paralizacion: "16502", fuente: "MEF", url: "https://x" };
 const html = paginaSitio("/demo", meta) ?? "";
@@ -79,5 +80,14 @@ describe("página /demo", () => {
     expect(scriptDemo).toContain("/api/agente/eventos");
     expect(scriptDemo).not.toContain("__name");
     expect(() => new Function(scriptDemo)).not.toThrow();
+  });
+});
+
+describe("memoria y chat activo en el navegador", () => {
+  it("la memoria se guarda en IndexedDB (kv/memoria) con respaldo en localStorage y viaja con cada mensaje", () => {
+    expect(demoScript).toContain(".get('memoria')");
+    expect(demoScript).toContain("oc_memoria");
+    expect(demoScript).toContain("memoria:memV");
+    expect(demoScript).toContain("oc_chat_activa");
   });
 });

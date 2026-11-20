@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { validarAgente } from "../src/lib/agenteapi";
+import { sanearMemoria, validarAgente, validarRehacer } from "../src/lib/agenteapi";
 
 describe("validarAgente (solo forma de la petición)", () => {
   it("exige un mensaje y deja pasar chat_id y mcp válidos", () => {
@@ -22,5 +22,23 @@ describe("validarAgente (solo forma de la petición)", () => {
     const { normalizarMensaje } = await import("../src/lib/agente");
     const m = normalizarMensaje({ rol: "a", texto: "ok", arch: [{ id: "f1", n: "a.pptx", b: 5, v: 2 }, { id: "f2", n: "b.pptx", b: 5, v: 1 }] })!;
     expect(m.arch).toEqual([{ id: "f1", n: "a.pptx", b: 5, v: 2 }, { id: "f2", n: "b.pptx", b: 5 }]);
+  });
+});
+
+describe("memoria del navegador", () => {
+  it("pasa tal cual si viene (aunque sea []), se sanea y no aparece si falta", () => {
+    const a = validarAgente({ mensaje: "hola", memoria: [] });
+    expect(a.ok && a.valor.memoria).toEqual([]);
+    const b = validarAgente({ mensaje: "hola" });
+    expect(b.ok && "memoria" in b.valor).toBe(false);
+    const c = validarRehacer({ chat_id: "abcdefgh12", desde: 0, memoria: [{ texto: "Me llamo Prueba", fecha: "2026-11-20" }] });
+    expect(c.ok && c.valor.memoria).toEqual([{ texto: "Me llamo Prueba", fecha: "2026-11-20" }]);
+  });
+  it("máximo 30 notas de 300 caracteres y sin vacías", () => {
+    const m = sanearMemoria(Array.from({ length: 40 }, (_, i) => ({ texto: "x".repeat(400) + i }))) ?? [];
+    expect(m).toHaveLength(30);
+    expect(m.every((n) => n.texto.length <= 300)).toBe(true);
+    expect(sanearMemoria([{ texto: "  " }, 5, null])).toEqual([]);
+    expect(sanearMemoria("no")).toBeUndefined();
   });
 });

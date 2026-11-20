@@ -93,7 +93,7 @@ export class ColaIA extends DurableObject {
     if (url.pathname === "/agente" && req.method === "POST") {
       if (!this.conn || !this.agente) return RECONECTANDO(false);
       if (this.agentes.size >= MAX_AGENTES) return Response.json({ error: "El servidor está ocupado con otras preguntas. Inténtalo en unos segundos." }, { status: 503 });
-      const { chat_id, mensaje, archivos, mcp, conocidos, subidos, desde, rama, recuperar } = (await req.json()) as { chat_id?: string; mensaje?: string; archivos: unknown[]; mcp?: boolean; conocidos?: unknown; subidos?: unknown; desde?: number; rama?: number; recuperar?: boolean };
+      const { chat_id, mensaje, archivos, mcp, conocidos, subidos, desde, rama, recuperar, memoria } = (await req.json()) as { memoria?: unknown; chat_id?: string; mensaje?: string; archivos: unknown[]; mcp?: boolean; conocidos?: unknown; subidos?: unknown; desde?: number; rama?: number; recuperar?: boolean };
       // Un turno nuevo (el chat no tiene otro en curso) empieza con el progreso en blanco; la numeración sigue para que el navegador no repita.
       if (chat_id && !Number.isInteger(rama) && !recuperar && ![...this.agentes.values()].some((a) => a.chat_id === chat_id)) { const e = this.eventos.get(chat_id); if (e) e.lista = []; }
       const id = crypto.randomUUID();
@@ -101,7 +101,7 @@ export class ColaIA extends DurableObject {
         this.agentes.set(id, { chat_id, resolver: resolve });
         setTimeout(() => { if (this.agentes.delete(id)) resolve({ error: "El agente tardó demasiado en responder. Inténtalo de nuevo.", codigo: -2 }); }, TIEMPO_AGENTE_MS);
       });
-      try { this.conn.send(JSON.stringify({ type: "agente", id, chat_id, mensaje, archivos, ...(Number.isInteger(desde) ? { desde } : {}), ...(Number.isInteger(rama) ? { rama } : {}), ...(recuperar === true ? { recuperar: true } : {}), ...(mcp === true ? { mcp: true } : {}), ...(conocidos ? { conocidos } : {}), ...(subidos ? { subidos } : {}) })); }
+      try { this.conn.send(JSON.stringify({ type: "agente", id, chat_id, mensaje, archivos, ...(Number.isInteger(desde) ? { desde } : {}), ...(Number.isInteger(rama) ? { rama } : {}), ...(recuperar === true ? { recuperar: true } : {}), ...(mcp === true ? { mcp: true } : {}), ...(Array.isArray(memoria) ? { memoria } : {}), ...(conocidos ? { conocidos } : {}), ...(subidos ? { subidos } : {}) })); }
       catch { this.agentes.delete(id); return RECONECTANDO(false); }
       const r = await respuesta;
       if (r.codigo === -1) return RECONECTANDO(true);

@@ -2,7 +2,15 @@
 // lectura de archivos, límites) vive en la API del servidor. Aquí solo se descarta lo que no tiene forma de petición.
 export const AGENTE_MAX_CUERPO = 25 * 1024 * 1024; // protección: la API acepta cuerpos de unos 25 MB
 
-export type PeticionAgente = { chat_id?: string; mensaje: string; archivos: { nombre: string; datos: string }[]; mcp?: true; conocidos?: Record<string, number>; subidos?: string[] };
+export type NotaMemoria = { texto: string; fecha: string };
+// Memoria del agente: vive en el navegador y viaja con cada mensaje. Si viene (aunque sea []), ese turno usa solo esa; máx. 30 notas de 300 caracteres.
+export function sanearMemoria(m: unknown): NotaMemoria[] | undefined {
+  if (!Array.isArray(m)) return undefined;
+  const fecha = (f: unknown) => (typeof f === "string" && f.length <= 40 ? f : new Date().toISOString());
+  return m.map((n) => ({ texto: String((n as { texto?: unknown } | null)?.texto ?? "").replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, "").trim().slice(0, 300), fecha: fecha((n as { fecha?: unknown } | null)?.fecha) })).filter((n) => n.texto).slice(-30);
+}
+
+export type PeticionAgente = { memoria?: NotaMemoria[]; chat_id?: string; mensaje: string; archivos: { nombre: string; datos: string }[]; mcp?: true; conocidos?: Record<string, number>; subidos?: string[] };
 export type ValidacionAgente = { ok: true; valor: PeticionAgente } | { ok: false; error: string };
 
 export const MENSAJE_SOLO_ARCHIVOS = "Revisa los archivos adjuntos y resume su contenido.";
@@ -23,12 +31,12 @@ export function validarAgente(b: unknown): ValidacionAgente {
   const conocidos: Record<string, number> = {};
   if (o.conocidos && typeof o.conocidos === "object" && !Array.isArray(o.conocidos)) for (const [k, v] of Object.entries(o.conocidos as Record<string, unknown>).slice(0, 100)) if (typeof v === "number" && Number.isFinite(v)) conocidos[k.slice(0, 200)] = v;
   const subidos = Array.isArray(o.subidos) ? (o.subidos as unknown[]).filter((x): x is string => typeof x === "string").slice(0, 50).map((x) => x.slice(0, 200)) : [];
-  return { ok: true, valor: { ...(chatIdSeguro(o.chat_id) ? { chat_id: o.chat_id } : {}), mensaje: o.mensaje as string, archivos: archivos.map((a) => ({ nombre: String(a.nombre ?? "archivo").slice(0, 200), datos: a.datos })), ...(Object.keys(conocidos).length ? { conocidos } : {}), ...(subidos.length ? { subidos } : {}), ...(o.mcp === true ? { mcp: true as const } : {}) } };
+  return { ok: true, valor: { ...(sanearMemoria(o.memoria) ? { memoria: sanearMemoria(o.memoria) } : {}), ...(chatIdSeguro(o.chat_id) ? { chat_id: o.chat_id } : {}), mensaje: o.mensaje as string, archivos: archivos.map((a) => ({ nombre: String(a.nombre ?? "archivo").slice(0, 200), datos: a.datos })), ...(Object.keys(conocidos).length ? { conocidos } : {}), ...(subidos.length ? { subidos } : {}), ...(o.mcp === true ? { mcp: true as const } : {}) } };
 }
 
 // POST /api/agente/rehacer: editar un mensaje del usuario o reintentar una respuesta. La API recorta su historial desde el mensaje
 // del usuario N (0 = el primero) y responde como POST /v1/agente; sin `mensaje`, repite el texto original.
-export type PeticionRehacer = { chat_id: string; desde: number; mensaje?: string; archivos: { nombre: string; datos: string }[]; mcp?: true; conocidos?: Record<string, number> };
+export type PeticionRehacer = { memoria?: NotaMemoria[]; chat_id: string; desde: number; mensaje?: string; archivos: { nombre: string; datos: string }[]; mcp?: true; conocidos?: Record<string, number> };
 export function validarRehacer(b: unknown): { ok: true; valor: PeticionRehacer } | { ok: false; error: string } {
   if (!b || typeof b !== "object") return { ok: false, error: "Cuerpo no válido." };
   const o = b as Record<string, unknown>;
@@ -40,7 +48,7 @@ export function validarRehacer(b: unknown): { ok: true; valor: PeticionRehacer }
   const archivos = ((o.archivos as unknown[]) ?? []).filter((a): a is { nombre: string; datos: string } => !!a && typeof (a as { datos?: unknown }).datos === "string");
   const conocidos: Record<string, number> = {};
   if (o.conocidos && typeof o.conocidos === "object" && !Array.isArray(o.conocidos)) for (const [k, v] of Object.entries(o.conocidos as Record<string, unknown>).slice(0, 100)) if (typeof v === "number" && Number.isFinite(v)) conocidos[k.slice(0, 200)] = v;
-  return { ok: true, valor: { ...(Object.keys(conocidos).length ? { conocidos } : {}), chat_id: o.chat_id, desde: o.desde, ...(typeof o.mensaje === "string" ? { mensaje: o.mensaje } : {}), archivos: archivos.map((a) => ({ nombre: String(a.nombre ?? "archivo").slice(0, 200), datos: a.datos })), ...(o.mcp === true ? { mcp: true as const } : {}) } };
+  return { ok: true, valor: { ...(sanearMemoria(o.memoria) ? { memoria: sanearMemoria(o.memoria) } : {}), ...(Object.keys(conocidos).length ? { conocidos } : {}), chat_id: o.chat_id, desde: o.desde, ...(typeof o.mensaje === "string" ? { mensaje: o.mensaje } : {}), archivos: archivos.map((a) => ({ nombre: String(a.nombre ?? "archivo").slice(0, 200), datos: a.datos })), ...(o.mcp === true ? { mcp: true as const } : {}) } };
 }
 
 // POST /api/agente/rama: volver a una versión guardada (k = la rama de la API que guarda esa versión).

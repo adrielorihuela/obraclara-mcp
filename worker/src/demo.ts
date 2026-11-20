@@ -94,6 +94,15 @@ body.es-app main{flex:1;min-height:0}
 #oc-ac .b{min-height:36px;padding:0 14px;border-radius:8px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink);font:500 13.5px/1 var(--sans);cursor:pointer}
 #oc-ac .b:hover{border-color:var(--ink)}
 #oc-ac button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#oc-ac .b-peligro{color:var(--risk);border-color:color-mix(in srgb,var(--risk) 45%,var(--line-2))}
+#oc-ac .b-peligro:hover{background:var(--risk-soft);border-color:var(--risk)}
+#oc-ac .sw{flex:none;width:100%;margin:10px 0 4px;padding:9px 10px;border:1px solid var(--line-2);background:var(--bg)}
+#oc-mem-l{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:6px}
+#oc-mem-l li{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:var(--bg);font-size:13.5px;line-height:1.45;color:var(--ink-2)}
+#oc-mem-l li span{flex:1;min-width:0;overflow-wrap:anywhere}
+#oc-mem-l li button{flex:none;min-height:30px;padding:0 10px;font-size:12.5px}
+#oc-mem-v{margin-top:8px;font-size:13px;color:var(--mut)}
+#oc-mem-todo{margin-top:10px}
 #oc-cfg .nota-cfg{font-size:13.5px;color:var(--ink-2);margin:0}
 #oc-cfg .b-peligro{color:var(--risk);border-color:color-mix(in srgb,var(--risk) 45%,var(--line-2))}
 #oc-cfg .b-peligro:hover{background:var(--risk-soft);border-color:var(--risk)}
@@ -568,6 +577,10 @@ export const demoHtml = String.raw`
 <h3>Qué hace</h3><p id="oc-swd"></p>
 <h3>El interruptor MCP</h3><p>Activado, el asistente consulta los datos oficiales de inversión pública del MEF con las 4 herramientas de ObraClara y te muestra cuáles usó. Desactivado, conversa sin esos datos y puede equivocarse o inventar cifras.</p>
 <h3>Quién responde</h3><p id="oc-info"></p>
+<h3 id="oc-mem-h">Memoria</h3><p>El asistente puede recordar lo que le pidas (tu nombre, cómo prefieres las respuestas). Estas notas se guardan solo en este navegador, igual que los chats: otro navegador tiene otra memoria y, si borras los datos del sitio, se pierden. Lo que cuentes es dicho por ti, no un dato verificado.</p>
+<button type="button" id="oc-mem-sw" class="sw" role="switch" aria-checked="true"><span class="pista" aria-hidden="true"></span><span class="sw-t"><span class="sw-n">Usar memoria</span><small id="oc-mem-sws">Activada</small></span></button>
+<ul id="oc-mem-l" aria-label="Notas guardadas"></ul><p id="oc-mem-v" hidden>No hay notas guardadas.</p>
+<button type="button" id="oc-mem-todo" class="b b-peligro">Borrar toda</button>
 <h3>Tus chats</h3><p>Se guardan solo en este navegador y dispositivo, no en nuestro servidor. Si borras los datos del sitio, se pierden. Puedes borrarlos todos en Configuración.</p>
 <h3>Alertas</h3><p>Las alertas son indicios para revisar, no prueba de irregularidades.</p>
 <h3>Créditos</h3><p>Universidad de Lima · I.A. Aplicada · Grupo 1. Código hecho con ayuda de IA generativa y revisado por el grupo.</p>
@@ -711,7 +724,7 @@ var ocRamas=[],ocRestM=null,ocVersOcup=false,ocMcp=true,ocHist=[],ocTools=null,o
 var OC_MAX_VIVAS=3,ocVivas=[],ocNuevos={},ocFondo=false,ocS=ocSesNueva(),ocVis=ocS;
 function ocSesNueva(){return {id:'',agId:'',hist:[],msgs:[],ramas:[],arch:[],log:null,pend:0,parar:false,avisado:false,abort:null,W:null,evN:0,evT:null,evOcup:false,iny:[],emerg:false,proc:null}}
 function ocCtxGuarda(s){s.id=ocChatId;s.agId=ocAgId;s.hist=ocHist;s.msgs=ocMsgs;s.ramas=ocRamas;s.arch=ocArch}
-function ocCtxCarga(s){ocChatId=s.id;ocAgId=s.agId;ocHist=s.hist;ocMsgs=s.msgs;ocRamas=s.ramas;ocArch=s.arch;ocS=s}
+function ocCtxCarga(s){ocChatId=s.id;ocActivaGuardar();ocAgId=s.agId;ocHist=s.hist;ocMsgs=s.msgs;ocRamas=s.ramas;ocArch=s.arch;ocS=s}
 function ocEn(s,fn){if(s===ocS)return fn();var prev=ocS,pf=ocFondo;ocCtxGuarda(prev);ocCtxCarga(s);ocFondo=s!==ocVis;try{return fn()}finally{ocCtxGuarda(s);ocCtxCarga(prev);ocFondo=pf}}
 function ocLogBox(){return ocFondo&&ocS.log?ocS.log:$('oc-log')}
 function ocViva(id){for(var i=0;i<ocVivas.length;i++){var v=ocVivas[i];if(id&&(v===ocS?ocChatId:v.id)===id)return v}return null}
@@ -847,7 +860,7 @@ async function ocRun(s,q,urls){var sig=s.abort?s.abort.signal:undefined,mcp=ocMc
  }
  log('n','Se alcanzó el máximo de 5 pasos sin respuesta final. Prueba con una pregunta más concreta.')}
 function ocChatEst(m){var e=$('oc-chat-est');e.textContent=m||'';e.hidden=!m}
-async function ocPersistChats(){ocChats=recortarChats(ocChats);
+async function ocPersistChats(){ocChats=recortarChats(ocChats);ocActivaGuardar();
  try{await ocAlmEscribir(serializarChats(ocChats));ocChatEst('')}
  catch(e){ocChatEst(e&&e.message==='cuota'?'No se pudo guardar el chat: el almacenamiento del navegador está lleno. Borra chats antiguos.':'Este navegador no permite guardar chats (almacenamiento bloqueado). Puedes seguir chateando, pero no se guardará.')}
  ocRenderChats()}
@@ -1202,8 +1215,9 @@ async function ocSendAg(q,fs,rh){if(!q)q='Revisa los archivos adjuntos y resume 
  function conCtx(c){return c?c+'\n\n---\nResponde al mensaje siguiente teniendo en cuenta ese contexto:\n\n'+q:q}
  async function pedir(url,body){try{return await fetch(url,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body),signal:s.abort?s.abort.signal:undefined})}catch(e){if(s.parar)throw e;return null}}
  var urec=b&&b.ocM,okT=false,noAt=0,errEl=null;
- try{var r=null,d=null,mcpV=ocMcp?true:undefined,cuerpo={chat_id:ag,mensaje:conCtx(ctx),archivos:adj,conocidos:con,subidos:meta.map(function(m){return m.n}),mcp:mcpV},uUrl='/api/agente',uCuerpo=cuerpo;
-  if(rhApi){uUrl='/api/agente/rehacer';uCuerpo={chat_id:ag,desde:rh.desde,mensaje:rh.mensaje,archivos:[],conocidos:con,mcp:mcpV};r=await pedir(uUrl,uCuerpo);
+ await ocMemListo;
+ try{var r=null,d=null,mcpV=ocMcp?true:undefined,memV=ocMemParaEnviar(),cuerpo={chat_id:ag,mensaje:conCtx(ctx),archivos:adj,conocidos:con,subidos:meta.map(function(m){return m.n}),mcp:mcpV,memoria:memV},uUrl='/api/agente',uCuerpo=cuerpo;
+  if(rhApi){uUrl='/api/agente/rehacer';uCuerpo={chat_id:ag,desde:rh.desde,mensaje:rh.mensaje,archivos:[],conocidos:con,mcp:mcpV,memoria:memV};r=await pedir(uUrl,uCuerpo);
    // La API aún no tiene «rehacer» (o no conoce ese chat): respaldo con un chat nuevo del agente y el contexto en un solo mensaje.
    if(r&&r.status===404){rhApi=false;ag=ocNuevoId();var cx=ocEn(s,function(){ocAgId=ag;return contextoConversacion(ocMsgs.slice(0,-1))});cuerpo.chat_id=ag;cuerpo.mensaje=conCtx(cx);uUrl='/api/agente';uCuerpo=cuerpo;r=await pedir(uUrl,uCuerpo)}
    else if(r&&r.status===409)throw new Error('El agente todavía está trabajando en este chat. Espera a que termine y vuelve a intentarlo.')}
@@ -1239,6 +1253,7 @@ async function ocSendAg(q,fs,rh){if(!q)q='Revisa los archivos adjuntos y resume 
   ocProcSig=ocProcCerrar(s,mo);
   var el=log('a',d.respuesta.trim()||'(sin respuesta)','Agente del servidor'+(nombreModelo(mo||(ocProcSig&&ocProcSig.mo))?' · '+nombreModelo(mo||ocProcSig.mo):''),null,ent.length?{meta:ent.map(function(e){return {id:e.id,n:e.n,ti:e.ti,b:e.b,v:e.v,g:e.g}})}:undefined);
   ocProcSig=null;
+  if(ocMemRecibir(d)){var nm=log('n','Memoria actualizada');if(nm)ocBotonAviso(nm,'Ver',function(){ocAcAbrir('oc-mem-h')})}
   ocEn(s,function(){ocIndices(d,el&&el.ocM)});
   if(d.pendiente)log('n','Algunas versiones nuevas no llegaron a este navegador por su tamaño. Descárgalas con «Descargar todo (.zip)».');
   if(d.omitidos&&d.omitidos.length)log('n','Algunos archivos no se enviaron por su tamaño: '+d.omitidos.join(', ')+'.')}
@@ -1484,7 +1499,7 @@ $('oc-share').addEventListener('click',ocCompartirActual);
 $('oc-buscar').addEventListener('input',function(){ocRenderChats()});
 $('oc-buscar').addEventListener('keydown',function(e){if(e.key==='Escape'&&$('oc-buscar').value){e.preventDefault();e.stopPropagation();$('oc-buscar').value='';ocRenderChats()}});
 $('oc-borrar-todos').addEventListener('click',function(){ocBorrarTodos();var e=$('oc-chat-est');if(e&&!e.hidden)$('oc-cest').textContent=e.textContent;else if(!ocChats.length)$('oc-cest').textContent='No hay chats guardados.'});
-function ocAcAbrir(){var d=$('oc-ac');if(d.showModal)d.showModal();else d.setAttribute('open','')}
+function ocAcAbrir(a){var d=$('oc-ac');if(d.showModal)d.showModal();else d.setAttribute('open','');if(typeof a==='string'){var h=$(a);if(h&&h.scrollIntoView)h.scrollIntoView()}}
 function ocAcCerrar(){var d=$('oc-ac');if(d.close)d.close();else d.removeAttribute('open');$('oc-ayuda').focus()}
 $('oc-ayuda').addEventListener('click',ocAcAbrir);
 $('oc-ac-x').addEventListener('click',ocAcCerrar);
@@ -1493,7 +1508,30 @@ $('oc-sh-x').addEventListener('click',ocShCerrar);
 $('oc-sh').addEventListener('click',function(e){if(e.target===$('oc-sh'))ocShCerrar()});
 $('oc-sh-crear').addEventListener('click',ocShCrear);
 ocLoad();ocUi();ocSwitchText();ocAgEstado();ocIdeas(false);
-ocCargarChats().then(function(){var m=/[?&]abrir=([A-Za-z0-9_-]+)/.exec(location.search);if(m){ocAbrir(m[1]);try{history.replaceState(null,'','/asistente')}catch(e){}}}).catch(function(){}).then(ocPreguntaUrl);
+// Memoria del agente: vive en este navegador (IndexedDB kv/memoria, respaldo en localStorage oc_memoria), igual que los chats. Viaja con cada mensaje.
+var ocMem={on:true,notas:[]};
+function ocMemNorm(v){var o={on:true,notas:[]};try{var x=typeof v==='string'?JSON.parse(v):v;if(x&&typeof x==='object'){if(x.on===false)o.on=false;if(Array.isArray(x.notas))o.notas=x.notas.filter(function(n){return n&&typeof n.texto==='string'&&n.texto.trim()}).slice(-30).map(function(n){return {texto:n.texto.slice(0,300),fecha:typeof n.fecha==='string'?n.fecha.slice(0,40):new Date().toISOString()}})}}catch(e){}return o}
+async function ocMemLeer(){var v=null;
+ try{if(typeof indexedDB!=='undefined'){var db=await ocIdb();v=await new Promise(function(ok,no){var q=db.transaction('kv','readonly').objectStore('kv').get('memoria');q.onsuccess=function(){ok(q.result)};q.onerror=function(){no(q.error)}});db.close()}}catch(e){v=null}
+ if(typeof v!=='string'||!v){try{v=localStorage.getItem('oc_memoria')}catch(e){v=null}}
+ return ocMemNorm(v)}
+async function ocMemEscribir(){var txt=JSON.stringify(ocMem);
+ try{if(typeof indexedDB!=='undefined'){var db=await ocIdb();await new Promise(function(ok,no){var t=db.transaction('kv','readwrite');t.objectStore('kv').put(txt,'memoria');t.oncomplete=function(){ok()};t.onerror=function(){no(t.error)};t.onabort=function(){no(t.error)}});db.close()}}catch(e){}
+ try{localStorage.setItem('oc_memoria',txt)}catch(e){}}
+function ocMemGuardar(){ocMemUi();return ocMemEscribir()}
+function ocMemParaEnviar(){return ocMem.on?ocMem.notas:[]}
+function ocMemRecibir(d){if(!ocMem.on||!d||!Array.isArray(d.memoria))return false;ocMem.notas=ocMemNorm({notas:d.memoria}).notas;ocMemGuardar();return d.memoria_cambio===true}
+function ocMemUi(){var sw=$('oc-mem-sw'),ul=$('oc-mem-l');if(!sw||!ul)return;sw.setAttribute('aria-checked',ocMem.on?'true':'false');$('oc-mem-sws').textContent=ocMem.on?'Activada':'Apagada: no recuerda ni guarda';
+ ul.textContent='';ocMem.notas.forEach(function(n,i){var li=document.createElement('li'),sp=document.createElement('span'),b=document.createElement('button');sp.textContent=n.texto;b.type='button';b.className='b';b.textContent='Borrar';b.setAttribute('aria-label','Borrar la nota '+(i+1));b.addEventListener('click',function(){ocMem.notas.splice(i,1);ocMemGuardar()});li.appendChild(sp);li.appendChild(b);ul.appendChild(li)});
+ $('oc-mem-v').hidden=!!ocMem.notas.length;$('oc-mem-todo').disabled=!ocMem.notas.length}
+$('oc-mem-sw').addEventListener('click',function(){ocMem.on=!ocMem.on;ocMemGuardar()});
+$('oc-mem-todo').addEventListener('click',function(){if(!ocMem.notas.length||!confirm('¿Borrar toda la memoria del asistente en este navegador?'))return;ocMem.notas=[];ocMemGuardar()});
+var ocMemListo=ocMemLeer().then(function(m){ocMem=m;ocMemUi();return m}).catch(function(){ocMemUi();return ocMem});
+// Chat activo: se recuerda en localStorage para volver a él al reabrir el navegador.
+var ocActivaLista=false;
+function ocActivaGuardar(){if(!ocActivaLista)return;try{if(ocChatId)localStorage.setItem('oc_chat_activa',ocChatId);else localStorage.removeItem('oc_chat_activa')}catch(e){}}
+function ocActivaRestaurar(){var id=null;try{id=localStorage.getItem('oc_chat_activa')}catch(e){}if(id&&ocChatDe(id)&&!ocChatId)ocAbrir(id)}
+ocCargarChats().then(function(){var m=/[?&]abrir=([A-Za-z0-9_-]+)/.exec(location.search);if(m){ocAbrir(m[1]);try{history.replaceState(null,'','/asistente')}catch(e){}}else if(!/[?&]q=/.test(location.search))ocActivaRestaurar();ocActivaLista=true;ocActivaGuardar()}).catch(function(){ocActivaLista=true}).then(ocPreguntaUrl);
 // ?q=… (desde /demo): envía esa pregunta una sola vez, con el MCP activado, cuando ya se sabe si el agente está disponible.
 function ocPreguntaUrl(){if(typeof location==="undefined")return;var m=/[?&]q=([^&#]*)/.exec(location.search),q='';if(!m)return;try{q=decodeURIComponent(m[1].replace(/\+/g,' ')).trim().slice(0,2000)}catch(e){}
  try{history.replaceState(null,'','/asistente')}catch(e){}if(!q)return;ocMcp=true;ocAgUi();var k=0,t=setInterval(function(){if(ocAgSabe||++k>50){clearInterval(t);ocSend(q)}},100)}
