@@ -39,6 +39,7 @@ describe("formato de cifras", () => {
     expect(formatoValor(2500000, "S/", true)).toBe("S/ 2,5 M");
     expect(formatoValor(42897000000, "S/", false)).toBe("S/ 42 897 000 000");
     expect(formatoValor(12.5, "%", true)).toBe("12,5 %");
+    expect(formatoValor(11522, "%", true)).toBe("11\u202f522 %");
     expect(formatoValor(350, "obras", true)).toBe("350 obras");
     expect(formatoValor(0, "", true)).toBe("0");
   });

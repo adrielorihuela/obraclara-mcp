@@ -66,12 +66,12 @@ export function agruparMiles(v: number, dec: number): string {
 
 /** Valor con unidad. corto=true abrevia millones y miles de millones: 42 897 000 000 → «S/ 42 897 M». */
 export function formatoValor(v: number, unidad: string, corto: boolean): string {
-  const a = Math.abs(v);
+  const a = Math.abs(v), u = String(unidad || "").trim();
   let s: string;
+  if (u === "%") corto = false;
   if (corto && a >= 1e6) s = agruparMiles(v / 1e6, a >= 1e8 ? 0 : 1) + " M";
   else if (corto && a >= 1e4) s = agruparMiles(v / 1e3, a >= 1e5 ? 0 : 1) + " mil";
   else s = agruparMiles(v, a >= 100 ? 0 : 2);
-  const u = String(unidad || "").trim();
   if (!u) return s;
   if (/^(S\/|US\$|\$|€)\.?$/i.test(u)) return u + " " + s;
   if (u === "%") return s + " %";

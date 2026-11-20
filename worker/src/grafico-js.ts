@@ -75,7 +75,7 @@ function ocGDibuja(cv,g,w,anim,tip){cv.textContent='';var svg,h,u=g.unidad,ns=g.
    ocSv('rect',{x:lx,y:y-10,width:11,height:11,rx:3,'class':'ocg-s'+(i%8)},svg);
    ocSvT(svg,lx+18,y,o.n,{'class':'ocg-lt'},ocGCh(lw-18-val.length*6.6-10));ocSvT(svg,w,y,val,{'text-anchor':'end'})})}
  else if(g.tipo==='barras'){var n=g.x.length,bw=ns>1?Math.max(8,16-ns*1.5):18,fila=Math.max(26,ns*bw+10),maxl=g.x.reduce(function(m,s){return Math.max(m,s.length)},0),
-   ml=Math.min(Math.max(60,maxl*6.4+10),w*0.4),tk=ocGTicks(Math.min(0,Math.min.apply(null,todos)),Math.max(0,Math.max.apply(null,todos)),w-Math.min(Math.max(60,maxl*6.4+10),w*0.4)-16,u),
+   ml=Math.min(Math.max(60,maxl*6.6+14),w*0.4),tk=ocGTicks(Math.min(0,Math.min.apply(null,todos)),Math.max(0,Math.max.apply(null,todos)),w-Math.min(Math.max(60,maxl*6.6+14),w*0.4)-16,u),
    lo=tk[0],hi=tk[tk.length-1],mr=Math.max(16,formatoValor(hi,u,true).length*3.4),pw=w-ml-mr,top=lh+4;h=top+n*fila+26;
   svg=ocSv('svg',{viewBox:'0 0 '+w+' '+h,width:w,height:h,role:'img'});leyenda(14);
   var sx=function(v){return ml+(v-lo)/(hi-lo)*pw};
