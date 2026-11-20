@@ -287,8 +287,18 @@ export type MensajeGuardado = {
   /** Adjuntos del mensaje de usuario (solo datos para mostrar chips). */
   adj?: { n: string; t: string; c: number; b?: number }[];
   arch?: { id: string; n: string; ti?: string; b: number; g?: boolean; v?: number }[];
+  /** Hora del mensaje (ms). */
+  ts?: number;
+  n?: number;
+  ds?: number;
 };
-export type ChatGuardado = { id: string; titulo: string; creado: number; actualizado: number; mensajes: MensajeGuardado[]; agenteId?: string };
+/** Versiones de un punto de la conversación (editar o reintentar el mensaje del usuario en la posición p de `mensajes`).
+ *  vs[a] es null: esa versión es la que está viva en `mensajes` (y sus ramas posteriores en la lista). Las demás guardan su
+ *  cola de mensajes desde p (m), sus propias ramas posteriores (r) y el chat del agente cuyo historial coincide (ag, o ""):
+ *  con k, ese historial está guardado en la rama k de la API (se recupera activándola); sin k, es el historial activo de ese chat. */
+export type VersionGuardada = { m: MensajeGuardado[]; r: RamaGuardada[]; ag: string; k?: number };
+export type RamaGuardada = { p: number; a: number; vs: (VersionGuardada | null)[] };
+export type ChatGuardado = { id: string; titulo: string; creado: number; actualizado: number; mensajes: MensajeGuardado[]; agenteId?: string; fijado?: boolean; ramas?: RamaGuardada[] };
 
 /** Título de un chat: la primera pregunta, sin saltos de línea, a 60 caracteres. */
 export function tituloChat(texto: unknown): string {
@@ -307,6 +317,10 @@ export function normalizarMensaje(m: any): MensajeGuardado | null {
   const o: MensajeGuardado = { rol: m.rol, texto: sinImagenes(m.texto).slice(0, 20000) };
   if (typeof m.modelo === "string" && m.modelo) o.modelo = m.modelo.slice(0, 120);
   if (typeof m.mcp === "boolean") o.mcp = m.mcp;
+  if (typeof m.ts === "number" && isFinite(m.ts) && m.ts > 0) o.ts = Math.floor(m.ts);
+  // Índices del historial del agente: n = el N de «rehacer» de este mensaje del usuario; ds = el `desde` que reintenta esta respuesta.
+  if (m.rol === "u" && Number.isInteger(m.n) && m.n >= 0 && m.n < 100000) o.n = m.n;
+  if (m.rol === "a" && Number.isInteger(m.ds) && m.ds >= 0 && m.ds < 100000) o.ds = m.ds;
   if (m.rol === "u") {
     if (Array.isArray(m.adj) && m.adj.length) o.adj = m.adj.slice(0, 10).map((x: any) => ({ n: String((x && x.n) || "").slice(0, 100), t: String((x && x.t) || "").slice(0, 10), c: Number(x && x.c) || 0, b: Number(x && x.b) || 0 }));
   }
@@ -339,16 +353,199 @@ export function normalizarChat(c: any): ChatGuardado | null {
   const cr = typeof c.creado === "number" && isFinite(c.creado) ? c.creado : 0;
   const ac = typeof c.actualizado === "number" && isFinite(c.actualizado) ? c.actualizado : cr;
   const ag = typeof c.agenteId === "string" && /^[A-Za-z0-9_-]{1,64}$/.test(c.agenteId) ? { agenteId: c.agenteId } : {};
-  return { id: c.id.slice(0, 40), titulo: tituloChat(c.titulo), creado: cr, actualizado: ac, mensajes: ms, ...ag };
+  const ramas = normalizarRamas(c.ramas, ms, 0);
+  return { id: c.id.slice(0, 40), titulo: tituloChat(c.titulo), creado: cr, actualizado: ac, mensajes: ms, ...ag, ...(c.fijado === true ? { fijado: true } : {}), ...(ramas.length ? { ramas } : {}) };
 }
 
-/** "Hoy", "Ayer" o "Anteriores" según el día local de `ts` respecto de `ahora`. */
+/** Versiones válidas y acotadas (20 puntos, 10 versiones por punto, 3 niveles). `ms` (si se da) son los mensajes vivos: p debe ser un mensaje del usuario. */
+export function normalizarRamas(r: any, ms: any[] | null, prof: number): RamaGuardada[] {
+  if (!Array.isArray(r) || prof > 3) return [];
+  const out: RamaGuardada[] = [];
+  r.slice(0, 20).forEach((e: any) => {
+    if (!e || typeof e !== "object" || !Number.isInteger(e.p) || e.p < 0 || !Array.isArray(e.vs) || !Number.isInteger(e.a)) return;
+    if (ms && (e.p >= ms.length || !ms[e.p] || ms[e.p].rol !== "u")) return;
+    if (out.some((x) => x.p === e.p)) return;
+    const vs: (VersionGuardada | null)[] = [];
+    let a = -1;
+    e.vs.slice(0, 10).forEach((v: any, i: number) => {
+      if (i === e.a) { a = vs.length; vs.push(null); return; }
+      if (!v || typeof v !== "object" || !Array.isArray(v.m)) return;
+      const m: MensajeGuardado[] = [];
+      v.m.slice(0, 80).forEach((x: any) => { const n = normalizarMensaje(x); if (n) m.push(n); });
+      if (!m.length || m[0].rol !== "u") return;
+      const ag = typeof v.ag === "string" && /^[A-Za-z0-9_-]{1,64}$/.test(v.ag) ? v.ag : "";
+      const ver: VersionGuardada = { m, r: normalizarRamas(v.r, null, prof + 1), ag };
+      if (ag && Number.isInteger(v.k) && v.k >= 0 && v.k < 100000) ver.k = v.k;
+      vs.push(ver);
+    });
+    if (a < 0 || vs.length < 2) return;
+    out.push({ p: e.p, a, vs });
+  });
+  return out.sort((x, y) => x.p - y.p);
+}
+
+/** Corre las posiciones de las versiones k lugares (cuando se quitan los k mensajes más antiguos); descarta las que quedan fuera. */
+export function desplazarRamas(r: RamaGuardada[], k: number): RamaGuardada[] {
+  if (!k || !Array.isArray(r)) return r || [];
+  return r.filter((e) => e.p - k >= 0).map((e) => ({ p: e.p - k, a: e.a, vs: e.vs.map((v) => (v ? { ...v, r: desplazarRamas(v.r, k) } : null)) }));
+}
+
+/** Nueva versión en el mensaje del usuario de la posición p: guarda la cola viva (desde p) como versión y deja los mensajes anteriores a p.
+ *  `guardada` es la versión que se acaba de guardar (el cliente le borra `ag` si la API reescribió ese historial). null si ya hay 10 versiones. */
+export function nuevaVersion(msgs: any[], ramas: RamaGuardada[], p: number, ag: string): { msgs: any[]; ramas: RamaGuardada[]; guardada: VersionGuardada } | null {
+  const rs = Array.isArray(ramas) ? ramas : [];
+  const guardada: VersionGuardada = { m: msgs.slice(p), r: rs.filter((x) => x.p > p), ag: ag || "" };
+  const e = rs.filter((x) => x.p === p)[0];
+  let nueva: RamaGuardada;
+  if (e) {
+    if (e.vs.length >= 10) return null;
+    const vs = e.vs.slice(); vs[e.a] = guardada; vs.push(null);
+    nueva = { p, a: vs.length - 1, vs };
+  } else nueva = { p, a: 1, vs: [guardada, null] };
+  return { msgs: msgs.slice(0, p), ramas: rs.filter((x) => x.p < p).concat([nueva]), guardada };
+}
+
+/** Cambia a la versión b del punto p: guarda la viva (con su chat del agente `vivo.ag` y, si su historial quedó en una rama de la API, `vivo.k`)
+ *  y pone la elegida en su lugar. Devuelve también la versión elegida (`des`). null si no existe. */
+export function cambiarVersion(msgs: any[], ramas: RamaGuardada[], p: number, b: number, vivo: { ag: string; k?: number }): { msgs: any[]; ramas: RamaGuardada[]; des: VersionGuardada } | null {
+  const rs = Array.isArray(ramas) ? ramas : [];
+  const e = rs.filter((x) => x.p === p)[0];
+  if (!e || b === e.a || !e.vs[b]) return null;
+  const vs = e.vs.slice(), des = vs[b] as VersionGuardada;
+  const g: VersionGuardada = { m: msgs.slice(p), r: rs.filter((x) => x.p > p), ag: (vivo && vivo.ag) || "" };
+  if (g.ag && vivo && Number.isInteger(vivo.k)) g.k = vivo.k;
+  vs[e.a] = g;
+  vs[b] = null;
+  return { msgs: msgs.slice(0, p).concat(des.m), ramas: rs.filter((x) => x.p < p).concat([{ p, a: b, vs }], des.r).sort((x, y) => x.p - y.p), des };
+}
+
+/** Todas las versiones guardadas (también las anidadas), para buscarlas o corregirlas en el sitio. */
+export function versionesGuardadas(ramas: RamaGuardada[]): VersionGuardada[] {
+  const out: VersionGuardada[] = [];
+  (Array.isArray(ramas) ? ramas : []).forEach((e) => { e.vs.forEach((v) => { if (v) { out.push(v); versionesGuardadas(v.r).forEach((w) => out.push(w)); } }); });
+  return out;
+}
+
+/** N de «rehacer» para el mensaje del usuario en la posición p: cuántos mensajes del usuario hay antes. */
+export function indiceUsuario(msgs: any[], p: number): number {
+  let n = 0;
+  for (let i = 0; i < p && i < msgs.length; i++) if (msgs[i] && msgs[i].rol === "u") n++;
+  return n;
+}
+
+/** Mensaje del usuario que abrió el turno de la respuesta en la posición i (el primero tras la respuesta anterior). -1 si no hay. */
+export function inicioTurno(msgs: any[], i: number): number {
+  let k = -1;
+  for (let j = i - 1; j >= 0; j--) {
+    const m = msgs[j];
+    if (!m || m.rol === "t") continue;
+    if (m.rol === "a") break;
+    if (m.rol === "u") k = j;
+  }
+  return k;
+}
+
+/** Respaldo cuando el agente no tiene el historial: el texto de los mensajes anteriores en un solo bloque (los más recientes si no cabe). */
+export function contextoConversacion(msgs: any[], max?: number): string {
+  const tope = max || 24000;
+  const partes: string[] = [];
+  (Array.isArray(msgs) ? msgs : []).forEach((m) => {
+    if (!m || (m.rol !== "u" && m.rol !== "a")) return;
+    const t = sinImagenes(m.texto).trim();
+    if (t) partes.push((m.rol === "u" ? "Usuario: " : "Asistente: ") + t);
+  });
+  if (!partes.length) return "";
+  let txt = partes.join("\n\n");
+  if (txt.length > tope) txt = "…" + txt.slice(txt.length - tope);
+  return "Contexto de la conversación:\n\n" + txt;
+}
+
+/** «ahora», «hace 2 min», «hace 3 h», «ayer» o la fecha corta. */
+export function tiempoRelativo(ts: number, ahora: number): string {
+  if (!(ts > 0)) return "";
+  const s = Math.max(0, Math.round((ahora - ts) / 1000));
+  if (s < 45) return "ahora";
+  if (s < 3600) return "hace " + Math.max(1, Math.round(s / 60)) + " min";
+  if (s < 86400) return "hace " + Math.round(s / 3600) + " h";
+  if (s < 172800) return "ayer";
+  const d = new Date(ts), meses = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "set", "oct", "nov", "dic"];
+  return d.getDate() + " " + meses[d.getMonth()] + (d.getFullYear() !== new Date(ahora).getFullYear() ? " " + d.getFullYear() : "");
+}
+
+/** Texto sin Markdown. voz=true además quita los bloques de código y de gráfico y las viñetas (para leer en voz alta). */
+export function textoPlano(md: unknown, voz: boolean): string {
+  const out: string[] = [];
+  let cod = false;
+  String(typeof md === "string" ? md : "").replace(/\r/g, "").split("\n").forEach((l) => {
+    if (/^\s*`{3,}/.test(l)) { cod = !cod; return; }
+    if (cod) { if (!voz) out.push(l); return; }
+    const t = l.trim();
+    if (t.charAt(0) === "|") {
+      if (/^\|?[\s:|-]+$/.test(t)) return;
+      out.push(t.replace(/^\||\|$/g, "").split("|").map((c) => c.trim().replace(/\*\*([^*]+)\*\*/g, "$1").replace(/`([^`]+)`/g, "$1")).join(voz ? ", " : "\t"));
+      return;
+    }
+    let x = l.replace(/^\s*#{1,6}\s+/, "").replace(/\*\*([^*]+)\*\*/g, "$1").replace(/(^|[^*])\*([^*\s][^*]*)\*(?!\*)/g, "$1$2").replace(/`([^`]+)`/g, "$1");
+    if (voz) x = x.replace(/^\s*[-*•]\s+/, "").replace(/\\[()\[\]]/g, "");
+    out.push(x);
+  });
+  return out.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+}
+
+/** Tablas Markdown de la respuesta: lista de tablas, cada una una lista de filas de celdas (sin marcas). */
+export function tablasMd(md: unknown): string[][][] {
+  const tablas: string[][][] = [];
+  let cod = false, cur: string[][] | null = null;
+  String(typeof md === "string" ? md : "").replace(/\r/g, "").split("\n").forEach((l) => {
+    if (/^\s*`{3,}/.test(l)) { cod = !cod; cur = null; return; }
+    const t = l.trim();
+    if (cod || t.charAt(0) !== "|") { cur = null; return; }
+    if (/^\|?[\s:|-]+$/.test(t)) return;
+    if (!cur) { cur = []; tablas.push(cur); }
+    cur.push(t.replace(/^\||\|$/g, "").split("|").map((c) => c.trim().replace(/\*\*([^*]+)\*\*/g, "$1").replace(/\*([^*]+)\*/g, "$1").replace(/`([^`]+)`/g, "$1")));
+  });
+  return tablas;
+}
+
+/** Contenido de los bloques ```grafico de la respuesta (JSON sin validar). */
+export function graficosMd(md: unknown): string[] {
+  const out: string[] = [];
+  let cur: string[] | null = null, dentro = false;
+  String(typeof md === "string" ? md : "").replace(/\r/g, "").split("\n").forEach((l) => {
+    const f = /^\s*`{3,}\s*(.*)$/.exec(l);
+    if (f) {
+      if (dentro) { if (cur) out.push(cur.join("\n")); cur = null; dentro = false; }
+      else { dentro = true; cur = f[1].trim().toLowerCase() === "grafico" ? [] : null; }
+      return;
+    }
+    if (dentro && cur) cur.push(l);
+  });
+  return out;
+}
+
+/** Filas en TSV (para pegar en Excel o Sheets). */
+export function aTsv(filas: unknown[][]): string {
+  return (Array.isArray(filas) ? filas : []).map((f) => (Array.isArray(f) ? f : []).map((c) => (c === null || c === undefined ? "" : String(c)).replace(/[\t\r\n]+/g, " ")).join("\t")).join("\n");
+}
+
+/** Datos de un gráfico ya validado como filas: categoría y una columna por serie. */
+export function graficoFilas(g: any): (string | number)[][] {
+  if (!g || !Array.isArray(g.x) || !Array.isArray(g.series)) return [];
+  const u = g.unidad ? " (" + g.unidad + ")" : "";
+  const filas: (string | number)[][] = [[g.titulo || "Categoría"].concat(g.series.map((s: any) => String(s.nombre) + u))];
+  g.x.forEach((x: string, i: number) => { filas.push([x].concat(g.series.map((s: any) => (s.valores[i] === null || s.valores[i] === undefined ? "" : s.valores[i])))); });
+  return filas;
+}
+
+/** "Hoy", "Ayer", "Últimos 7 días", "Últimos 30 días" o "Anteriores" según el día local de `ts` respecto de `ahora`. */
 export function grupoFecha(ts: number, ahora: number): string {
   const d = new Date(ahora);
   const hoy = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
   const ayer = new Date(d.getFullYear(), d.getMonth(), d.getDate() - 1).getTime();
   if (ts >= hoy) return "Hoy";
   if (ts >= ayer) return "Ayer";
+  if (ts >= new Date(d.getFullYear(), d.getMonth(), d.getDate() - 7).getTime()) return "Últimos 7 días";
+  if (ts >= new Date(d.getFullYear(), d.getMonth(), d.getDate() - 30).getTime()) return "Últimos 30 días";
   return "Anteriores";
 }
 
@@ -358,8 +555,16 @@ export function recortarChats(chats: any[], maxChats?: number, maxMsgs?: number)
   const mm = maxMsgs || 80;
   const out: ChatGuardado[] = [];
   (Array.isArray(chats) ? chats : []).forEach((c) => { const n = normalizarChat(c); if (n) out.push(n); });
-  out.sort((a, b) => b.actualizado - a.actualizado);
-  return out.slice(0, mc).map((c) => ({ ...c, mensajes: c.mensajes.slice(-mm) }));
+  // Los fijados no se pierden al recortar: van primero.
+  out.sort((a, b) => (b.fijado ? 1 : 0) - (a.fijado ? 1 : 0) || b.actualizado - a.actualizado);
+  return out.slice(0, mc).map((c) => {
+    const k = Math.max(0, c.mensajes.length - mm);
+    if (!k) return c;
+    const ramas = desplazarRamas(c.ramas || [], k);
+    const o: ChatGuardado = { ...c, mensajes: c.mensajes.slice(-mm) };
+    if (ramas.length) o.ramas = ramas; else delete o.ramas;
+    return o;
+  });
 }
 
 /** Texto JSON listo para guardar (recortado y sin imágenes). */

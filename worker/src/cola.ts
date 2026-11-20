@@ -90,15 +90,15 @@ export class ColaIA extends DurableObject {
     if (url.pathname === "/agente" && req.method === "POST") {
       if (!this.conn || !this.agente) return Response.json({ error: "El modo agente del servidor no está disponible en este momento." }, { status: 503 });
       if (this.agentes.size >= MAX_AGENTES) return Response.json({ error: "El servidor está ocupado con otras preguntas. Inténtalo en unos segundos." }, { status: 503 });
-      const { chat_id, mensaje, archivos, mcp, conocidos, subidos } = (await req.json()) as { chat_id?: string; mensaje: string; archivos: unknown[]; mcp?: boolean; conocidos?: unknown; subidos?: unknown };
+      const { chat_id, mensaje, archivos, mcp, conocidos, subidos, desde, rama } = (await req.json()) as { chat_id?: string; mensaje?: string; archivos: unknown[]; mcp?: boolean; conocidos?: unknown; subidos?: unknown; desde?: number; rama?: number };
       // Un turno nuevo (el chat no tiene otro en curso) empieza con el progreso en blanco; la numeración sigue para que el navegador no repita.
-      if (chat_id && ![...this.agentes.values()].some((a) => a.chat_id === chat_id)) { const e = this.eventos.get(chat_id); if (e) e.lista = []; }
+      if (chat_id && !Number.isInteger(rama) && ![...this.agentes.values()].some((a) => a.chat_id === chat_id)) { const e = this.eventos.get(chat_id); if (e) e.lista = []; }
       const id = crypto.randomUUID();
       const respuesta = new Promise<Resp>((resolve) => {
         this.agentes.set(id, { chat_id, resolver: resolve });
         setTimeout(() => { if (this.agentes.delete(id)) resolve({ error: "El agente tardó demasiado en responder. Inténtalo de nuevo." }); }, TIEMPO_AGENTE_MS);
       });
-      try { this.conn.send(JSON.stringify({ type: "agente", id, chat_id, mensaje, archivos, ...(mcp === true ? { mcp: true } : {}), ...(conocidos ? { conocidos } : {}), ...(subidos ? { subidos } : {}) })); }
+      try { this.conn.send(JSON.stringify({ type: "agente", id, chat_id, mensaje, archivos, ...(Number.isInteger(desde) ? { desde } : {}), ...(Number.isInteger(rama) ? { rama } : {}), ...(mcp === true ? { mcp: true } : {}), ...(conocidos ? { conocidos } : {}), ...(subidos ? { subidos } : {}) })); }
       catch { this.agentes.delete(id); return Response.json({ error: "No se pudo enviar la tarea al conector." }, { status: 502 }); }
       const r = await respuesta;
       if (r.cuerpo && typeof r.cuerpo === "object" && (r.codigo === 200 || r.codigo === 202)) return Response.json(r.cuerpo, { status: r.codigo });

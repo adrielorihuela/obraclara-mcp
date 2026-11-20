@@ -99,16 +99,28 @@ function suscribir(ws, chat, esperar) {
 async function agente(ws, tarea) {
   const t0 = Date.now();
   const chat = /^[A-Za-z0-9_-]{1,64}$/.test(String(tarea.chat_id)) ? tarea.chat_id : "";
+  // Cambiar de versión (`rama`): POST /v1/agente/chats/:id/ramas/:k/activar; no hay turno ni eventos.
+  const rama = chat && Number.isInteger(tarea.rama) && tarea.rama >= 0;
   let sub = chat ? turnos.get(chat) : null, propia = false;
-  if (chat && !sub) { sub = suscribir(ws, chat, true); turnos.set(chat, sub); propia = true; }
+  if (chat && !sub && !rama) { sub = suscribir(ws, chat, true); turnos.set(chat, sub); propia = true; }
   let msg;
   try {
-    const r = await fetch(IA_URL + "/v1/agente", {
+    // Editar o reintentar (`desde`): POST /v1/agente/chats/:id/rehacer, que responde igual que POST /v1/agente.
+    const rehacer = chat && Number.isInteger(tarea.desde);
+    const mcp = tarea.mcp === true ? { mcp: [{ url: SITIO + "/mcp", nombre: "obraclara" }] } : {};
+    const r = await fetch(rama ? `${IA_URL}/v1/agente/chats/${chat}/ramas/${tarea.rama}/activar` : rehacer ? `${IA_URL}/v1/agente/chats/${chat}/rehacer` : IA_URL + "/v1/agente", {
       method: "POST", headers: { "content-type": "application/json", ...cabIA() },
-      body: JSON.stringify({ ...(chat ? { chat_id: chat } : {}), mensaje: tarea.mensaje, archivos: tarea.archivos ?? [], ...(tarea.mcp === true ? { mcp: [{ url: SITIO + "/mcp", nombre: "obraclara" }] } : {}) }), signal: AbortSignal.timeout(300000),
+      body: rama ? "{}" : JSON.stringify(rehacer
+        ? { desde: tarea.desde, ...(typeof tarea.mensaje === "string" ? { mensaje: tarea.mensaje } : {}), archivos: tarea.archivos ?? [], ...mcp }
+        : { ...(chat ? { chat_id: chat } : {}), mensaje: tarea.mensaje, archivos: tarea.archivos ?? [], ...mcp }), signal: AbortSignal.timeout(300000),
     });
     const j = await r.json().catch(() => ({}));
-    if (r.status === 202) {
+    if (rama && r.ok) j.respuesta = "";
+    if ((rehacer || rama) && (r.status === 404 || r.status === 409)) {
+      // 404: la API aún no tiene «rehacer» (o no conoce ese chat): el navegador usa su respaldo. 409: hay un turno en curso.
+      msg = { type: "resultado", id: tarea.id, codigo: r.status, error: r.status === 409 ? "turno_en_curso" : rama ? "rama_no_encontrada" : "rehacer_no_disponible" };
+      log("rehacer", r.status, tarea.id.slice(0, 8));
+    } else if (r.status === 202) {
       // Había un turno en curso: la API ya guardó el mensaje. Si este conector no seguía ese turno, empieza a seguirlo.
       if (propia) { sub.abort(); turnos.delete(chat); propia = false; sub = suscribir(ws, chat, false); turnos.set(chat, sub); setTimeout(() => { if (turnos.get(chat) === sub) turnos.delete(chat); sub.abort(); }, 300000); }
       msg = { type: "resultado", id: tarea.id, codigo: 202, cuerpo: { estado: j.estado ?? "inyectado", chat_id: j.chat_id ?? chat, ...(Number.isFinite(j.pendientes) ? { pendientes: j.pendientes } : {}) } };
@@ -142,7 +154,14 @@ async function agente(ws, tarea) {
       }
       // Solo se reenvían los campos que el sitio usa (sin direcciones internas ni datos del proveedor).
       const meta = (a) => ({ ruta: a.ruta, titulo: a.titulo, bytes: a.bytes, tipo: a.tipo, ...(Number.isFinite(a.version) ? { version: a.version } : {}), ...(a.origen === "usuario" || a.origen === "agente" ? { origen: a.origen } : {}), ...(a.actualizado ? { actualizado: a.actualizado } : {}) });
-      const cuerpo = { chat_id: j.chat_id ?? chat, respuesta: j.respuesta, adjuntos: adjuntos.map(meta), ...(Array.isArray(j.archivos_chat) ? { archivos_chat: vigentes.map(meta) } : {}), mensajes_incorporados: Number(j.mensajes_incorporados) || 0, archivos, ...(omitidos.length ? { omitidos } : {}), ...(pendientes.length ? { pendiente: true, pendientes } : {}) };
+      // Índices del historial de la API (el N de «rehacer» de cada mensaje del usuario y el `desde` de cada respuesta), sin el texto.
+      let hist = Array.isArray(j.historial) ? j.historial : null;
+      if (!hist && (j.chat_id ?? chat)) {
+        try { const g = await fetch(`${IA_URL}/v1/agente/chats/${j.chat_id ?? chat}`, { headers: cabIA(), signal: AbortSignal.timeout(5000) }); if (g.ok) { const h = (await g.json())?.historial; if (Array.isArray(h)) hist = h; } } catch { /* opcional */ }
+      }
+      const historial = hist ? hist.slice(-300).map((h) => (h?.role === "user" ? { role: "user", indice: Number(h.indice) } : { role: "assistant", desde: Number(h?.desde) })) : undefined;
+      const extra = { ...(historial ? { historial } : {}), ...(j.rehecho && Number.isInteger(j.rehecho.rama) ? { rehecho: { desde: Number(j.rehecho.desde), rama: j.rehecho.rama } } : {}), ...(Number.isInteger(j.activa) ? { activa: j.activa } : {}) };
+      const cuerpo = { ...extra, chat_id: j.chat_id ?? chat, respuesta: j.respuesta, adjuntos: adjuntos.map(meta), ...(Array.isArray(j.archivos_chat) ? { archivos_chat: vigentes.map(meta) } : {}), mensajes_incorporados: Number(j.mensajes_incorporados) || 0, archivos, ...(omitidos.length ? { omitidos } : {}), ...(pendientes.length ? { pendiente: true, pendientes } : {}) };
       msg = { type: "resultado", id: tarea.id, codigo: 200, cuerpo };
       log("agente ok", tarea.id.slice(0, 8), `${Date.now() - t0}ms`, `archivos=${archivos.length}`);
     }

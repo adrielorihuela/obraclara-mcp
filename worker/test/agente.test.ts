@@ -219,7 +219,9 @@ describe("chats guardados", () => {
     const ahora = new Date(2026, 10, 10, 15, 0).getTime();
     expect(grupoFecha(new Date(2026, 10, 10, 0, 1).getTime(), ahora)).toBe("Hoy");
     expect(grupoFecha(new Date(2026, 10, 9, 23, 59).getTime(), ahora)).toBe("Ayer");
-    expect(grupoFecha(new Date(2026, 10, 8, 23, 59).getTime(), ahora)).toBe("Anteriores");
+    expect(grupoFecha(new Date(2026, 10, 8, 23, 59).getTime(), ahora)).toBe("Últimos 7 días");
+    expect(grupoFecha(new Date(2026, 9, 20, 12, 0).getTime(), ahora)).toBe("Últimos 30 días");
+    expect(grupoFecha(new Date(2026, 8, 1, 12, 0).getTime(), ahora)).toBe("Anteriores");
   });
   it("recorta a 50 chats y 80 mensajes, quitando lo más antiguo", () => {
     const chats = Array.from({ length: 55 }, (_, i) => ({ id: "c" + i, titulo: "t", creado: i, actualizado: i, mensajes: [msg("x")] }));

@@ -21,3 +21,31 @@ export function validarAgente(b: unknown): ValidacionAgente {
   const subidos = Array.isArray(o.subidos) ? (o.subidos as unknown[]).filter((x): x is string => typeof x === "string").slice(0, 50).map((x) => x.slice(0, 200)) : [];
   return { ok: true, valor: { ...(chatIdSeguro(o.chat_id) ? { chat_id: o.chat_id } : {}), mensaje: o.mensaje, archivos: archivos.map((a) => ({ nombre: String(a.nombre ?? "archivo").slice(0, 200), datos: a.datos })), ...(Object.keys(conocidos).length ? { conocidos } : {}), ...(subidos.length ? { subidos } : {}), ...(o.mcp === true ? { mcp: true as const } : {}) } };
 }
+
+// POST /api/agente/rehacer: editar un mensaje del usuario o reintentar una respuesta. La API recorta su historial desde el mensaje
+// del usuario N (0 = el primero) y responde como POST /v1/agente; sin `mensaje`, repite el texto original.
+export type PeticionRehacer = { chat_id: string; desde: number; mensaje?: string; archivos: { nombre: string; datos: string }[]; mcp?: true; conocidos?: Record<string, number> };
+export function validarRehacer(b: unknown): { ok: true; valor: PeticionRehacer } | { ok: false; error: string } {
+  if (!b || typeof b !== "object") return { ok: false, error: "Cuerpo no válido." };
+  const o = b as Record<string, unknown>;
+  if (!chatIdSeguro(o.chat_id)) return { ok: false, error: "chat_id no válido." };
+  if (typeof o.desde !== "number" || !Number.isInteger(o.desde) || o.desde < 0 || o.desde > 10000) return { ok: false, error: "desde debe ser un número entero." };
+  if (o.mensaje !== undefined && o.mensaje !== null && (typeof o.mensaje !== "string" || !o.mensaje.trim())) return { ok: false, error: "Escribe un mensaje." };
+  if (o.mcp !== undefined && typeof o.mcp !== "boolean") return { ok: false, error: "mcp debe ser verdadero o falso." };
+  if (o.archivos !== undefined && o.archivos !== null && !Array.isArray(o.archivos)) return { ok: false, error: "archivos debe ser una lista." };
+  const archivos = ((o.archivos as unknown[]) ?? []).filter((a): a is { nombre: string; datos: string } => !!a && typeof (a as { datos?: unknown }).datos === "string");
+  const conocidos: Record<string, number> = {};
+  if (o.conocidos && typeof o.conocidos === "object" && !Array.isArray(o.conocidos)) for (const [k, v] of Object.entries(o.conocidos as Record<string, unknown>).slice(0, 100)) if (typeof v === "number" && Number.isFinite(v)) conocidos[k.slice(0, 200)] = v;
+  return { ok: true, valor: { ...(Object.keys(conocidos).length ? { conocidos } : {}), chat_id: o.chat_id, desde: o.desde, ...(typeof o.mensaje === "string" ? { mensaje: o.mensaje } : {}), archivos: archivos.map((a) => ({ nombre: String(a.nombre ?? "archivo").slice(0, 200), datos: a.datos })), ...(o.mcp === true ? { mcp: true as const } : {}) } };
+}
+
+// POST /api/agente/rama: volver a una versión guardada (k = la rama de la API que guarda esa versión).
+export function validarRama(b: unknown): { ok: true; valor: { chat_id: string; rama: number; archivos: never[]; conocidos?: Record<string, number> } } | { ok: false; error: string } {
+  if (!b || typeof b !== "object") return { ok: false, error: "Cuerpo no válido." };
+  const o = b as Record<string, unknown>;
+  if (!chatIdSeguro(o.chat_id)) return { ok: false, error: "chat_id no válido." };
+  if (typeof o.rama !== "number" || !Number.isInteger(o.rama) || o.rama < 0 || o.rama > 10000) return { ok: false, error: "rama debe ser un número entero." };
+  const conocidos: Record<string, number> = {};
+  if (o.conocidos && typeof o.conocidos === "object" && !Array.isArray(o.conocidos)) for (const [k, v] of Object.entries(o.conocidos as Record<string, unknown>).slice(0, 100)) if (typeof v === "number" && Number.isFinite(v)) conocidos[k.slice(0, 200)] = v;
+  return { ok: true, valor: { chat_id: o.chat_id, rama: o.rama, archivos: [], ...(Object.keys(conocidos).length ? { conocidos } : {}) } };
+}
