@@ -88,7 +88,7 @@ const css = String.raw`
 .dm-verif{margin-top:14px;min-height:1.5em;font-size:var(--s-1);color:var(--ink-2)}
 .dm-verif b{color:var(--accent);font-weight:650}
 /* Lanzador destacado del panel doble */
-.dm-lanz{margin-top:clamp(24px,3vw,36px);border:1.5px solid color-mix(in srgb,var(--accent) 45%,var(--line));border-radius:var(--r-l);background:linear-gradient(135deg,var(--accent-soft),var(--surface) 60%);padding:clamp(16px,2.4vw,24px);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:14px 28px;align-items:center;box-shadow:var(--shadow)}
+.dm-lanz{margin:clamp(24px,3vw,32px) 0 clamp(20px,3vw,28px);border:1.5px solid color-mix(in srgb,var(--accent) 45%,var(--line));border-radius:var(--r-l);background:linear-gradient(135deg,var(--accent-soft),var(--surface) 60%);padding:clamp(16px,2.4vw,24px);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:14px 28px;align-items:center;box-shadow:var(--shadow)}
 .dm-lanz h2{font-size:var(--s1);display:flex;align-items:center;gap:10px}
 .dm-lanz p{margin:6px 0 0;font-size:var(--s-1);color:var(--ink-2);line-height:1.5}
 .dm-vivo-pt{width:9px;height:9px;border-radius:50%;background:var(--risk);flex:none;box-shadow:0 0 0 0 color-mix(in srgb,var(--risk) 60%,transparent);animation:dm-pt 1.8s ease-out infinite}
@@ -127,6 +127,7 @@ const css = String.raw`
 .dv-tabs{display:none}
 .dv-cols{flex:1;min-height:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
 .dv-col{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:18px clamp(16px,2.2vw,28px) 28px;display:flex;flex-direction:column;gap:14px}
+.dv-col>*{flex:none}
 .dv-col+.dv-col{border-left:1px solid var(--line)}
 .dv-ch{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
 .dv-ch h3{font-size:var(--s1);display:flex;align-items:center;gap:8px}
@@ -171,6 +172,8 @@ const css = String.raw`
 .dv-md th{background:var(--surface-2);font-weight:650}
 .dv-md .cb pre{margin:0;background:var(--code-bg);color:var(--code-ink);border-radius:10px;padding:10px 12px;overflow-x:auto;font:12px/1.5 var(--mono)}
 .dv-md .fm{font:500 14px/1.5 var(--mono);background:var(--surface-2);border-radius:8px;padding:8px 10px}
+.dv-sk{display:block;height:12px;border-radius:6px;background:linear-gradient(90deg,var(--surface-2) 25%,var(--line) 50%,var(--surface-2) 75%);background-size:200% 100%;animation:dv-sk 1.4s linear infinite}.dv-sk.c{width:58%}
+@keyframes dv-sk{from{background-position:100% 0}to{background-position:-100% 0}}
 .dv-caret{display:inline-block;width:.55em;height:1.05em;margin-left:2px;vertical-align:-.15em;background:var(--accent);border-radius:2px;animation:dm-parp .5s steps(2) infinite}
 .dv-pie{display:grid;gap:10px}
 .dv-pie[hidden]{display:none}
@@ -272,7 +275,7 @@ function E(t){return String(t==null?'':t).replace(/[&<>"]/g,function(c){return{'
 function nf(v,n){return Number(v).toLocaleString('es-PE',{minimumFractionDigits:n||0,maximumFractionDigits:n||0}).replace(/,/g,' ')}
 function sol(v){v=Number(v);if(v>=1e9)return 'S/ '+nf(v/1e9,2)+' mil millones';if(v>=1e6)return 'S/ '+nf(v/1e6,1)+' millones';if(v>=1e3)return 'S/ '+nf(v/1e3,0)+' mil';return 'S/ '+nf(v,0)}
 function fmt(k,v){return k==='pct'?nf(v,0)+' % más':k==='mes'?nf(v)+' meses':sol(v)}
-function seg(ms){return nf(ms/1000,1)+' s'}
+function seg(ms){return nf(ms/1000,1).replace('.',',')+' s'}
 function nom(s,n){s=String(s||'').toLowerCase();s=s.charAt(0).toUpperCase()+s.slice(1);return s.length>n?s.slice(0,n-1)+'…':s}
 function barras(filas,desc){var H=8+filas.length*40,mx=0,i,s;for(i=0;i<filas.length;i++)if(filas[i].v>mx)mx=filas[i].v;if(!mx)mx=1;
  s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+E(desc)+'" focusable="false">';
@@ -374,7 +377,10 @@ function verCol(lado){cols.setAttribute('data-ver',lado);LADOS.forEach(function(
 function sondear(L,tok){if(L.ocup||tok!==L.tok)return;L.ocup=true;
  fetch('/api/agente/eventos?chat_id='+encodeURIComponent(L.id)+'&desde='+L.n).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j||tok!==L.tok||L.fin)return;
   (j.eventos||[]).forEach(function(e){if(typeof e.n!=='number'||e.n<=L.n)return;L.n=e.n;if(e.tipo==='fin'||!e.texto)return;var t=String(e.texto);
-   if(e.tipo==='herramienta'){var h=t.replace(/^Consultando\s+/i,'').replace(/^[a-z0-9]+__/i,'');L.herr++;estado(L,'trabaja','Consultando '+h+' en el MCP…');paso(L,'',  'h','Consultando <code>'+E(h)+'</code> en el MCP')}
+   if(e.tipo==='herramienta'){var h=t.replace(/^(Consultando|Usando)\s+/i,'').trim(),mm=/(?:obraclara__)?(buscar_inversiones|detalle_inversion|alertas_inversion|resumen_inversiones)/.exec(h);
+    if(mm){L.herr++;estado(L,'trabaja','Consultando '+mm[1]+' en el MCP…');paso(L,'','h','Consultando <code>'+E(mm[1])+'</code> en el MCP')}
+    else if(/web|internet|search/i.test(h)){estado(L,'trabaja','Buscando en internet…');paso(L,'','h','Buscando en internet <code>'+E(h)+'</code>')}
+    else{estado(L,'trabaja','Usando '+h+'…');paso(L,'','h','Usando <code>'+E(h)+'</code>')}}
    else if(e.tipo==='error'){paso(L,t,'x')}
    else{estado(L,'trabaja',t.replace(/[.…]+$/,'')+'…');paso(L,t)}})})
  .catch(function(){}).then(function(){L.ocup=false})}
@@ -390,7 +396,7 @@ function terminar(L,txt,tok){if(tok!==L.tok)return;L.fin=true;L.texto=txt;var ms
  paso(L,'Respuesta lista: '+nf(txt.split(/\s+/).length)+' palabras');estado(L,'trabaja','Escribiendo la respuesta…');
  escribir(L,txt,function(){if(tok!==L.tok)return;estado(L,'listo','Listo en '+seg(ms)+(L.mcp?' · '+(L.herr?'usó '+L.herr+(L.herr===1?' herramienta':' herramientas')+' del MCP':'no usó el MCP'):' · sin consultar datos'));
   var vr=q$(L,'.dv-ver'),ok=P.clave?daCifra(txt,P.clave):null;vr.className='dv-ver'+(ok===true?' ok':ok===false?' mal':'');
-  vr.innerHTML='<i aria-hidden="true">'+(ok===true?'✓':ok===false?'✗':'·')+'</i><b>'+(ok===true?'Dio la cifra oficial: '+E(P.clave):ok===false?'No dio la cifra oficial ('+E(P.clave)+')':'Pregunta libre: sin cifra oficial para comparar')+'</b><span>Tiempo total: '+E(seg(ms))+(L.mcp?' · consultó los datos del MEF':' · respondió de memoria')+'</span>';
+  vr.innerHTML='<i aria-hidden="true">'+(ok===true?'✓':ok===false?'✗':'·')+'</i><b>'+(ok===true?'Dio la cifra oficial: '+E(P.clave):ok===false?'No dio la cifra oficial ('+E(P.clave)+')':'Pregunta libre: sin cifra oficial para comparar')+'</b><span>Tiempo total: '+E(seg(ms))+(L.mcp?(L.herr?' · consultó los datos del MEF':' · no consultó el MCP'):' · sin el MCP')+'</span>';
   q$(L,'.dv-pie').hidden=false;q$(L,'[data-acc=abrir]').hidden=false;q$(L,'[data-acc=reintentar]').hidden=true;L.ok=ok;abajo(L);cuenta()})}
 function fallar(L,msg,tok){if(tok!==L.tok)return;L.fin=true;detener(L);paso(L,msg,'x');estado(L,'error',msg);
  var vr=q$(L,'.dv-ver');vr.className='dv-ver mal';vr.innerHTML='<i aria-hidden="true">!</i><b>No llegó la respuesta</b><span>'+E(msg)+' Puedes reintentar: la otra columna sigue igual.</span>';
@@ -398,7 +404,7 @@ function fallar(L,msg,tok){if(tok!==L.tok)return;L.fin=true;detener(L);paso(L,ms
 function cuenta(){if(!P||P.contado||!P.clave)return;if(!LADOS.every(function(L){return L.fin&&!L.esc}))return;if(LADOS.some(function(L){return L.ok==null}))return;
  P.contado=true;VIVO.n++;if(LADOS[0].ok)VIVO.sin++;if(LADOS[1].ok)VIVO.con++}
 function correr(L){detener(L);var tok=(L.tok||0)+1;L.tok=tok;L.id='dm'+Date.now().toString(36)+Math.random().toString(36).slice(2,9)+L.lado;L.n=0;L.herr=0;L.fin=false;L.texto='';L.agId='';L.modelo='Agente del servidor';L.ok=null;L.esc=null;
- q$(L,'.dv-pasos').textContent='';q$(L,'.dv-md').textContent='';q$(L,'.dv-resp').hidden=true;q$(L,'.dv-pie').hidden=true;q$(L,'.dv-saltar').hidden=true;
+ q$(L,'.dv-pasos').textContent='';q$(L,'.dv-md').innerHTML='<span class="dv-sk"></span><span class="dv-sk"></span><span class="dv-sk c"></span>';q$(L,'.dv-resp').hidden=false;q$(L,'.dv-pie').hidden=true;q$(L,'.dv-saltar').hidden=true;
  L.t0=performance.now();estado(L,'trabaja','Pensando…');paso(L,'Pregunta enviada '+(L.mcp?'con el MCP conectado':'sin el MCP'));
  L.reloj=setInterval(function(){var t=seg(performance.now()-L.t0);q$(L,'.dv-reloj').textContent=t;L.tab.querySelector('small').textContent=t},100);
  L.sondeo=setInterval(function(){sondear(L,tok)},1000);
@@ -456,8 +462,6 @@ export function demo(m: Meta): string {
 <p class="eyebrow"><b>Demo</b> · pensada para proyectar</p>
 <h1 style="max-width:22ch;font-size:var(--s3)">Mira el MCP trabajando, con casos reales.</h1>
 <p class="lead">Cuatro preguntas ya preparadas, una por herramienta. En cada una ves a la IA sola frente a la IA conectada al MCP, un gráfico hecho con los datos que devolvió y, si quieres, la consulta en vivo.</p>
-${enSencillo("La IA tarda en contestar, así que las respuestas de abajo ya están grabadas de la evaluación y aparecen al instante. El MCP es un «enchufe» que deja a la IA consultar los datos oficiales del Estado en vez de adivinar. «Probar en vivo» le hace ahora mismo la misma pregunta a dos asistentes a la vez, uno sin el MCP y otro con él, y luego vuelve a dibujar el gráfico con los datos de hoy.")}
-<ol class="dm-flujo" aria-label="El flujo en cuatro pasos">${PASOS.map(([t, p], i) => `<li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONOS[i]}</svg><b><span>${i + 1}</span>${esc(t)}</b><p>${esc(p)}</p></li>`).join("")}</ol>
 <div class="dm-lanz" id="comparar">
 <div><h2><span class="dm-vivo-pt" aria-hidden="true"></span>Comparación en vivo</h2><p>La misma pregunta a dos asistentes a la vez: uno responde de memoria y el otro consulta el MCP. Verás cómo trabaja cada uno, paso a paso, y quién da la cifra oficial.</p></div>
 <form class="dm-lf" id="dm-lf"><label class="vh" for="dm-lsel">Pregunta para la comparación</label>
@@ -465,6 +469,8 @@ ${enSencillo("La IA tarda en contestar, así que las respuestas de abajo ya est�
 <label class="vh" for="dm-lq">Tu pregunta</label><input id="dm-lq" type="text" maxlength="500" placeholder="Escribe tu pregunta sobre obras públicas" hidden>
 <button class="btn btn-p" type="submit">Ver la comparación en vivo</button></form>
 </div>
+${enSencillo("La IA tarda en contestar, así que las respuestas de abajo ya están grabadas de la evaluación y aparecen al instante. El MCP es un «enchufe» que deja a la IA consultar los datos oficiales del Estado en vez de adivinar. «Probar en vivo» le hace ahora mismo la misma pregunta a dos asistentes a la vez, uno sin el MCP y otro con él, y luego vuelve a dibujar el gráfico con los datos de hoy.")}
+<ol class="dm-flujo" aria-label="El flujo en cuatro pasos">${PASOS.map(([t, p], i) => `<li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONOS[i]}</svg><b><span>${i + 1}</span>${esc(t)}</b><p>${esc(p)}</p></li>`).join("")}</ol>
 <nav class="dm-nav" aria-label="Casos">${CASOS_DEMO.map((c, i) => `<a href="#caso-${i + 1}">Caso ${i + 1} · ${esc(TEXTOS[c.id].etiqueta)}</a>`).join("")}</nav>
 </div></section>
 ${tarjetaSprite}
@@ -482,7 +488,7 @@ ${CASOS_DEMO.map(caso).join("\n")}
 <div class="dv-tabs" role="tablist" aria-label="Asistentes"><button type="button" role="tab" data-tab="sin" aria-controls="dv-sin"><span class="dv-pulso" aria-hidden="true"></span>IA sola<small>0,0 s</small></button><button type="button" role="tab" data-tab="con" aria-controls="dv-con"><span class="dv-pulso" aria-hidden="true"></span>IA + MCP<small>0,0 s</small></button></div>
 <div class="dv-cols" data-ver="con">
 <section class="dv-col sin" id="dv-sin" data-e="espera" aria-label="IA sola">
-<header class="dv-ch"><div><h3><span class="dv-tag">Sin MCP</span>IA sola</h3><p>Responde de memoria, sin datos oficiales.</p></div><span class="dv-reloj" aria-label="Tiempo">0,0 s</span></header>
+<header class="dv-ch"><div><h3><span class="dv-tag">Sin MCP</span>IA sola</h3><p>Sin el MCP: responde de memoria o buscando en internet.</p></div><span class="dv-reloj" aria-label="Tiempo">0,0 s</span></header>
 <div class="dv-estado" role="status" aria-live="polite"><span class="dv-pulso" aria-hidden="true"></span><span class="dv-et">Esperando…</span></div>
 <ol class="dv-pasos" aria-label="Pasos"></ol>
 <div class="dv-resp" hidden><button type="button" class="dv-saltar" hidden>Mostrar todo</button><b>Respuesta</b><div class="dv-md"></div></div>
