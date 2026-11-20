@@ -2,6 +2,7 @@ import { CASOS_DEMO, RESUMEN_DEMO, type CasoDemo, type LadoDemo } from "./demo-d
 import { enSencillo, esc, fechaLarga, shell, type Meta } from "./layout";
 import { tarjetaCss, tarjetaRespuesta, tarjetaSprite } from "./evaluacion-md";
 import { demoComun } from "../demo";
+import { graficoCss } from "../grafico-js";
 import { deserializarChats, normalizarChat, normalizarMensaje, recortarChats, serializarChats, sinImagenes, tituloChat } from "../lib/agente";
 
 // Página /demo: casos preparados, gráficos con los datos reales de cada herramienta y «Probar en vivo»: un panel doble
@@ -354,6 +355,7 @@ function daCifra(txt,clave){var ref=numeros(clave)[0];if(ref==null)return null;v
  return numeros(txt).some(function(v){return din?Math.abs(v-ref)<=Math.abs(ref)*0.006:v===ref})}
 
 // ---- Panel doble: la misma pregunta a la IA sola y a la IA + MCP ----
+var BT3=String.fromCharCode(96)+'{3}',RGRAF=new RegExp(BT3+'[ \\t]*grafico[\\s\\S]*?(?:'+BT3+'|$)','g');
 var P=null,dv=d.getElementById('dv'),cols=dv.querySelector('.dv-cols'),volver=null;
 var LADOS=[{lado:'sin',mcp:false},{lado:'con',mcp:true}];
 LADOS.forEach(function(L){L.el=dv.querySelector('.dv-col.'+L.lado);L.tab=dv.querySelector('.dv-tabs [data-tab='+L.lado+']');
@@ -379,7 +381,7 @@ function sondear(L,tok){if(L.ocup||tok!==L.tok)return;L.ocup=true;
 function escribir(L,txt,listo){var md=q$(L,'.dv-md'),sb=q$(L,'.dv-saltar'),o={txt:txt,n:0,parar:false};L.esc=o;q$(L,'.dv-resp').hidden=false;
  if(RED){pintar(txt.length);fin();return}
  var por=Math.max(5,Math.ceil(txt.length/150));sb.hidden=false;
- function pintar(n){md.textContent='';ocMd(md,txt.slice(0,n));if(n<txt.length){var c=d.createElement('span');c.className='dv-caret';c.setAttribute('aria-hidden','true');var ult=md.lastElementChild;while(ult&&ult.lastElementChild&&/^(UL|OL|LI|DIV|TABLE|TR)$/.test(ult.tagName))ult=ult.lastElementChild;(ult||md).appendChild(c)}abajo(L)}
+ function pintar(n){md.textContent='';ocMd(md,n<txt.length?txt.slice(0,n).replace(RGRAF,'\n*(dibujando el gráfico…)*\n'):txt);if(n<txt.length){var c=d.createElement('span');c.className='dv-caret';c.setAttribute('aria-hidden','true');var ult=md.lastElementChild;while(ult&&ult.lastElementChild&&/^(UL|OL|LI|DIV|TABLE|TR)$/.test(ult.tagName))ult=ult.lastElementChild;(ult||md).appendChild(c)}abajo(L)}
  function fin(){sb.hidden=true;L.esc=null;listo()}
  function cuadro(){if(o.parar)return;o.n=Math.min(txt.length,o.n+por);pintar(o.n);if(o.n<txt.length)requestAnimationFrame(cuadro);else fin()}
  requestAnimationFrame(cuadro)}
@@ -501,7 +503,7 @@ ${CASOS_DEMO.map(caso).join("\n")}
     ruta: "/demo",
     cuerpo,
     m,
-    cssExtra: tarjetaCss + css,
+    cssExtra: tarjetaCss + graficoCss + css,
     scriptExtra: scriptDemo,
   });
 }
