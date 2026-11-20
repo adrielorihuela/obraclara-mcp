@@ -99,6 +99,8 @@ body.es-app main{flex:1;min-height:0}
 .msg.a .t tbody tr,.msg.a .t tr{transition:background-color .15s}
 .msg.a .t tr:hover td{background:color-mix(in srgb,var(--surface-2) 60%,transparent)}
 .msg.a .t em{font-style:italic;color:var(--ink-2)}
+.msg.a .t .fm,.pv-md .fm{justify-self:start;max-width:100%;padding:10px 16px;border-left:3px solid var(--accent);border-radius:0 8px 8px 0;background:var(--surface-2);font:500 14px/1.5 var(--mono);color:var(--ink);overflow-wrap:anywhere}
+.msg.a .t li p.li-p{margin:4px 0 0}.msg.a .t li ul{margin:4px 0 0;padding-left:1.2em;display:grid;gap:2px;list-style:disc}
 .msg.a .t th{font-weight:600;background:var(--surface-2);white-space:nowrap}
 .msg.a .t tr:last-child td{border-bottom:0}
 .msg.a .t code{background:var(--surface-2);padding:1px 5px;border-radius:4px}
@@ -445,18 +447,53 @@ function ocInl(n,s){String(s).split(/(\*\*[^*]+\*\*|\*[^*\s][^*]*\*(?!\*)|` + "`
  else if(x.length>2&&x.charAt(0)==='*'&&x.slice(-1)==='*'&&x.charAt(1)!=='*'){var em=document.createElement('em');ocInl(em,x.slice(1,-1));n.appendChild(em)}
  else if(x.length>2&&x.charAt(0)==='` + "`" + String.raw`'&&x.slice(-1)==='` + "`" + String.raw`'){var c=document.createElement('code');c.textContent=x.slice(1,-1);n.appendChild(c)}
  else n.appendChild(document.createTextNode(x))})}
-function ocMd(el,txt){var lst=null,p=null,tb=null,cod=null;String(txt).replace(/\r/g,'').split('\n').forEach(function(l){var t=l.trim(),mm=/^([-*•]|\d+[.)])\s+(.*)$/.exec(t),fm=OC_FENCE.exec(l);
+// Marcas internas de cita del buscador (caracteres de uso privado U+E200–U+E2FF, o ya sin ellos: «citeturn…»,
+// «urlTítulohttps://…»): se quitan las citas y de los enlaces queda solo el título. No toca cifras ni frases.
+function ocLimpia(s){return String(s).replace(/\r/g,'')
+ .replace(/url([^]*)[^]*/g,'$1')
+ .replace(/[a-z_]*(?:[^]*)?/g,'').replace(/[-]/g,'')
+ .replace(/(^|[\s(])url(?=[A-ZÁÉÍÓÚ])([^\n]*?)https?:\/\/[^\s)]*[^\s).,;]/gm,'$1$2')
+ .replace(/[ \t]*\bcite(?:turn\d+[a-z]+\d+)+/g,'')
+ .replace(/\.[ \t]+\.(?![.\d])/g,'.').replace(/[ \t]+([.,;:])(?=\s|$)/gm,'$1').replace(/([^.])\.\.(?!\.)/g,'$1.')
+ .replace(/^[ \t]*(?:\*\*)?Fuentes?(?: oficial(?:es)?)?:?(?:\*\*)?:?[ \t]*\.[ \t]*$/gim,'')
+ .replace(/^[ \t]*[-*•][ \t]*\.?[ \t]*$/gm,'')}
+// Fórmulas LaTeX (\[ … \], $$ … $$, \( … \)) como texto legible, sin librerías: \frac{a}{b} → a / b, \times → ×.
+function ocTex(s){var x=String(s),k=0;
+ while(/\\(?:text|mathrm|textbf|mathbf|operatorname)\s*\{[^{}]*\}/.test(x)&&k++<50)x=x.replace(/\\(?:text|mathrm|textbf|mathbf|operatorname)\s*\{([^{}]*)\}/g,'$1');
+ k=0;while(/\\[dt]?frac\s*\{[^{}]*\}\s*\{[^{}]*\}/.test(x)&&k++<50)x=x.replace(/\\[dt]?frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/,function(m,a,b){
+  a=a.trim();b=b.trim();return (/[\s+\-−]/.test(a)?'('+a+')':a)+' / '+(/[\s+\-−]/.test(b)?'('+b+')':b)});
+ return x.replace(/\\left|\\right/g,'').replace(/\\times/g,' × ').replace(/\\cdot/g,' · ').replace(/\\div/g,' ÷ ')
+  .replace(/\\leq?/g,' ≤ ').replace(/\\geq?/g,' ≥ ').replace(/\\neq/g,' ≠ ').replace(/\\approx/g,' ≈ ')
+  .replace(/\\([%_$&#])/g,'$1').replace(/\\[,;:! ]/g,' ').replace(/\\\\/g,' ').replace(/\\[a-zA-Z]+/g,'')
+  .replace(/[{}]/g,'').replace(/(\S)\s*[-−]\s*(?=\S)/g,'$1 − ').replace(/\s*\+\s*/g,' + ').replace(/\s*=\s*/g,' = ').replace(/\s+/g,' ').trim()}
+function ocMd(el,txt){var lst=null,p=null,tb=null,cod=null,fx=null,prev=null;
+ function fdiv(s){var d=document.createElement('div');d.className='fm';d.textContent=ocTex(s);el.appendChild(d);prev=d}
+ ocLimpia(txt).replace(/\\\(([^\n]*?)\\\)/g,function(m,a){return ocTex(a)}).split('\n').forEach(function(l){var t=l.trim(),mm=/^([-*•]|\d+[.)])\s+(.*)$/.exec(t),fm=OC_FENCE.exec(l);
  if(cod){if(fm&&fm[1].length>=cod.n&&!fm[2].trim()){cod=null;return}cod.pre.appendChild(document.createTextNode((cod.k++?'\n':'')+l));return}
- if(fm){lst=null;p=null;tb=null;var wc=document.createElement('div'),pr=document.createElement('pre');wc.className='cb';
+ if(fx!==null){var fin=fx.c==='$$'?t.lastIndexOf('$$'):t.lastIndexOf('\\]');if(fin>=0&&fin===t.length-2){fdiv(fx.s+' '+t.slice(0,fin));fx=null}else fx.s+=' '+t;return}
+ if(t.slice(0,2)==='\\['||t.slice(0,2)==='$$'){lst=null;p=null;tb=null;var cc=t.slice(0,2)==='$$'?'$$':'\\]',rest=t.slice(2);
+  if(rest.length>=2&&rest.slice(-2)===cc){fdiv(rest.slice(0,-2));return}fx={c:cc,s:rest};return}
+ if(fm){lst=null;p=null;tb=null;prev=null;var wc=document.createElement('div'),pr=document.createElement('pre');wc.className='cb';
   wc.appendChild(pr);el.appendChild(wc);cod={n:fm[1].length,pre:pr,k:0};return}
- if(t.charAt(0)==='|'){lst=null;p=null;if(/^\|?[\s:|-]+$/.test(t))return;
+ if(t.charAt(0)==='|'){lst=null;p=null;prev=null;if(/^\|?[\s:|-]+$/.test(t))return;
   var cs=t.replace(/^\||\|$/g,'').split('|');if(!tb){var w=document.createElement('div');w.className='tb';tb=document.createElement('table');w.appendChild(tb);el.appendChild(w);tb.ocHead=true}
   var tr=document.createElement('tr');cs.forEach(function(x){var c=document.createElement(tb.ocHead?'th':'td');ocInl(c,x.trim());tr.appendChild(c)});tb.ocHead=false;tb.appendChild(tr);return}
  tb=null;
- if(!t){lst=null;p=null;return}
- if(/^#{1,4}\s/.test(t)){lst=null;p=null;var h=document.createElement('p');h.className='h';ocInl(h,t.replace(/^#+\s*/,''));el.appendChild(h);return}
- if(mm){var ord=/\d/.test(mm[1]);if(!lst||lst.ocOrd!==ord){lst=document.createElement(ord?'ol':'ul');lst.ocOrd=ord;el.appendChild(lst)}p=null;var li=document.createElement('li');ocInl(li,mm[2]);lst.appendChild(li);return}
- lst=null;if(!p){p=document.createElement('p');el.appendChild(p)}else p.appendChild(document.createElement('br'));ocInl(p,t)})}
+ // Una lista numerada sigue abierta tras líneas en blanco: «1. … (blanco) 2. …» numera 1, 2 y no 1, 1.
+ if(!t){if(!(lst&&lst.ocOrd))lst=null;p=null;return}
+ if(/^#{1,4}\s/.test(t)){lst=null;p=null;var h=document.createElement('p');h.className='h';ocInl(h,t.replace(/^#+\s*/,''));el.appendChild(h);prev=h;return}
+ var ind=/^\s{2,}/.test(l);
+ if(mm){var ord=/\d/.test(mm[1]),n=ord?parseInt(mm[1],10):0;p=null;
+  // Viñetas sangradas bajo un ítem numerado: sublista dentro de ese ítem, sin cortar la numeración.
+  if(ind&&!ord&&lst&&lst.ocOrd&&lst.lastChild){var sub=lst.lastChild.ocSub;if(!sub){sub=document.createElement('ul');lst.lastChild.appendChild(sub);lst.lastChild.ocSub=sub}var si=document.createElement('li');ocInl(si,mm[2]);sub.appendChild(si);return}
+  var sigue=lst&&lst.ocOrd===ord;
+  if(!sigue&&ord&&prev&&prev.ocOrd&&prev.tagName==='OL'){lst=prev;sigue=true}
+  if(!sigue){lst=document.createElement(ord?'ol':'ul');lst.ocOrd=ord;if(ord&&n>1)lst.start=n;el.appendChild(lst);prev=lst}
+  var li=document.createElement('li');if(ord&&sigue&&n>1)li.value=n;ocInl(li,mm[2]);lst.appendChild(li);return}
+ // Párrafo sangrado bajo un ítem numerado: sigue dentro del ítem.
+ if(ind&&lst&&lst.ocOrd&&lst.lastChild){var q=document.createElement('p');q.className='li-p';ocInl(q,t);lst.lastChild.appendChild(q);return}
+ lst=null;if(!p){p=document.createElement('p');el.appendChild(p);prev=p}else p.appendChild(document.createElement('br'));ocInl(p,t)});
+ if(fx!==null)fdiv(fx.s)}
 function ocTam(c){return c>=1000?(Math.round(c/100)/10)+' k car.':c+' car.'}
 function ocChip(m,leyendo,quitar){var w=document.createElement('div');w.className='th dchip';
  var ic=document.createElement('span');ic.className='dic';ic.textContent=m.t==='imagen'?'IMG':(extensionArchivo(m.n)||'DOC').slice(0,4).toUpperCase();

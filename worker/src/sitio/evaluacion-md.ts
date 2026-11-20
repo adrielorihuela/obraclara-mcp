@@ -33,9 +33,31 @@ function tabla(lineas: string[]): string {
   return `<div class="md-tw"><table class="md-t"><thead><tr>${cab.map((c, i) => td(c, i, "th")).join("")}</tr></thead><tbody>${filas}</tbody></table></div>`;
 }
 
+// Marcas internas de cita del buscador (uso privado U+E200–U+E2FF) y fórmulas LaTeX como texto legible.
+export function limpiarMarcas(md: string): string {
+  const tex = (f: string) => {
+    let x = f;
+    for (let k = 0; k < 50 && /\\(?:text|mathrm|textbf)\s*\{[^{}]*\}/.test(x); k++) x = x.replace(/\\(?:text|mathrm|textbf)\s*\{([^{}]*)\}/g, "$1");
+    for (let k = 0; k < 50 && /\\[dt]?frac\s*\{[^{}]*\}\s*\{[^{}]*\}/.test(x); k++)
+      x = x.replace(/\\[dt]?frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/, (_m, a: string, b: string) => {
+        const g = (y: string) => (/[\s+\-−]/.test(y.trim()) ? `(${y.trim()})` : y.trim());
+        return `${g(a)} / ${g(b)}`;
+      });
+    return x.replace(/\\left|\\right/g, "").replace(/\\times/g, " × ").replace(/\\cdot/g, " · ")
+      .replace(/\\([%_$&#])/g, "$1").replace(/\\[,;:! ]/g, " ").replace(/\\[a-zA-Z]+/g, "")
+      .replace(/[{}]/g, "").replace(/(\S)\s*[-−]\s*(?=\S)/g, "$1 − ").replace(/\s*\+\s*/g, " + ").replace(/\s*=\s*/g, " = ").replace(/\s+/g, " ").trim();
+  };
+  return String(md ?? "")
+    .replace(/\ue200url\ue202([^\ue201\ue202]*)\ue202[^\ue201]*\ue201/g, "$1")
+    .replace(/\ue200[a-z_]*(?:\ue202[^\ue201]*)?\ue201/g, "").replace(/[\ue200-\ue2ff]/g, "")
+    .replace(/[ \t]*\bcite(?:turn\d+[a-z]+\d+)+/g, "")
+    .replace(/\\\[([\s\S]*?)\\\]|\$\$([\s\S]*?)\$\$/g, (_m, a?: string, b?: string) => "`" + tex(a ?? b ?? "") + "`")
+    .replace(/\\\(([^\n]*?)\\\)/g, (_m, a: string) => tex(a));
+}
+
 // Convierte el Markdown de una respuesta en HTML seguro.
 export function mdHtml(md: string): string {
-  const ls = String(md ?? "").replace(/\r/g, "").split("\n");
+  const ls = limpiarMarcas(String(md ?? "").replace(/\r/g, "")).split("\n");
   const out: string[] = [];
   let i = 0;
   while (i < ls.length) {
@@ -68,7 +90,8 @@ export function mdHtml(md: string): string {
         i++;
       }
       const tag = ord ? "ol" : "ul";
-      out.push(`<${tag} class="md-l">${it.map((x) => `<li>${mdLinea(x)}</li>`).join("")}</${tag}>`);
+      const ini = ord ? parseInt(/\d+/.exec(l)![0], 10) : 1;
+      out.push(`<${tag} class="md-l"${ini > 1 ? ` start="${ini}"` : ""}>${it.map((x) => `<li>${mdLinea(x)}</li>`).join("")}</${tag}>`);
       continue;
     }
     if (/^\s*>/.test(l)) {

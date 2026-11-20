@@ -380,7 +380,7 @@
   "condicion": "con_mcp",
   "archivo": "worker/public/evaluacion/capturas/D04-con.webp",
   "miniatura": "worker/public/evaluacion/capturas/D04-con-mini.webp",
-  "veredicto": "✓ exacta (no estricta: otra cifra sin fuente)",
+  "veredicto": "✓ exacta (laxa) · ✗ no exacta (estricta): otra cifra sin fuente",
   "fecha": "10/11/2026"
  },
  {
@@ -628,7 +628,7 @@
   "condicion": "sin_mcp",
   "archivo": "worker/public/evaluacion/capturas/R10-sin.webp",
   "miniatura": "worker/public/evaluacion/capturas/R10-sin-mini.webp",
-  "veredicto": "✓ exacta (no estricta: otra cifra sin fuente)",
+  "veredicto": "✓ exacta (laxa) · ✗ no exacta (estricta): otra cifra sin fuente",
   "fecha": "18/11/2026"
  },
  {

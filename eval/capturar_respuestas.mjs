@@ -50,7 +50,7 @@ const fuentes = JSON.parse(readFileSync(join(RES, 'fuentes_con_mcp.json'), 'utf8
 export const fechaDe = (id) => (['R02', 'R03', 'R07', 'R08', 'R09', 'R10'].includes(id) ? '18/11/2026' : '10/11/2026');
 export function veredicto(s) {
   if (s.exacta !== '1') return '✗ no exacta' + (s.inventada === '1' ? ' · con cifras inventadas' : '');
-  return s.estricta === '1' ? '✓ exacta' : '✓ exacta (no estricta: otra cifra sin fuente)';
+  return s.estricta === '1' ? '✓ exacta' : '✓ exacta (laxa) · ✗ no exacta (estricta): otra cifra sin fuente';
 }
 // Mismo texto que guardó la evaluación; solo se quita el marcado interno del proveedor (etiquetas, saltos escapados),
 // igual que en el resto del sitio. No se resume ni se corrige nada.
@@ -62,6 +62,12 @@ const textoChat = (t) => String(t ?? '')
   .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1')
   .replace(/[ \t]+$/gm, '').replace(/\n{3,}/g, '\n\n').trim();
 
+// Detección simple de una respuesta registrada que empieza a medias (minúscula, o un ítem o título numerado > 1).
+export function incompleta(t) {
+  const m = /^(?:#+\s*)?(\d+)[.)]\s/.exec(t);
+  return (m && Number(m[1]) > 1) || /^[a-záéíóúñ]/.test(t);
+}
+
 const casos = [];
 for (const cond of ['sin_mcp', 'con_mcp']) {
   for (const r of raw(cond)) {
@@ -72,7 +78,7 @@ for (const cond of ['sin_mcp', 'con_mcp']) {
       id: r.id, cond, corto: cond === 'sin_mcp' ? 'sin' : 'con', pregunta: preguntas[r.id].pregunta,
       respuesta: textoChat(r.answer),
       herramientas: (r.tool_calls ?? []).map((t, i) => ({ nombre: t.name, args: t.args ?? {}, resultado: String(res[i]?.result ?? '') })),
-      veredicto: veredicto(s), fecha: fechaDe(r.id),
+      veredicto: veredicto(s), fecha: fechaDe(r.id), incompleta: incompleta(textoChat(r.answer)),
     });
   }
 }
@@ -105,6 +111,8 @@ await page.addStyleTag({ content: `
   .col{width:1100px!important;max-width:none!important}
   #oc-log{width:1100px;box-sizing:border-box;padding:32px 36px 24px;background:var(--bg,#f6f5f1)}
   #oc-log .tc{display:block}
+  #oc-log .tc summary{align-items:flex-start}
+  #oc-log .tc .tc-a{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
   .cap-pie{margin-top:20px;padding:10px 14px;border-radius:10px;font:500 13px/1.45 var(--sans,system-ui),sans-serif;
     background:var(--ink,#1a1a1a);color:var(--bg,#fff);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   .cap-pie b{font-weight:700}.cap-pie .ok{color:#7fe0a8}.cap-pie .no{color:#ffb4a8}
@@ -128,11 +136,12 @@ for (const c of casos) {
     chip.className = 'cap-mcp ' + (ocMcp ? 'on' : 'off'); chip.textContent = ocMcp ? 'MCP: ACTIVADO' : 'MCP: DESACTIVADO';
     log.prepend(chip);
     const pie = document.createElement('div'); pie.className = 'cap-pie';
-    const ok = c.veredicto.startsWith('✓');
-    pie.innerHTML = '<span><b></b> · <span class="c"></span> · respuesta registrada en la evaluación del <span class="f"></span></span><span class="v"></span>';
+    const ok = !c.veredicto.includes('✗');
+    pie.innerHTML = '<span><b></b> · <span class="c"></span> · respuesta registrada en la evaluación del <span class="f"></span><span class="i"></span></span><span class="v"></span>';
     pie.querySelector('b').textContent = 'Pregunta ' + c.id;
     pie.querySelector('.c').textContent = c.cond === 'con_mcp' ? 'con MCP' : 'sin MCP';
     pie.querySelector('.f').textContent = c.fecha;
+    if (c.incompleta) pie.querySelector('.i').textContent = ' · respuesta registrada incompleta (empieza a mitad de texto)';
     const v = pie.querySelector('.v'); v.className = ok ? 'ok' : 'no'; v.textContent = c.veredicto;
     log.appendChild(pie);
   }, c);
