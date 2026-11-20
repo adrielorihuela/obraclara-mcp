@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { paginaSitio } from "../src/pagina";
 import { CASOS_DEMO, RESUMEN_DEMO } from "../src/sitio/demo-datos";
+import { scriptDemo } from "../src/sitio/demo-pagina";
 
 const meta = { fecha_descarga: "2026-11-10", total_inversiones: "150574", alertas_sobrecosto: "26387", alertas_paralizacion: "16502", fuente: "MEF", url: "https://x" };
 const html = paginaSitio("/demo", meta) ?? "";
@@ -66,5 +67,17 @@ describe("página /demo", () => {
   it("es ligera y no nombra al proveedor de IA local", () => {
     expect(new TextEncoder().encode(html).length).toBeLessThan(150 * 1024);
     for (const p of [["head", "less"], ["chat", "gpt"], ["87", "65"]].map((x) => x.join(""))) expect(html.toLowerCase()).not.toContain(p);
+  });
+  it("tiene el panel doble en vivo, el lanzador y el enlace que envía la pregunta al asistente", () => {
+    expect(html).toContain('id="dv" role="dialog" aria-modal="true"');
+    expect((html.match(/class="dv-col (sin|con)"/g) ?? []).length).toBe(2);
+    expect(html).toContain("Ver la comparación en vivo");
+    expect((html.match(/<option value="\d">/g) ?? []).length).toBe(4);
+    expect(html).toContain(`href="/asistente?q=${encodeURIComponent(CASOS_DEMO[0].pregunta)}"`);
+    expect(scriptDemo).toContain("function ocMd(");
+    expect(scriptDemo).toContain("function ocAlmEscribir(");
+    expect(scriptDemo).toContain("/api/agente/eventos");
+    expect(scriptDemo).not.toContain("__name");
+    expect(() => new Function(scriptDemo)).not.toThrow();
   });
 });

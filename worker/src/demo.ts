@@ -1064,7 +1064,10 @@ $('oc-sh-x').addEventListener('click',ocShCerrar);
 $('oc-sh').addEventListener('click',function(e){if(e.target===$('oc-sh'))ocShCerrar()});
 $('oc-sh-crear').addEventListener('click',ocShCrear);
 ocLoad();ocUi();ocSwitchText();ocAgEstado();ocIdeas(false);
-ocCargarChats().then(function(){var m=/[?&]abrir=([A-Za-z0-9_-]+)/.exec(location.search);if(m){ocAbrir(m[1]);try{history.replaceState(null,'','/asistente')}catch(e){}}}).catch(function(){});
+ocCargarChats().then(function(){var m=/[?&]abrir=([A-Za-z0-9_-]+)/.exec(location.search);if(m){ocAbrir(m[1]);try{history.replaceState(null,'','/asistente')}catch(e){}}}).catch(function(){}).then(ocPreguntaUrl);
+// ?q=… (desde /demo): envía esa pregunta una sola vez, con el MCP activado, cuando ya se sabe si el agente está disponible.
+function ocPreguntaUrl(){if(typeof location==="undefined")return;var m=/[?&]q=([^&#]*)/.exec(location.search),q='';if(!m)return;try{q=decodeURIComponent(m[1].replace(/\+/g,' ')).trim().slice(0,2000)}catch(e){}
+ try{history.replaceState(null,'','/asistente')}catch(e){}if(!q)return;ocMcp=true;ocAgUi();var k=0,t=setInterval(function(){if(ocAgSabe||++k>50){clearInterval(t);ocSend(q)}},100)}
 `;
 
 /** Funciones puras + renderizador seguro compartidos por /asistente y /c/:id. */

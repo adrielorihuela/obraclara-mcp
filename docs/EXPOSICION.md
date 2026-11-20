@@ -43,16 +43,17 @@ Abrir https://obraclara.adrielorihuela.net/asistente. Hacer **la misma pregunta 
 
 **Varios modelos y recall (para el profesor).** Con las mismas 40 preguntas, las respuestas exactas con MCP suben en los tres modelos: IA del servidor 8 % → 100 %, Gemini 3.5 Flash-Lite 0 % → 95 %, gpt-oss-120b (Groq) 3 % → 25 % (este contesta muchas veces sin llamar a la herramienta). Sobre recall, que el profesor destacó: «de las obras que debía encontrar, la IA del servidor con MCP encontró 10 % (sin MCP, 1 %) y todo lo que nombró era correcto (100 %)»; los otros dos modelos dan el total pero casi nunca nombran obras, así que su recall es 0. Es una limitación honesta: la herramienta muestra como máximo 20 obras por consulta.
 
-## 3b. Guion de la demo del viernes 20/11 (2 a 3 minutos, `/demo`)
+## 3b. Guion de la demo del viernes 20/11 (3 a 4 minutos, `/demo`)
 
-La página `/demo` lleva los casos ya grabados (aparecen al instante) y no depende de que la IA conteste. Abrir antes https://obraclara.adrielorihuela.net/demo y probar el botón una vez.
+La página `/demo` lleva los casos ya grabados (aparecen al instante) y además un **panel doble en vivo**: la misma pregunta va a la vez a la «IA sola» (sin MCP) y a la «IA + MCP», y se ve cómo trabaja cada una. Abrir antes https://obraclara.adrielorihuela.net/demo y lanzar la comparación una vez (las respuestas tardan de 10 a 60 s).
 
 1. **Arriba (20 s).** Señalar los 4 pasos: pregunta, la IA elige una herramienta, el servidor consulta los datos oficiales del MEF, respuesta con fuente.
-2. **Caso 2, detalle de la carretera San Marcos–Cajabamba–Sausacocha, código 2110581 (50 s).** Leer la pregunta («¿cuánto falta ejecutar?»). Izquierda, «IA sola»: ✗ da una cifra que no está en la fuente. Derecha, «IA + MCP»: ✓ el saldo exacto y con fuente; compararlo con la respuesta oficial. Bajar al gráfico y leer «Qué significa».
-3. **Caso 3, alertas de Tacna (40 s).** Mostrar el gráfico de obras con más meses sin gasto y pulsar **Probar en vivo**: el servidor MCP responde en 1 a 2 s y el gráfico se redibuja con los datos de hoy. Mostrar la línea `tools/call` que se ejecutó.
-4. **Cierre en `/evaluacion` (30 s).** Abrir «Ver la evaluación completa»: con la conexión la IA acertó 40 de 40 preguntas; sola, 3 de 40.
+2. **Comparación en vivo (90 s).** En el recuadro «Comparación en vivo» elegir el **Caso 3, alertas de Tacna** y pulsar **Ver la comparación en vivo**. Se abre el panel a pantalla completa con dos columnas y un cronómetro en cada una. Mientras esperan, señalar a la derecha los pasos que aparecen («Consultando `alertas_inversion` en el MCP», «Analizando resultados») y a la izquierda que la IA sola no consulta nada. Cuando llegan las respuestas se escriben solas; al final cada columna dice si dio la **cifra oficial** (✓/✗, 167 meses) y cuánto tardó. En el celular, las columnas son dos pestañas.
+3. **Cerrar con Esc (30 s).** Al cerrar, la página baja al gráfico del caso y lo **reconstruye** con la consulta real al MCP (las barras bajan a cero y vuelven a crecer, las cifras cuentan) y dice si los datos de hoy coinciden con los grabados. Mostrar la línea `tools/call` y el tiempo de respuesta.
+4. **Caso 2 grabado (30 s).** Carretera San Marcos–Cajabamba–Sausacocha (código 2110581): la «IA sola» da una cifra que no está en la fuente; la «IA + MCP», el saldo exacto con fuente.
+5. **Cierre (30 s).** Bajar a «Así le fue en las 40 preguntas»: las cifras se vuelven a contar con animación y se marcan «Verificado: coinciden con la evaluación» (40 de 40 con el MCP; 3 de 40 sola), junto con lo que se vio en vivo. «Ver la evaluación completa» abre `/evaluacion`.
 
-Plan B: si «Probar en vivo» falla (sin internet o sin servidor), el gráfico grabado sigue en pantalla y el mensaje lo avisa; seguir con el caso grabado. «Preguntarle al asistente» copia la pregunta y abre `/asistente` para pegarla.
+Plan B: si una columna falla o tarda más de 3 minutos, lo avisa y ofrece **Reintentar** (la otra sigue); si no hay internet, las respuestas grabadas y el gráfico siguen en pantalla. «Preguntarle al asistente» abre `/asistente` y envía la pregunta sola, con el MCP activado; «Abrir esta conversación en el asistente» continúa allí la respuesta del panel.
 
 ## 4. Los conceptos, explicados sencillo
 
