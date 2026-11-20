@@ -409,17 +409,17 @@ Se llamó 30 veces a cada una de las 4 herramientas (**n = 120 llamadas**) y 10 
 
 ### Asistente del sitio, de punta a punta
 
-Se hicieron **24 preguntas variadas** (6 de cada tipo del banco de 40), de una en una con pausa de 8 s, al asistente completo con las herramientas conectadas (`POST /api/agente` con `mcp: true`, igual que el panel «con conexión»). Cada respuesta se comparó con el dato oficial del MEF usando la regla de «exacta» de la evaluación. Respondió siempre la IA del servidor (24 de 24; ningún proveedor de respaldo ni límite de uso). Script: `metricas/asistente_extenso.mjs`; datos: `asistente_extenso.csv` (con la respuesta recortada de cada pregunta).
+Se hicieron **24 preguntas variadas** (6 de cada tipo del banco de 40), de una en una con pausa de 8 s, al asistente completo con las herramientas conectadas (`POST /api/agente` con `mcp: true`, igual que el panel «con conexión»). Cada respuesta se comparó con el dato oficial del MEF usando la regla de «exacta» de la evaluación. Respondieron la IA del servidor (2) y su respaldo automático Gemini 3.5 Flash-Lite (22); ningún error ni límite de uso. Script: `metricas/asistente_extenso.mjs`; datos: `asistente_extenso.csv` (con la respuesta recortada de cada pregunta).
 
 | Tipo de pregunta | Preguntas (n) | Con respuesta | Correctas | Mediana | P90 | Mínimo | Máximo |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| Todas | 24 | 24 | 4 (16,7 %) | 9 s | 16,2 s | 4,8 s | 27,4 s |
-| Búsqueda | 6 | 6 | 0 (0 %) | 9,8 s | 16,2 s | 4,8 s | 16,2 s |
-| Detalle de una obra | 6 | 6 | 1 (16,7 %) | 9,4 s | 27,4 s | 6,7 s | 27,4 s |
-| Alertas | 6 | 6 | 1 (16,7 %) | 7,8 s | 21,3 s | 6,3 s | 21,3 s |
-| Resumen | 6 | 6 | 2 (33,3 %) | 9 s | 14,5 s | 6,3 s | 14,5 s |
+| Todas | 24 | 24 | 21 (87,5 %) | 6,9 s | 22,4 s | 4,6 s | 26,2 s |
+| Búsqueda | 6 | 6 | 5 (83,3 %) | 8,6 s | 26,2 s | 5,6 s | 26,2 s |
+| Detalle de una obra | 6 | 6 | 6 (100 %) | 5,5 s | 16,3 s | 4,6 s | 16,3 s |
+| Alertas | 6 | 6 | 5 (83,3 %) | 6 s | 22,4 s | 5,7 s | 22,4 s |
+| Resumen | 6 | 6 | 5 (83,3 %) | 5,8 s | 23,6 s | 4,9 s | 23,6 s |
 
-**Qué significa:** la mitad de las preguntas se respondió en 9,0 s o menos y el 90 % en menos de 16,2 s (máximo 27,4 s). Pero el asistente acertó solo **4 de 24 (16,7 %)**. No es un fallo del servidor MCP (sus 140 llamadas salieron bien y la evaluación de 40 preguntas con la conexión dio 40 de 40): en esta prueba la IA del servidor decide si consulta el registro, y en muchas respuestas contestó que no podía confirmar el dato o usó otras fuentes (Contraloría, presupuesto). Es una limitación medida: conviene revisarla antes de afirmar que el asistente del sitio acierta tanto como en la evaluación. La primera medición del asistente (5 preguntas sin herramientas y 2 con ellas) fue demasiado pequeña y queda reemplazada por esta.
+**Qué significa:** la mitad de las preguntas se respondió en 6,9 s o menos y el 90 % en menos de 22,4 s (máximo 26,2 s). El asistente acertó **21 de 24 (87,5 %)**, y en las 24 llamó a las herramientas al menos una vez. Una primera medición del mismo día dio solo 4 de 24: la IA del servidor respondía sin consultar el registro (de memoria o con otras fuentes, como la Contraloría). Se corrigió en el servidor de IA: si hay herramientas conectadas y la pregunta pide datos de su tema, no se acepta una respuesta que no las haya consultado. Las 3 fallas que quedan son una respuesta que dijo no poder confirmar el dato, una que habló de archivos en vez de responder y una con una cifra distinta de la oficial; por eso la evaluación de 40 preguntas (40 de 40) sigue siendo la medida de la conexión y no conviene decir «el asistente siempre acierta». La primera medición del asistente (5 preguntas sin herramientas y 2 con ellas) fue demasiado pequeña y queda reemplazada por esta.
 
 ## 11. Pruebas
 

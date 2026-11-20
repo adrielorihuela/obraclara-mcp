@@ -39,7 +39,7 @@ function exacta(q, answer) {
 }
 
 // Nombre público del modelo: el servicio propio del grupo se llama «IA del servidor»; los respaldos conservan su nombre.
-const modeloPublico = (m) => (!m || /chatgpt|gpt-headless/i.test(m) ? 'IA del servidor' : m);
+const modeloPublico = (m) => (!m || /^(chatgpt|gpt-)/i.test(m) ? 'IA del servidor' : m);
 
 // Lector de CSV mínimo (el de eval/run_eval.mjs no se puede importar: ejecuta la evaluación al cargarse).
 function parseCSV(text) {

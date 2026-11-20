@@ -1,6 +1,6 @@
 // GENERADO por metricas/exportar_sitio.mjs a partir de metricas/resultados/. No editar a mano: vuelve a ejecutar `node metricas/exportar_sitio.mjs`.
 export const METRICAS = {
- "generado": "2026-11-20T19:05:27+00:00",
+ "generado": "2026-11-20T19:21:25+00:00",
  "corte": {
   "total_inversiones": "150574",
   "alertas_sobrecosto": "26387",
@@ -437,74 +437,75 @@ export const METRICAS = {
    "preguntas": 24,
    "conRespuesta": 24,
    "errores": 0,
-   "correctas": 4,
-   "pctCorrectas": 16.7,
-   "pctCorrectasTotal": 16.7,
-   "media": 10.8,
-   "p50": 9,
-   "p90": 16.2,
-   "min": 4.8,
-   "max": 27.4
+   "correctas": 21,
+   "pctCorrectas": 87.5,
+   "pctCorrectasTotal": 87.5,
+   "media": 10,
+   "p50": 6.9,
+   "p90": 22.4,
+   "min": 4.6,
+   "max": 26.2
   },
   {
    "grupo": "busqueda",
    "preguntas": 6,
    "conRespuesta": 6,
    "errores": 0,
-   "correctas": 0,
-   "pctCorrectas": 0,
-   "pctCorrectasTotal": 0,
-   "media": 11.1,
-   "p50": 9.8,
-   "p90": 16.2,
-   "min": 4.8,
-   "max": 16.2
+   "correctas": 5,
+   "pctCorrectas": 83.3,
+   "pctCorrectasTotal": 83.3,
+   "media": 13,
+   "p50": 8.6,
+   "p90": 26.2,
+   "min": 5.6,
+   "max": 26.2
   },
   {
    "grupo": "detalle",
    "preguntas": 6,
    "conRespuesta": 6,
    "errores": 0,
-   "correctas": 1,
-   "pctCorrectas": 16.7,
-   "pctCorrectasTotal": 16.7,
-   "media": 12.2,
-   "p50": 9.4,
-   "p90": 27.4,
-   "min": 6.7,
-   "max": 27.4
+   "correctas": 6,
+   "pctCorrectas": 100,
+   "pctCorrectasTotal": 100,
+   "media": 7.4,
+   "p50": 5.5,
+   "p90": 16.3,
+   "min": 4.6,
+   "max": 16.3
   },
   {
    "grupo": "alertas",
    "preguntas": 6,
    "conRespuesta": 6,
    "errores": 0,
-   "correctas": 1,
-   "pctCorrectas": 16.7,
-   "pctCorrectasTotal": 16.7,
-   "media": 10.1,
-   "p50": 7.8,
-   "p90": 21.3,
-   "min": 6.3,
-   "max": 21.3
+   "correctas": 5,
+   "pctCorrectas": 83.3,
+   "pctCorrectasTotal": 83.3,
+   "media": 9.3,
+   "p50": 6,
+   "p90": 22.4,
+   "min": 5.7,
+   "max": 22.4
   },
   {
    "grupo": "resumen",
    "preguntas": 6,
    "conRespuesta": 6,
    "errores": 0,
-   "correctas": 2,
-   "pctCorrectas": 33.3,
-   "pctCorrectasTotal": 33.3,
-   "media": 9.8,
-   "p50": 9,
-   "p90": 14.5,
-   "min": 6.3,
-   "max": 14.5
+   "correctas": 5,
+   "pctCorrectas": 83.3,
+   "pctCorrectasTotal": 83.3,
+   "media": 10,
+   "p50": 5.8,
+   "p90": 23.6,
+   "min": 4.9,
+   "max": 23.6
   }
  ],
  "asistenteModelos": {
-  "IA del servidor": 24
+  "IA del servidor": 2,
+  "Gemini 3.5 Flash-Lite": 22
  },
  "asistente": [
   {

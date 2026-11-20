@@ -70,7 +70,7 @@ de datos (flujo real con herramientas). Es un servicio compartido con cola; si u
 (igual que el panel «con conexión» de `/demo`), con pausa de 8 s. Mide segundos, modelo que respondió y si la respuesta es correcta con la regla «exacta» de `eval/score_eval.mjs`
 (valor oficial con tolerancia 1 %, entidad esperada o «sin datos»). Si un proveedor llega a su límite no se esquiva: queda como error y se sigue. Salida: `asistente_extenso.csv`
 (una fila por pregunta, con la respuesta recortada a 400 caracteres), `asistente_extenso_resumen.csv` (todas y por tipo: mediana, P90, mín., máx., correctas) y `partes/asistente_extenso.json`.
-Resultado del 20/11/2026: 24 de 24 con respuesta, mediana 9,0 s, P90 16,2 s, 4 de 24 correctas (la IA del servidor decide si consulta el registro y muchas veces no lo hizo).
+Resultado del 20/11/2026 (tras la corrección): 24 de 24 con respuesta, mediana 6,9 s, P90 22,4 s, 21 de 24 correctas, y en las 24 hubo llamadas a las herramientas. La primera medición del mismo día dio 4 de 24 porque la IA del servidor respondía sin consultar el registro; el servidor de IA ahora lo exige en preguntas de datos.
 
 ## Cómo leer los CSV para gráficos
 Una fila por categoría y una columna por medida; las tablas `*_top10` y `*_hist_*` están ordenadas para barras directas. Las latencias crudas de cada
