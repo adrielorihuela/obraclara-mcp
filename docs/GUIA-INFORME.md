@@ -348,7 +348,7 @@ Fuente: elaboración propia con datos de MEF (2026a, 2026b) y Congreso de la Rep
 **Qué decir:**
 1. En este párrafo explican las tecnologías con la Tabla 6: para qué se usó cada una.
 2. Explican la seguridad: ___ (el servidor es solo lectura; cada herramienta ejecuta consultas parametrizadas, nunca SQL escrito por el modelo; límite de 60 solicitudes por minuto por cliente; máximo 20 resultados por consulta; claves fuera del código; los datos del MEF no contienen datos personales). Pueden conectar con los riesgos de MCP que describen Hou et al. (2025).
-3. Explican cómo se verificó que el sistema no altera las cifras (Tabla 7): ___ (se compararon 30 fichas elegidas al azar campo por campo con la base: 810 de 810 campos iguales; 10 resúmenes: 60 de 60 cifras iguales; 14 consultas de alertas con el mismo total) y que ___ (149 pruebas automáticas pasan y cada cambio se despliega solo con GitHub Actions).
+3. Explican cómo se verificó que el sistema no altera las cifras (Tabla 7): ___ (se compararon 30 fichas elegidas al azar campo por campo con la base: 810 de 810 campos iguales; 10 resúmenes: 60 de 60 cifras iguales; 14 consultas de alertas con el mismo total) y que ___ (170 pruebas automáticas pasan y cada cambio se despliega solo con GitHub Actions).
 
 **Tabla 6. *Tecnologías utilizadas*** (columnas: Tecnología · Para qué se usó):
 
@@ -540,7 +540,7 @@ Nota: «"Sin reintentos" se midió desde la pregunta B08.» Fuente: elaboración
 - Cierran con el ODS 16: ___ (acceso más fácil a información pública verificable).
 
 **Párrafo 2 (limitaciones y trabajo futuro, 5–7 oraciones):**
-- Limitaciones (elijan 4–5): ___ (una sola corrida por condición; puntuación automática con reglas simples, incluida la estricta; modelo principal gratuito cuya versión no se controla; alertas aproximadas, sin ejecución física mensual ni modalidad y con avance físico vacío en el 57,3 %; recall de 10 % porque el modelo nombra pocas obras; mayor tiempo con MCP, mediana 21,0 s frente a 12,9 s; datos al 10/11/2026).
+- Limitaciones (elijan 4–5): ___ (una sola corrida por condición; puntuación automática con reglas simples, incluida la estricta; modelo principal gratuito cuya versión no se controla; alertas aproximadas, sin ejecución física mensual ni modalidad y con avance físico vacío en el 57,3 %; con la primera definición el recall era de 10 % porque el modelo nombra pocas obras (con la definición vigente es 100 %); mayor tiempo con MCP, mediana 21,0 s frente a 12,9 s; datos al 10/11/2026).
 - Trabajo futuro: ___ (repetir la evaluación varias veces y revisar a mano todos los casos; acercar la alerta de paralización a la ley con modalidad y avance reciente; añadir otras fuentes oficiales, como las contrataciones del OECE que se dejaron fuera por alcance; llamadas nativas a herramientas; mejorar el recall).
 
 **Errores a evitar:** citas; cifras que no estén en Resultados; afirmaciones que no salen del análisis («reducirá la corrupción»); un tercer párrafo.
