@@ -9,6 +9,7 @@ import {
   normalizarRamas, desplazarRamas, nuevaVersion, cambiarVersion, versionesGuardadas, indiceUsuario, inicioTurno, contextoConversacion, tiempoRelativo, textoPlano, tablasMd, graficosMd, aTsv, graficoFilas,
   tipoPaso, nombreModelo, duracionCorta, resumenProceso, normalizarProceso,
 } from "./lib/agente";
+import { logo } from "./sitio/layout";
 import { graficoCss, graficoJs } from "./grafico-js";
 import { ETIQUETAS_SUGERENCIA, SUGERENCIAS, elegirSugerencias, mezclarSugerencias } from "./lib/sugerencias";
 
@@ -197,7 +198,8 @@ body.es-app main{flex:1;min-height:0}
 .msg.a .t p.mod{font:400 12px/1.4 var(--mono);color:var(--mut)}
 .msg.u{align-self:flex-end;max-width:85%;background:var(--surface-2);border:1px solid var(--line);padding:10px 16px;border-radius:18px 18px 4px 18px;white-space:pre-wrap}
 .msg.a{display:grid;grid-template-columns:28px minmax(0,1fr);gap:14px}
-.msg.a::before{content:"";width:28px;height:28px;border-radius:8px;background:var(--ink) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='14.5' r='6.5' fill='none' stroke='white' stroke-width='2.6'/%3E%3Crect x='8' y='24' width='10' height='2.6' rx='1.3' fill='%234fc39c'/%3E%3C/svg%3E") center/22px no-repeat}
+.acc [hidden]{display:none!important}
+.msg.a>.av{width:28px;height:28px;display:block}.msg.a>.av svg{width:28px;height:28px;display:block}
 .msg.a .t{display:grid;gap:10px;min-width:0;padding-top:2px}
 .msg.a .t p.h{font-weight:700}
 .msg.a .t ul,.msg.a .t ol{margin:0;padding-left:1.3em;display:grid;gap:4px}
@@ -207,6 +209,9 @@ body.es-app main{flex:1;min-height:0}
 .msg.a .t tbody tr,.msg.a .t tr{transition:background-color .15s}
 .msg.a .t tr:hover td{background:color-mix(in srgb,var(--surface-2) 60%,transparent)}
 .msg.a .t em{font-style:italic;color:var(--ink-2)}
+a.enl{color:var(--accent);text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px;overflow-wrap:anywhere;transition:color .15s,text-decoration-thickness .15s}
+a.enl:hover{color:var(--accent-2);text-decoration-thickness:2px}
+a.enl:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
 .msg.a .t .fm,.pv-md .fm{justify-self:start;max-width:100%;padding:10px 16px;border-left:3px solid var(--accent);border-radius:0 8px 8px 0;background:var(--surface-2);font:500 14px/1.5 var(--mono);color:var(--ink);overflow-wrap:anywhere}
 .msg.a .t li p.li-p{margin:4px 0 0}.msg.a .t li ul{margin:4px 0 0;padding-left:1.2em;display:grid;gap:2px;list-style:disc}
 .msg.a .t th{font-weight:600;background:var(--surface-2);white-space:nowrap}
@@ -480,7 +485,7 @@ body.es-app main{flex:1;min-height:0}
  .pan{position:fixed;inset:0;z-index:50;border-left:0;animation-name:pan-sube}
  @keyframes pan-sube{from{opacity:0;transform:translateY(24px)}}
  .adj-c{max-width:none}
- .tc{margin-left:0}.msg.a{grid-template-columns:minmax(0,1fr)}.msg.a::before{display:none}.msg.w{padding-left:0}.msg.w .tl{margin-left:0;padding-left:0}
+ .tc{margin-left:0}.msg.a{grid-template-columns:minmax(0,1fr)}.msg.a>.av{display:none}.msg.w{padding-left:0}.msg.w .tl{margin-left:0;padding-left:0}
 }
 @media (max-width:860px) and (prefers-reduced-motion:reduce){.lado,.chat.cajon-on .lado,.velo{transition:none}}
 ` + graficoCss;
@@ -634,8 +639,14 @@ const nombres = [
 const appComun = String.raw`
 var OC_FENCE=new RegExp('^\\s*('+String.fromCharCode(96)+'{3,})\\s*(.*)$');
 function $(id){return document.getElementById(id)}
-function ocInl(n,s){String(s).split(/(\*\*[^*]+\*\*|\*[^*\s][^*]*\*(?!\*)|` + "`[^`]+`" + String.raw`)/).forEach(function(x){if(!x)return;
- if(x.length>4&&x.slice(0,2)==='**'&&x.slice(-2)==='**'){var b=document.createElement('strong');b.textContent=x.slice(2,-2);n.appendChild(b)}
+function ocCorta(u){var t=String(u);try{t=decodeURI(t)}catch(e){}t=t.replace(/^https?:\/\/(www\.)?/i,'').replace(/\/$/,'');return t.length>56?t.slice(0,40)+'…'+t.slice(-12):t}
+function ocEnl(n,t,u){u=String(u).trim();if(!/^(https?:\/\/|mailto:)/i.test(u)){n.appendChild(document.createTextNode(t||u));return}
+ var a=document.createElement('a');a.className='enl';a.href=u;a.target='_blank';a.rel='noopener noreferrer';
+ if(t&&!/^https?:\/\//i.test(t))a.textContent=t;else{a.textContent=ocCorta(t||u);a.title=u}n.appendChild(a)}
+function ocInl(n,s){String(s).split(/(\[[^\]\n]+\]\s*\(\s*(?:https?:\/\/|mailto:)[^\s)]+\s*\)|https?:\/\/[^\s<>"]*[^\s<>".,;:!?)\]*]|\*\*[^*]+\*\*|\*[^*\s][^*]*\*(?!\*)|` + "`[^`]+`" + String.raw`)/).forEach(function(x){if(!x)return;
+ if(x.charAt(0)==='['&&/^\[[^\]\n]+\]\s*\(/.test(x)){var ml=x.match(/^\[([^\]\n]+)\]\s*\(\s*(\S+?)\s*\)$/);if(ml)ocEnl(n,ml[1],ml[2]);else n.appendChild(document.createTextNode(x))}
+ else if(/^https?:\/\//i.test(x))ocEnl(n,null,x)
+ else if(x.length>4&&x.slice(0,2)==='**'&&x.slice(-2)==='**'){var b=document.createElement('strong');b.textContent=x.slice(2,-2);n.appendChild(b)}
  else if(x.length>2&&x.charAt(0)==='*'&&x.slice(-1)==='*'&&x.charAt(1)!=='*'){var em=document.createElement('em');ocInl(em,x.slice(1,-1));n.appendChild(em)}
  else if(x.length>2&&x.charAt(0)==='` + "`" + String.raw`'&&x.slice(-1)==='` + "`" + String.raw`'){var c=document.createElement('code');c.textContent=x.slice(1,-1);n.appendChild(c)}
  else n.appendChild(document.createTextNode(x))})}
@@ -660,7 +671,7 @@ function ocTex(s){var x=String(s),k=0;
   .replace(/[{}]/g,'').replace(/(\S)\s*[-−]\s*(?=\S)/g,'$1 − ').replace(/\s*\+\s*/g,' + ').replace(/\s*=\s*/g,' = ').replace(/\s+/g,' ').trim()}
 ` + "\n" + graficoJs + "\n" + String.raw`function ocMd(el,txt){var lst=null,p=null,tb=null,cod=null,fx=null,prev=null;
  function fdiv(s){var d=document.createElement('div');d.className='fm';d.textContent=ocTex(s);el.appendChild(d);prev=d}
- ocLimpia(txt).replace(/\\\(([^\n]*?)\\\)/g,function(m,a){return ocTex(a)}).split('\n').forEach(function(l){var t=l.trim(),mm=/^([-*•]|\d+[.)])\s+(.*)$/.exec(t),fm=OC_FENCE.exec(l);
+ ocLimpia(txt).replace(/\]\s*\n\s*\((?=https?:\/\/|mailto:)/g,'](').replace(/\\\(([^\n]*?)\\\)/g,function(m,a){return ocTex(a)}).split('\n').forEach(function(l){var t=l.trim(),mm=/^([-*•]|\d+[.)])\s+(.*)$/.exec(t),fm=OC_FENCE.exec(l);
  if(cod){if(fm&&fm[1].length>=cod.n&&!fm[2].trim()){if(cod.lg==='grafico'&&typeof ocGrafico==='function'){var gv=validarGrafico(cod.pre.textContent);if(gv)cod.w.parentNode.replaceChild(ocGrafico(gv),cod.w)}cod=null;return}cod.pre.appendChild(document.createTextNode((cod.k++?'\n':'')+l));return}
  if(fx!==null){var fin=fx.c==='$$'?t.lastIndexOf('$$'):t.lastIndexOf('\\]');if(fin>=0&&fin===t.length-2){fdiv(fx.s+' '+t.slice(0,fin));fx=null}else fx.s+=' '+t;return}
  if(t.slice(0,2)==='\\['||t.slice(0,2)==='$$'){lst=null;p=null;tb=null;var cc=t.slice(0,2)==='$$'?'$$':'\\]',rest=t.slice(2);
@@ -717,7 +728,7 @@ async function ocAlmEscribir(txt){var fallo=null;
  try{localStorage.setItem('oc_chats',txt)}catch(e2){throw (fallo&&fallo.name==='QuotaExceededError')||e2.name==='QuotaExceededError'?new Error('cuota'):new Error('bloqueado')}}
 `;
 
-const app = "var OC_I=" + JSON.stringify(icoAcc) + ";\n" + String.raw`
+const app = "var OC_I=" + JSON.stringify(icoAcc) + ";\nvar OC_LOGO=" + JSON.stringify(logo) + ";\n" + String.raw`
 var ocRamas=[],ocRestM=null,ocVersOcup=false,ocMcp=true,ocHist=[],ocTools=null,ocConns=[],ocActiva='servidor',ocEdit='',ocHL='servidor',ocImgs=[],ocDocs=[],ocLeyendo=0,ocMsgs=[],ocChats=[],ocChatId='',ocRest=false,ocRen='',ocAgOk=false,ocAgSabe=false,ocAgId='';
 // Estado por chat: cada conversación es una sesión con su propio turno (espera, sondeo de eventos, AbortController).
 // Las variables globales (ocChatId, ocAgId, ocHist, ocMsgs, ocArch) son las de la sesión en contexto (ocS); ocEn(s,fn) cambia de contexto para escribir en un chat que no está abierto.
@@ -735,7 +746,7 @@ function ocLog(cls,txt,extra,adj,arch){var rec=null;if(cls==='u')rec=ocRec({rol:
  if(cls==='a')rec=ocRec({rol:'a',texto:txt,modelo:typeof extra==='string'?extra:'',mcp:ocMcp,proc:ocProcSig||undefined});
 var d=document.createElement('div'),mm=rec||ocRestM,fu=null;d.className='msg '+cls;if(!ocFondo)$('oc-vacio').hidden=true;
  if(mm&&(cls==='u'||cls==='a'))d.ocM=mm;
- if(cls==='a'){var t=document.createElement('div');t.className='t';ocMd(t,txt);if(mm&&mm.proc)t.insertBefore(ocProcEl(mm.proc),t.firstChild);
+ if(cls==='a'){var av=document.createElement('span');av.className='av';av.setAttribute('aria-hidden','true');av.innerHTML=OC_LOGO;d.appendChild(av);var t=document.createElement('div');t.className='t';ocMd(t,txt);if(mm&&mm.proc)t.insertBefore(ocProcEl(mm.proc),t.firstChild);
   var bx=document.createElement('div');bx.className='adjs';t.appendChild(bx);d.appendChild(t);
   if(mm)t.appendChild(ocBarra(d,'a',mm,typeof extra==='string'?extra:''));
   if(arch)ocArchMsg(rec,bx,arch)}
@@ -762,7 +773,7 @@ function ocSwitchText(){var sw=$('oc-sw'),ag=ocAgActivo(),DESC='El asistente pue
  $('oc-swt').textContent='MCP';$('oc-sws').textContent=ocMcp?'Datos del MEF':'Desactivado';
  $('oc-swd').textContent=ag?(ocMcp?DESC:'Sin MCP el asistente no consulta los datos oficiales: trabaja con tus archivos y te entrega otros, como un Excel, un Word o un PDF.'):(ocMcp?'Con MCP: el modelo puede consultar los datos oficiales del MEF mediante las herramientas de este servidor.':'Sin MCP: chat normal con el mismo modelo, sin acceso a los datos; puede equivocarse o inventar.');
  var ind=$('oc-ind');ind.className='ind'+(ocMcp?' on':'');ind.lastChild.textContent=ocMcp?'MCP activado':'Sin MCP';
- $('oc-in').placeholder=ag?(ocMcp?'Pídele datos y archivos al asistente':'Dile al asistente qué hacer (puedes adjuntar archivos)'):'Escribe tu pregunta';$('oc-ideas').hidden=ag&&!ocMcp;
+ $('oc-in').placeholder=ag?(ocMcp?'Pídele datos y archivos al asistente':'Dile al asistente qué hacer (puedes adjuntar archivos)'):'Escribe tu pregunta';$('oc-ideas').hidden=false;
  $('oc-vp').textContent=ag?DESC:'Pregunta por una obra, una entidad o una región. Con el MCP activado, el modelo consulta los datos del MEF y te muestra qué herramienta usó.';
  $('oc-em').hidden=!(ocAgSabe&&!ocAgOk&&ocActiva===ocHL)}
 function ocPrefs(){ocWrite(localStorage,'oc_prefs',{mcp:ocMcp})}
@@ -968,7 +979,7 @@ function ocBarra(d,cls,m,modelo){var bar=document.createElement('div');bar.class
  ocBoton(bar,OC_I.copiar,'Copiar',function(x){ocCopiarCon(x,ocLimpia(m.texto).trim())},'ab-copiar');
  ocBoton(bar,OC_I.abajo,'Copiar como…',function(x){ocCopiarComo(x,m)},'ab-c').setAttribute('aria-haspopup','menu');
  ocBoton(bar,OC_I.reintentar,'Reintentar',function(){var i=ocMsgs.indexOf(m),k=i<0?-1:inicioTurno(ocMsgs,i);if(k<0)return;ocRehacer(ocMsgs[k],null,typeof m.ds==='number'?m.ds:undefined)});
- if(ocVozOk())ocBoton(bar,OC_I.voz,'Leer en voz alta',function(x){ocLeer(x,m.texto)},'ab-voz').setAttribute('aria-pressed','false');
+ if(ocVozApi()){var bv=ocBoton(bar,OC_I.voz,'Leer en voz alta',function(x){ocVozLeer(x,m.texto)},'ab-voz');bv.setAttribute('aria-pressed','false');bv.hidden=!ocVozOk()}
  var c=ocChatDe(ocChatId),fj=!!(c&&c.fijado),bf=ocBoton(bar,OC_I.fijar,fj?'Desfijar chat':'Fijar chat',function(){if(!ocChatId)ocGuardar();if(ocChatId)ocFijar(ocChatId)},'ab-fijar');bf.setAttribute('aria-pressed',String(fj));
  ocBoton(bar,OC_I.compartir,'Compartir chat',function(){ocCompartirActual()});
  var k0=p<0?-1:inicioTurno(ocMsgs,p),nv2=k0>=0?ocNav(k0):null;if(nv2)bar.appendChild(nv2);
@@ -985,20 +996,23 @@ function ocCopiarComo(x,m){var md=ocLimpia(m.texto).trim(),cp=x.previousElementS
  ocMenuAbrir(x,it)}
 // Leer en voz alta (Web Speech API), con voz en español si el sistema tiene una.
 var ocVoz=null;
-function ocVozOk(){return typeof window.speechSynthesis!=='undefined'&&typeof SpeechSynthesisUtterance!=='undefined'}
+function ocVozApi(){return typeof window.speechSynthesis!=='undefined'&&typeof SpeechSynthesisUtterance!=='undefined'}
+function ocVozOk(){return ocVozApi()&&!!ocVozElegir()}
+function ocVozRefrescar(){var ok=ocVozOk();Array.prototype.forEach.call(document.querySelectorAll('.ab-voz'),function(b){b.hidden=!ok})}
 function ocVozElegir(){var vs=[];try{vs=speechSynthesis.getVoices()||[]}catch(e){}var pref=['es-pe','es-419','es-us','es-mx','es-es'];
  for(var i=0;i<pref.length;i++)for(var j=0;j<vs.length;j++)if(String(vs[j].lang||'').replace('_','-').toLowerCase()===pref[i])return vs[j];
  for(var k=0;k<vs.length;k++)if(/^es/i.test(vs[k].lang||''))return vs[k];return null}
 function ocVozBtn(b,on){var t=on?'Detener lectura':'Leer en voz alta';b.setAttribute('aria-pressed',String(on));b.setAttribute('aria-label',t);b.setAttribute('data-tip',t);b.innerHTML=on?OC_I.parar:OC_I.voz;b.classList.toggle('on',on)}
 function ocVozParar(){if(!ocVoz)return;var b=ocVoz.b;ocVoz=null;try{speechSynthesis.cancel()}catch(e){}ocVozBtn(b,false)}
-function ocLeer(b,texto){if(ocVoz&&ocVoz.b===b){ocVozParar();return}ocVozParar();if(!ocVozOk())return;
+function ocVozLeer(b,texto){if(ocVoz&&ocVoz.b===b){ocVozParar();return}ocVozParar();if(!ocVozOk()){ocVozRefrescar();return}
  var t=textoPlano(ocLimpia(texto),true).replace(/([^.!?:;\n])\n+/g,'$1. ').replace(/\n+/g,' ');if(!t.trim())return;
  var partes=t.match(/[^.!?;:]+[.!?;:]*\s*/g)||[t],trozos=[],cur='';
  partes.forEach(function(x){if((cur+x).length>220&&cur){trozos.push(cur);cur=''}cur+=x});if(cur.trim())trozos.push(cur);
- var v=ocVozElegir(),yo={b:b};ocVoz=yo;ocVozBtn(b,true);try{speechSynthesis.cancel()}catch(e){}
- trozos.forEach(function(x,i){var u=new SpeechSynthesisUtterance(x.trim());u.lang=v?v.lang:'es-PE';if(v)u.voice=v;
+ var v=ocVozElegir(),yo={b:b,us:[]};ocVoz=yo;ocVozBtn(b,true);var hab=false;try{hab=speechSynthesis.speaking||speechSynthesis.pending;speechSynthesis.cancel()}catch(e){}
+ var hablar=function(){if(ocVoz!==yo)return;try{speechSynthesis.resume()}catch(e){}trozos.forEach(function(x,i){var u=new SpeechSynthesisUtterance(x.trim());u.lang=v.lang||'es-PE';u.voice=v;yo.us.push(u);
   u.onerror=function(){if(ocVoz===yo){ocVoz=null;ocVozBtn(b,false)}};
-  if(i===trozos.length-1)u.onend=function(){if(ocVoz===yo){ocVoz=null;ocVozBtn(b,false)}};speechSynthesis.speak(u)})}
+  if(i===trozos.length-1)u.onend=function(){if(ocVoz===yo){ocVoz=null;ocVozBtn(b,false)}};try{speechSynthesis.speak(u)}catch(e){if(ocVoz===yo){ocVoz=null;ocVozBtn(b,false)}}})};
+ if(hab)setTimeout(hablar,120);else hablar()}
 // Editar en el mismo lugar: el globo se cambia por un cuadro con «Cancelar» y «Enviar».
 function ocEditar(d,m){var fu=d.parentNode;if(!fu||fu.querySelector('.ed'))return;
  if(ocVis.pend){ocAnunciar('Espera a que termine la respuesta actual para editar.');return}
@@ -1213,10 +1227,10 @@ async function ocSendAg(q,fs,rh){if(!q)q='Revisa los archivos adjuntos y resume 
  if(primero){ocEsperaIni('El agente está trabajando…');await ocEvBase(s);ocEvIniciar(s)}
  function log(a,t,x,y,z){return ocEn(s,function(){return ocLog(a,t,x,y,z)})}
  function conCtx(c){return c?c+'\n\n---\nResponde al mensaje siguiente teniendo en cuenta ese contexto:\n\n'+q:q}
- async function pedir(url,body){try{return await fetch(url,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body),signal:s.abort?s.abort.signal:undefined})}catch(e){if(s.parar)throw e;return null}}
+ async function pedir(url,body){body.mcp=ocMcp;try{return await fetch(url,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body),signal:s.abort?s.abort.signal:undefined})}catch(e){if(s.parar)throw e;return null}}
  var urec=b&&b.ocM,okT=false,noAt=0,errEl=null;
  await ocMemListo;
- try{var r=null,d=null,mcpV=ocMcp?true:undefined,memV=ocMemParaEnviar(),cuerpo={chat_id:ag,mensaje:conCtx(ctx),archivos:adj,conocidos:con,subidos:meta.map(function(m){return m.n}),mcp:mcpV,memoria:memV},uUrl='/api/agente',uCuerpo=cuerpo;
+ try{var r=null,d=null,mcpV=ocMcp,memV=ocMemParaEnviar(),cuerpo={chat_id:ag,mensaje:conCtx(ctx),archivos:adj,conocidos:con,subidos:meta.map(function(m){return m.n}),mcp:mcpV,memoria:memV},uUrl='/api/agente',uCuerpo=cuerpo;
   if(rhApi){uUrl='/api/agente/rehacer';uCuerpo={chat_id:ag,desde:rh.desde,mensaje:rh.mensaje,archivos:[],conocidos:con,mcp:mcpV,memoria:memV};r=await pedir(uUrl,uCuerpo);
    // La API aún no tiene «rehacer» (o no conoce ese chat): respaldo con un chat nuevo del agente y el contexto en un solo mensaje.
    if(r&&r.status===404){rhApi=false;ag=ocNuevoId();var cx=ocEn(s,function(){ocAgId=ag;return contextoConversacion(ocMsgs.slice(0,-1))});cuerpo.chat_id=ag;cuerpo.mensaje=conCtx(cx);uUrl='/api/agente';uCuerpo=cuerpo;r=await pedir(uUrl,uCuerpo)}
@@ -1473,7 +1487,7 @@ presetsIA().forEach(function(p){var b=document.createElement('button');b.type='b
 $('oc-form').addEventListener('submit',function(e){e.preventDefault();ocSend($('oc-in').value)});
 $('oc-in').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();ocSend($('oc-in').value)}});
 $('oc-in').addEventListener('input',ocAlto);
-$('oc-chips').addEventListener('click',function(e){var t=e.target&&e.target.closest?e.target.closest('button'):null;if(t)ocSend(t.getAttribute('data-q')||t.textContent)});
+$('oc-chips').addEventListener('click',function(e){var t=e.target&&e.target.closest?e.target.closest('button'):null;if(!t)return;if(!ocMcp){ocMcp=true;ocPrefs();ocAgUi()}ocSend(t.getAttribute('data-q')||t.textContent)});
 $('oc-barajar').addEventListener('click',function(){ocIdeas(true)});
 $('oc-nueva').addEventListener('click',function(){ocCajonCerrar(false);ocLimpiar();ocRenderChats();$('oc-in').focus()});
 $('oc-nueva2').addEventListener('click',function(){ocLimpiar();ocRenderChats();$('oc-in').focus()});
@@ -1507,6 +1521,7 @@ $('oc-ac').addEventListener('click',function(e){if(e.target===$('oc-ac'))ocAcCer
 $('oc-sh-x').addEventListener('click',ocShCerrar);
 $('oc-sh').addEventListener('click',function(e){if(e.target===$('oc-sh'))ocShCerrar()});
 $('oc-sh-crear').addEventListener('click',ocShCrear);
+if(ocVozApi()){try{speechSynthesis.getVoices();speechSynthesis.addEventListener('voiceschanged',ocVozRefrescar)}catch(e){}}
 ocLoad();ocUi();ocSwitchText();ocAgEstado();ocIdeas(false);
 // Memoria del agente: vive en este navegador (IndexedDB kv/memoria, respaldo en localStorage oc_memoria), igual que los chats. Viaja con cada mensaje.
 var ocMem={on:true,notas:[]};
@@ -1534,7 +1549,7 @@ function ocActivaRestaurar(){var id=null;try{id=localStorage.getItem('oc_chat_ac
 ocCargarChats().then(function(){var m=/[?&]abrir=([A-Za-z0-9_-]+)/.exec(location.search);if(m){ocAbrir(m[1]);try{history.replaceState(null,'','/asistente')}catch(e){}}else if(!/[?&]q=/.test(location.search))ocActivaRestaurar();ocActivaLista=true;ocActivaGuardar()}).catch(function(){ocActivaLista=true}).then(ocPreguntaUrl);
 // ?q=… (desde /demo): envía esa pregunta una sola vez, con el MCP activado, cuando ya se sabe si el agente está disponible.
 function ocPreguntaUrl(){if(typeof location==="undefined")return;var m=/[?&]q=([^&#]*)/.exec(location.search),q='';if(!m)return;try{q=decodeURIComponent(m[1].replace(/\+/g,' ')).trim().slice(0,2000)}catch(e){}
- try{history.replaceState(null,'','/asistente')}catch(e){}if(!q)return;ocMcp=true;ocAgUi();var k=0,t=setInterval(function(){if(ocAgSabe||++k>50){clearInterval(t);ocSend(q)}},100)}
+ try{history.replaceState(null,'','/asistente')}catch(e){}if(!q)return;ocMcp=true;ocPrefs();ocAgUi();var k=0,t=setInterval(function(){if(ocAgSabe||++k>50){clearInterval(t);ocSend(q)}},100)}
 `;
 
 /** Funciones puras + renderizador seguro compartidos por /asistente y /c/:id. */

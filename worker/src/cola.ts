@@ -101,7 +101,7 @@ export class ColaIA extends DurableObject {
         this.agentes.set(id, { chat_id, resolver: resolve });
         setTimeout(() => { if (this.agentes.delete(id)) resolve({ error: "El agente tardó demasiado en responder. Inténtalo de nuevo.", codigo: -2 }); }, TIEMPO_AGENTE_MS);
       });
-      try { this.conn.send(JSON.stringify({ type: "agente", id, chat_id, mensaje, archivos, ...(Number.isInteger(desde) ? { desde } : {}), ...(Number.isInteger(rama) ? { rama } : {}), ...(recuperar === true ? { recuperar: true } : {}), ...(mcp === true ? { mcp: true } : {}), ...(Array.isArray(memoria) ? { memoria } : {}), ...(conocidos ? { conocidos } : {}), ...(subidos ? { subidos } : {}) })); }
+      try { this.conn.send(JSON.stringify({ type: "agente", id, chat_id, mensaje, archivos, ...(Number.isInteger(desde) ? { desde } : {}), ...(Number.isInteger(rama) ? { rama } : {}), ...(recuperar === true ? { recuperar: true } : {}), ...(typeof mcp === "boolean" ? { mcp } : {}), ...(Array.isArray(memoria) ? { memoria } : {}), ...(conocidos ? { conocidos } : {}), ...(subidos ? { subidos } : {}) })); }
       catch { this.agentes.delete(id); return RECONECTANDO(false); }
       const r = await respuesta;
       if (r.codigo === -1) return RECONECTANDO(true);

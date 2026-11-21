@@ -531,7 +531,7 @@ export function tiempoRelativo(ts: number, ahora: number): string {
 export function textoPlano(md: unknown, voz: boolean): string {
   const out: string[] = [];
   let cod = false;
-  String(typeof md === "string" ? md : "").replace(/\r/g, "").split("\n").forEach((l) => {
+  String(typeof md === "string" ? md : "").replace(/\r/g, "").replace(/\]\s*\n\s*\((?=https?:\/\/|mailto:)/g, "](").split("\n").forEach((l) => {
     if (/^\s*`{3,}/.test(l)) { cod = !cod; return; }
     if (cod) { if (!voz) out.push(l); return; }
     const t = l.trim();
@@ -540,8 +540,8 @@ export function textoPlano(md: unknown, voz: boolean): string {
       out.push(t.replace(/^\||\|$/g, "").split("|").map((c) => c.trim().replace(/\*\*([^*]+)\*\*/g, "$1").replace(/`([^`]+)`/g, "$1")).join(voz ? ", " : "\t"));
       return;
     }
-    let x = l.replace(/^\s*#{1,6}\s+/, "").replace(/\*\*([^*]+)\*\*/g, "$1").replace(/(^|[^*])\*([^*\s][^*]*)\*(?!\*)/g, "$1$2").replace(/`([^`]+)`/g, "$1");
-    if (voz) x = x.replace(/^\s*[-*•]\s+/, "").replace(/\\[()\[\]]/g, "");
+    let x = l.replace(/\[([^\]\n]+)\]\s*\(\s*((?:https?:\/\/|mailto:)[^\s)]+)\s*\)/g, voz ? "$1" : "$1 ($2)").replace(/^\s*#{1,6}\s+/, "").replace(/\*\*([^*]+)\*\*/g, "$1").replace(/(^|[^*])\*([^*\s][^*]*)\*(?!\*)/g, "$1$2").replace(/`([^`]+)`/g, "$1");
+    if (voz) x = x.replace(/\(?https?:\/\/[^\s<>")]+\)?/g, "").replace(/ {2,}/g, " ").replace(/^\s*[-*•]\s+/, "").replace(/\\[()\[\]]/g, "");
     out.push(x);
   });
   return out.join("\n").replace(/\n{3,}/g, "\n\n").trim();
