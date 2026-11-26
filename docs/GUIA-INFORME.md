@@ -513,6 +513,7 @@ Nota: «"Sin reintentos" se midió desde la pregunta B08.» Fuente: elaboración
 1. Abrir `eval/resultados/resultados.csv` en Excel → filtrar `condicion = sin_mcp` y la columna `revisar` no vacía → 20 filas.
 2. Cada uno, **por separado**, lee la respuesta en `/evaluacion` («Ver respuesta») y anota: ¿exacta? ¿información inventada según la definición única? (sí/no).
 3. Contar en cuántas de las 20 coinciden los dos y en cuántas cambia el veredicto automático. Eso va en 4.4.
+4. Apoyo: una [revisión independiente asistida por IA](../eval/resultados/revision_ia_casos_revisar.md) coincide con el automático en 16 de 20 casos; cambian 4 «inventada» sí→no (fuente real con otra medida); ninguna exacta nueva. Pendiente de confirmación: comprueben al menos 5 casos a mano antes de citarla y descríbanla en el informe como «revisión asistida por IA confirmada por el grupo», no como revisión manual de dos integrantes.
 
 ### 4.8 Datos de apoyo de la última medición (20/11; sin redactar)
 

@@ -1,0 +1,21 @@
+id,pregunta_corta,veredicto_auto_exacta,veredicto_auto_inventada,ia_exacta,ia_inventada,ia_cita,coincide,justificacion
+B03,¿Cuántos proyectos de agua y saneamiento tienen a su cargo las municip,no,sí,no,no,sí,no,"Responde «10 proyectos» (PNSU, nota 27/06/2023, con enlace) frente a 82 oficiales: no exacta. Cifra de fuente real, fechada y no comparable; aclara que no distingue municipalidades. No fabricada."
+B05,¿Cuántos proyectos que mencionan un puente hay en Amazonas?,no,no,no,no,sí,sí,No da conteo (oficial 329); remite al Banco de Inversiones y datos abiertos MEF con enlace. Abstención.
+B08,¿Cuántos proyectos de comisarías hay registrados en el departamento de,no,no,no,no,sí,sí,No da conteo (oficial 38); indica cómo filtrar en el Banco de Inversiones. Abstención.
+D01,¿Qué avance físico tiene la obra con código 2194680?,no,no,no,no,sí,sí,No da avance (oficial 71.74 %); remite a SSI/INFOBRAS. Abstención.
+D02,¿Hace cuánto que no se gasta en la inversión 2488996 y está en riesgo ,no,no,no,no,sí,sí,No da meses sin devengado (oficial 10); relata antecedentes con resoluciones citadas y dice que no puede afirmar riesgo. El «100 %» detectado no es una cifra de respuesta.
+D03,¿Cuánto se ha devengado este año en el proyecto 2251136?,no,no,no,no,sí,sí,"No da monto devengado (oficial S/ 33,283,727.74); remite al SSI. Abstención."
+D04,¿Cuánto ha subido el costo de la obra 2226075 respecto a lo aprobado?,no,no,no,no,sí,sí,No da el incremento (oficial 578.39 %); solo explica la fórmula. Abstención.
+D07,¿A cuántas personas beneficia la obra 2178454?,no,no,no,no,sí,sí,"No da beneficiarios (oficial 1,265,175). Abstención."
+D09,¿Cuál es el presupuesto modificado de este año para el control de desb,no,no,no,no,sí,sí,"Da S/ 88,888,037 «asignado 2026» (Congreso/GR Ica) frente al PIM oficial S/ 56,435,765: no exacta; aclara que no puede confirmar que sea el PIM. Cifra de fuente citada, no fabricada."
+A01,¿Cuántas obras de Ayacucho podrían estar paralizadas?,no,sí,no,no,sí,no,"Responde 150 obras paralizadas (Contraloría, 30/06/2026, con enlace) frente a 815 con alerta MEF: no exacta. Es otra medida de fuente real, no inventada."
+A04,¿Cuántas obras municipales en Cajamarca tienen señales de estar parali,no,sí,no,no,sí,no,"Responde 140 obras (Contraloría, 31/03/2026) frente a 622 oficiales; aclara que son los tres niveles. No exacta; otra medida de fuente real."
+A05,¿Cuántos colegios u obras educativas del Gobierno Regional en Ica podr,no,no,no,no,sí,sí,"Da 7, 6 y 31 obras de informes del Congreso/Contraloría, sin responder el 9 oficial; sin cifra única presentada como respuesta."
+A06,¿Cuántos proyectos de seguridad ciudadana en Lima tienen sobrecostos d,no,no,no,no,sí,sí,No da conteo (oficial 125); remite a la base de MININTER. Abstención.
+A07,"En Tacna, ¿cuál es la obra con alerta de paralización que lleva más ti",no,sí,no,no,sí,no,"Señala CUI 2383907 (Electrosur, último avance oct. 2020) en vez de 2060020 (167 meses sin devengado): incorrecta. Criterio y fuente distintos (Contraloría/Electrosur citadas), no inventada del todo."
+A08,¿Cuántos proyectos de transporte del Gobierno Nacional tienen sobrecos,no,no,no,no,sí,sí,"Da 539 proyectos y 106 % promedio (CPC 4T-2024, con enlace) y dice que no responde el umbral de 50 % (oficial 325). Abstención con datos de contexto."
+R02,¿Cuánto ha gastado este año el Gobierno Regional de Arequipa en sus pr,no,no,no,no,no,sí,"Da S/ 543.56 millones ene-jul 2026 (GR Arequipa) frente a S/ 983,110,974.33 oficiales: no exacta; avisa que es parcial. Fuente sin enlace (marcadores rotos): cita débil."
+R04,¿Cuántas inversiones públicas tiene registradas Tumbes?,no,no,no,no,sí,sí,"No da total (oficial 1,673); remite a consulta avanzada MEF. Abstención."
+R05,¿Cuánto ha devengado este año el Gobierno Nacional en educación en Uca,no,no,no,no,sí,sí,"No da monto (oficial S/ 12,384,390.04); remite a datos abiertos MEF. Abstención."
+R07,¿Cuánto se ha devengado en 2026 en inversiones públicas en San Martín?,no,no,no,no,sí,sí,"No da monto (oficial S/ 1,120,670,910.26); las cifras detectadas son códigos de cita. Abstención."
+R08,¿Cuánto le falta ejecutar al Gobierno Nacional en sus proyectos del Ca,no,no,no,no,sí,sí,"No da saldo (oficial S/ 42,176,606,763.95); explica fórmula. Las cifras detectadas son códigos de cita. Abstención."
