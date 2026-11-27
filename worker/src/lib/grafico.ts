@@ -9,8 +9,22 @@ export interface Grafico { tipo: TipoGrafico; titulo: string; x: string[]; serie
 /** Lee y valida el JSON de un bloque ```grafico. Devuelve null si no sirve (entonces se muestra como código). */
 export function validarGrafico(texto: string): Grafico | null {
   let o: any;
-  try { o = JSON.parse(String(texto).trim()); } catch (e) { return null; }
+  // Tolerante con lo que suelen escribir los modelos: comentarios, comas finales, comillas tipográficas, texto alrededor del objeto.
+  let t = String(texto).replace(/^\uFEFF/, "").replace(/[\u201C\u201D]/g, '"').trim();
+  try { o = JSON.parse(t); } catch (e) {
+    const a = t.indexOf("{"), b = t.lastIndexOf("}");
+    if (a < 0 || b <= a) return null;
+    t = t.slice(a, b + 1).replace(/("(?:[^"\\]|\\.)*")|\/\*[\s\S]*?\*\/|\/\/[^\n]*/g, (m, q) => q || "").replace(/,(\s*[}\]])/g, "$1");
+    try { o = JSON.parse(t); } catch (e2) { return null; }
+  }
+  if (o && typeof o === "object" && !Array.isArray(o) && o.grafico && typeof o.grafico === "object") o = o.grafico;
   if (!o || typeof o !== "object" || Array.isArray(o)) return null;
+  // Alias de campos en inglés u otros nombres frecuentes.
+  if (!Array.isArray(o.x)) o.x = o.categorias ?? o.etiquetas ?? o.labels ?? o.categories;
+  if (o.tipo == null) o.tipo = o.type ?? o.tipo_grafico;
+  if (!Array.isArray(o.series) && Array.isArray(o.datasets)) o.series = o.datasets;
+  if (!Array.isArray(o.series) && Array.isArray(o.valores)) o.series = [{ nombre: o.nombre ?? "", valores: o.valores }];
+  if (Array.isArray(o.series)) o.series = o.series.map((s: any) => (s && typeof s === "object" && !Array.isArray(s.valores) ? { ...s, nombre: s.nombre ?? s.name ?? s.label, valores: s.values ?? s.data } : s));
   const alias: Record<string, TipoGrafico> = {
     barras: "barras", barh: "barras", horizontal: "barras", columnas: "columnas", bar: "columnas", barra: "columnas", column: "columnas",
     lineas: "lineas", "líneas": "lineas", linea: "lineas", line: "lineas", torta: "torta", pie: "torta", pastel: "torta", dona: "torta",
@@ -29,7 +43,9 @@ export function validarGrafico(texto: string): Grafico | null {
   const series: SerieGrafico[] = [];
   for (let j = 0; j < o.series.length; j++) {
     const s = o.series[j];
-    if (!s || typeof s !== "object" || !Array.isArray(s.valores) || s.valores.length !== n) return null;
+    if (!s || typeof s !== "object" || !Array.isArray(s.valores) || s.valores.length < 1) return null;
+    if (s.valores.length > n) s.valores = s.valores.slice(0, n);
+    while (s.valores.length < n) s.valores = [...s.valores, null];
     const vals: (number | null)[] = [];
     let hay = false;
     for (let i = 0; i < n; i++) {

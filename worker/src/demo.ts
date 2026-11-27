@@ -672,7 +672,7 @@ function ocTex(s){var x=String(s),k=0;
 ` + "\n" + graficoJs + "\n" + String.raw`function ocMd(el,txt){var lst=null,p=null,tb=null,cod=null,fx=null,prev=null;
  function fdiv(s){var d=document.createElement('div');d.className='fm';d.textContent=ocTex(s);el.appendChild(d);prev=d}
  ocLimpia(txt).replace(/\]\s*\n\s*\((?=https?:\/\/|mailto:)/g,'](').replace(/\\\(([^\n]*?)\\\)/g,function(m,a){return ocTex(a)}).split('\n').forEach(function(l){var t=l.trim(),mm=/^([-*•]|\d+[.)])\s+(.*)$/.exec(t),fm=OC_FENCE.exec(l);
- if(cod){if(fm&&fm[1].length>=cod.n&&!fm[2].trim()){if(cod.lg==='grafico'&&typeof ocGrafico==='function'){var gv=validarGrafico(cod.pre.textContent);if(gv)cod.w.parentNode.replaceChild(ocGrafico(gv),cod.w)}cod=null;return}cod.pre.appendChild(document.createTextNode((cod.k++?'\n':'')+l));return}
+ if(cod){if(fm&&fm[1].length>=cod.n&&!fm[2].trim()){if(/^(gr[aá]fico|chart|json|)$/.test(cod.lg)&&typeof ocGrafico==='function'){var gv=validarGrafico(cod.pre.textContent);if(gv&&cod.lg!=='grafico'&&cod.lg!=='gráfico'&&cod.lg!=='chart'&&!/"tipo"/.test(cod.pre.textContent))gv=null;if(gv)cod.w.parentNode.replaceChild(ocGrafico(gv),cod.w)}cod=null;return}cod.pre.appendChild(document.createTextNode((cod.k++?'\n':'')+l));return}
  if(fx!==null){var fin=fx.c==='$$'?t.lastIndexOf('$$'):t.lastIndexOf('\\]');if(fin>=0&&fin===t.length-2){fdiv(fx.s+' '+t.slice(0,fin));fx=null}else fx.s+=' '+t;return}
  if(t.slice(0,2)==='\\['||t.slice(0,2)==='$$'){lst=null;p=null;tb=null;var cc=t.slice(0,2)==='$$'?'$$':'\\]',rest=t.slice(2);
   if(rest.length>=2&&rest.slice(-2)===cc){fdiv(rest.slice(0,-2));return}fx={c:cc,s:rest};return}
@@ -696,6 +696,7 @@ function ocTex(s){var x=String(s),k=0;
  // Párrafo sangrado bajo un ítem numerado: sigue dentro del ítem.
  if(ind&&lst&&lst.ocOrd&&lst.lastChild){var q=document.createElement('p');q.className='li-p';ocInl(q,t);lst.lastChild.appendChild(q);return}
  lst=null;if(!p){p=document.createElement('p');el.appendChild(p);prev=p}else p.appendChild(document.createElement('br'));ocInl(p,t)});
+ if(cod&&/^(gr[aá]fico|chart)$/.test(cod.lg)&&typeof ocGrafico==='function'){var gz=validarGrafico(cod.pre.textContent);if(gz)cod.w.parentNode.replaceChild(ocGrafico(gz),cod.w)}
  if(fx!==null)fdiv(fx.s)}
 function ocTam(c){return c>=1000?(Math.round(c/100)/10)+' k car.':c+' car.'}
 function ocChip(m,leyendo,quitar){var w=document.createElement('div');w.className='th dchip';

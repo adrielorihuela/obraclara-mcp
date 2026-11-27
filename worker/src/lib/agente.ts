@@ -570,7 +570,7 @@ export function graficosMd(md: unknown): string[] {
     const f = /^\s*`{3,}\s*(.*)$/.exec(l);
     if (f) {
       if (dentro) { if (cur) out.push(cur.join("\n")); cur = null; dentro = false; }
-      else { dentro = true; cur = f[1].trim().toLowerCase() === "grafico" ? [] : null; }
+      else { dentro = true; cur = /^(gr[aá]fico|chart)$/.test(f[1].trim().toLowerCase()) ? [] : null; }
       return;
     }
     if (dentro && cur) cur.push(l);

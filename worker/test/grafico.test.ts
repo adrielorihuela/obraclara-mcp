@@ -22,7 +22,7 @@ describe("validarGrafico", () => {
     expect(validarGrafico("{tipo:barras")).toBeNull();
     expect(validarGrafico("[]")).toBeNull();
     expect(validarGrafico('{"tipo":"radar","x":["a"],"series":[{"valores":[1]}]}')).toBeNull();
-    expect(validarGrafico('{"tipo":"barras","x":["a","b"],"series":[{"valores":[1]}]}')).toBeNull();
+    expect(validarGrafico('{"tipo":"barras","x":["a","b"],"series":[{"valores":[1]}]}')?.series[0].valores).toEqual([1, null]); // serie corta: se completa con vacíos
     expect(validarGrafico('{"tipo":"barras","x":["a"],"series":[{"valores":["x"]}]}')).toBeNull();
     expect(validarGrafico('{"tipo":"barras","x":[],"series":[]}')).toBeNull();
     expect(validarGrafico('{"tipo":"torta","x":["a","b"],"series":[{"valores":[-1,2]}]}')).toBeNull();
@@ -58,7 +58,7 @@ describe("gráficos en el script del navegador", () => {
     expect(demoComun).not.toContain("__name");
     expect(demoScript).toContain("function validarGrafico");
     expect(demoScript).toContain("function ocGrafico");
-    expect(demoScript).toContain("cod.lg==='grafico'");
+    expect(demoScript).toContain("validarGrafico(cod.pre.textContent)");
     expect(demoCss).toContain(".ocg-tip");
     expect(demoCss).toContain("prefers-reduced-motion");
     // El gráfico se define antes de ocMd para que /demo (que copia desde OC_FENCE hasta ocTam) también lo tenga.
@@ -74,5 +74,18 @@ describe("gráficos en el script del navegador", () => {
   it("no usa innerHTML en el renderizador de gráficos", () => {
     const g = demoComun.slice(demoComun.indexOf("var OC_GNS"), demoComun.indexOf("function ocMd("));
     expect(g).not.toMatch(/innerHTML|insertAdjacentHTML|outerHTML/);
+  });
+});
+
+describe("validarGrafico tolerante", () => {
+  const base = '{"tipo":"barras","titulo":"T","x":["Cusco","Lima"],"series":[{"nombre":"A","valores":[2782,2275]}]}';
+  it("acepta comentarios, comas finales, comillas tipográficas y texto alrededor", () => {
+    expect(validarGrafico('{"tipo":"barras", // c\n "x":["A","B",],"series":[{"nombre":"s","valores":[1,2],},], /* x */}')).toMatchObject({ x: ["A", "B"] });
+    expect(validarGrafico(base.replace(/"/g, (m, i) => (i === 1 ? "“" : m)))).not.toBeNull();
+    expect(validarGrafico("Aquí va:\n" + base + "\nlisto")).toMatchObject({ series: [{ valores: [2782, 2275] }] });
+  });
+  it("acepta alias en inglés y largos distintos", () => {
+    expect(validarGrafico('{"type":"bar","labels":["A","B"],"datasets":[{"label":"s","data":[1,2,3]}]}')).toMatchObject({ tipo: "columnas", series: [{ nombre: "s", valores: [1, 2] }] });
+    expect(validarGrafico('{"grafico":' + base + "}")).not.toBeNull();
   });
 });
