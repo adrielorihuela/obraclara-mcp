@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/server";
 import * as z from "zod/v4";
-import { alertas, buscar, detalle, meta, resumen, type Db, type Filtros } from "./lib/queries";
+import { AGRUPACIONES, alertas, buscar, detalle, meta, resumen, resumenAgrupado, type Db, type Filtros } from "./lib/queries";
 
 export const INSTRUCCIONES = `ObraClara Perú consulta las inversiones públicas activas del Ministerio de Economía y Finanzas (MEF, Banco de Inversiones).
 Reglas para responder:
@@ -73,7 +73,7 @@ export function crearServidor(db: Db): McpServer {
     "alertas_inversion",
     {
       description:
-        "Lista inversiones con alerta. 'sobrecosto': (costo actualizado - monto viable) / monto viable >= 50 %. 'paralizacion': avance físico entre 40 % y 99 % y 6 meses o más sin gasto devengado. Son indicios, no prueba de irregularidades.",
+        "Lista inversiones con alerta (muestra hasta 20; 'total' es el conteo exacto del filtro). Para contar alertas por departamento u otro grupo usa resumen_inversiones con agrupar_por. 'sobrecosto': (costo actualizado - monto viable) / monto viable >= 50 %. 'paralizacion': avance físico entre 40 % y 99 % y 6 meses o más sin gasto devengado. Son indicios, no prueba de irregularidades.",
       inputSchema: z.object({ tipo: z.enum(["sobrecosto", "paralizacion"]), ...filtros, limite }),
     },
     async (a) => {
@@ -87,11 +87,21 @@ export function crearServidor(db: Db): McpServer {
   server.registerTool(
     "resumen_inversiones",
     {
-      description: "Resume un conjunto de inversiones: cantidad, costo actualizado total, devengado del año, saldo por ejecutar y cantidad de alertas de cada tipo. Filtra por entidad, departamento, función o nivel.",
-      inputSchema: z.object({ ...filtros }),
+      description: "Resume un conjunto de inversiones: cantidad, costo actualizado total, devengado del año, saldo por ejecutar y cantidad de alertas de cada tipo. Filtra por entidad, departamento, función o nivel. Con agrupar_por (departamento, funcion, nivel o entidad) devuelve esos totales EXACTOS por grupo, ordenados por 'ordenar_por': úsalo para rankings y gráficos (p. ej. 'los 5 departamentos con más alertas de sobrecosto'); nunca cuentes filas de alertas_inversion o buscar_inversiones, que solo muestran hasta 20.",
+      inputSchema: z.object({
+        ...filtros,
+        agrupar_por: z.enum(AGRUPACIONES).optional().describe("Agrupa y da totales exactos por departamento, funcion, nivel o entidad"),
+        ordenar_por: z.enum(["inversiones", "costo", "sobrecosto", "paralizacion"]).optional().describe("Con agrupar_por: orden descendente por cantidad de inversiones, costo actualizado total, alertas de sobrecosto o de paralización"),
+        limite: z.number().int().min(1).max(30).optional().describe("Con agrupar_por: cantidad de grupos (por defecto y máximo 30)"),
+      }),
     },
     async (a) => {
-      try { return ok(await resumen(db, a as Filtros), await meta(db), AVISO_ALERTAS); }
+      try {
+        const { agrupar_por, ordenar_por, limite: l, ...f } = a;
+        const m = await meta(db);
+        if (agrupar_por) return ok(await resumenAgrupado(db, f as Filtros, agrupar_por, ordenar_por, l), m, AVISO_ALERTAS);
+        return ok(await resumen(db, f as Filtros), m, AVISO_ALERTAS);
+      }
       catch (e) { return fallo((e as Error).message); }
     },
   );

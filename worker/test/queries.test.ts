@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { alertas, buscar, codigoNivel, detalle, normalizar, resumen } from "../src/lib/queries";
+import { alertas, buscar, codigoNivel, detalle, normalizar, resumen, resumenAgrupado } from "../src/lib/queries";
 import { dbEnMemoria, fila } from "./d1fake";
 
 const db = dbEnMemoria([
@@ -49,5 +49,19 @@ describe("alertas", () => {
 describe("resumen", () => {
   it("agrega cantidad, costo y alertas", async () => {
     expect(await resumen(db, { departamento: "cusco" })).toMatchObject({ inversiones: 2, costo_actualizado_total: 9300000, alertas_sobrecosto: 1, alertas_paralizacion: 1 });
+  });
+});
+
+describe("resumen agrupado", () => {
+  it("cuenta alertas exactas por departamento y ordena el ranking", async () => {
+    const filas = [];
+    for (let i = 0; i < 30; i++) filas.push(fila({ codigo_unico: `c${i}`, nombre: "X", entidad: "E", departamento: "CUSCO", alerta_sobrecosto: 1 }));
+    for (let i = 0; i < 25; i++) filas.push(fila({ codigo_unico: `l${i}`, nombre: "X", entidad: "E", departamento: "LIMA", alerta_sobrecosto: i < 22 ? 1 : 0, alerta_paralizacion: 1 }));
+    filas.push(fila({ codigo_unico: "p", nombre: "X", entidad: "E", departamento: "PIURA" }));
+    const r = await resumenAgrupado(dbEnMemoria(filas), {}, "departamento", "sobrecosto", 2);
+    expect(r.total_grupos).toBe(3);
+    expect(r.grupos).toMatchObject([{ grupo: "CUSCO", alertas_sobrecosto: 30 }, { grupo: "LIMA", alertas_sobrecosto: 22, alertas_paralizacion: 25, inversiones: 25 }]);
+    const p = await resumenAgrupado(dbEnMemoria(filas), {}, "departamento", "paralizacion", 1);
+    expect(p.grupos[0]).toMatchObject({ grupo: "LIMA", alertas_paralizacion: 25 });
   });
 });

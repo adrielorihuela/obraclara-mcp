@@ -94,14 +94,31 @@ export async function alertas(db: Db, tipo: TipoAlerta, f: Filtros, limite = LIM
   return { total: total?.n ?? 0, mostrados: results.length, inversiones: results };
 }
 
+export const AGRUPACIONES = ["departamento", "funcion", "nivel", "entidad"] as const;
+export type Agrupacion = (typeof AGRUPACIONES)[number];
+const ORDENES = { inversiones: "inversiones", costo: "costo_actualizado_total", sobrecosto: "alertas_sobrecosto", paralizacion: "alertas_paralizacion" } as const;
+export type OrdenResumen = keyof typeof ORDENES;
+
+const AGREGADOS = `COUNT(*) AS inversiones, ROUND(SUM(costo_actualizado), 2) AS costo_actualizado_total,
+      ROUND(SUM(dev_anio), 2) AS devengado_anio_actual, ROUND(SUM(CASE WHEN saldo_ejecutar > 0 THEN saldo_ejecutar ELSE 0 END), 2) AS saldo_por_ejecutar,
+      SUM(alerta_sobrecosto) AS alertas_sobrecosto, SUM(alerta_paralizacion) AS alertas_paralizacion`;
+
 export async function resumen(db: Db, f: Filtros) {
   const { where, params } = construirWhere(f);
-  return db
-    .prepare(`SELECT COUNT(*) AS inversiones, ROUND(SUM(costo_actualizado), 2) AS costo_actualizado_total,
-      ROUND(SUM(dev_anio), 2) AS devengado_anio_actual, ROUND(SUM(CASE WHEN saldo_ejecutar > 0 THEN saldo_ejecutar ELSE 0 END), 2) AS saldo_por_ejecutar,
-      SUM(alerta_sobrecosto) AS alertas_sobrecosto, SUM(alerta_paralizacion) AS alertas_paralizacion
-      FROM inversiones ${where}`)
-    .bind(...params).first();
+  return db.prepare(`SELECT ${AGREGADOS} FROM inversiones ${where}`).bind(...params).first();
+}
+
+// Totales exactos por grupo (todas las filas, no una muestra): para rankings y gráficos por departamento, función, etc.
+export async function resumenAgrupado(db: Db, f: Filtros, por: Agrupacion, orden: OrdenResumen = "inversiones", limite = 30) {
+  if (!AGRUPACIONES.includes(por)) throw new Error(`agrupar_por no válido: ${por}`);
+  const col = ORDENES[orden] ?? ORDENES.inversiones;
+  const lim = Math.min(Math.max(1, limite), 30);
+  const { where, params } = construirWhere(f);
+  const { results } = await db
+    .prepare(`SELECT ${por} AS grupo, ${AGREGADOS} FROM inversiones ${where} GROUP BY ${por} ORDER BY ${col} DESC LIMIT ?`)
+    .bind(...params, lim).all();
+  const tot = await db.prepare(`SELECT COUNT(DISTINCT ${por}) AS n FROM inversiones ${where}`).bind(...params).first<{ n: number }>();
+  return { agrupado_por: por, ordenado_por: col, total_grupos: tot?.n ?? 0, mostrados: results.length, grupos: results };
 }
 
 export async function meta(db: Db): Promise<Record<string, string>> {
